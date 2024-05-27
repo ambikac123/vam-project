@@ -1,5 +1,6 @@
 package com.dreamsol.exceptions;
 
+import com.dreamsol.dtos.responseDtos.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -23,5 +24,13 @@ public class GlobalExceptionHandler
             errorResponseMap.put(fieldName, message);
         });
         return new ResponseEntity<>(errorResponseMap, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiResponse> resourceNotFoundExceptionHandler(ResourceNotFoundException ex)
+    {
+        String message = ex.getMessage();
+        ApiResponse apiResponse = new ApiResponse(message, false);
+        return new ResponseEntity<ApiResponse>(apiResponse, HttpStatus.NOT_FOUND);
     }
 }

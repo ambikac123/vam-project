@@ -19,5 +19,6 @@ public class CommonAutoIdEntityResponseDto {
     private String createdBy;
 
     private String updatedBy;
+
     private boolean status;
 }
