@@ -4,6 +4,8 @@ import com.dreamsol.dtos.requestDtos.PlantRequestDto;
 import com.dreamsol.dtos.responseDtos.PlantResponseDto;
 import com.dreamsol.services.PlantService;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,9 +17,9 @@ import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api/plants")
+@RequiredArgsConstructor
 public class PlantController {
 
-    @Autowired
     private PlantService plantService;
 
     @PostMapping("/create-plant")

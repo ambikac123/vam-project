@@ -40,7 +40,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         // Check if the unit exists
         Optional<Unit> unit = unitRepository.findByUnitName(departmentRequestDto.getUnit().getUnitName());
         if (!unit.isPresent()) {
-            throw new RuntimeException("Choose a valid unit");
+            throw new RuntimeException("Choose a valid Unit");
         }
 
         Department department = DtoUtilities.departmentRequestDtoToDepartment(departmentRequestDto);

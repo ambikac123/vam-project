@@ -1,15 +1,21 @@
 package com.dreamsol.utility;
 
+import com.dreamsol.dtos.requestDtos.ContactRequestDto;
 import com.dreamsol.dtos.requestDtos.DepartmentRequestDto;
 import com.dreamsol.dtos.requestDtos.PlantRequestDto;
+import com.dreamsol.dtos.requestDtos.PurposeRequestDto;
 import com.dreamsol.dtos.requestDtos.UnitRequestDto;
 import com.dreamsol.dtos.requestDtos.UserRequestDto;
+import com.dreamsol.dtos.responseDtos.ContactResponseDto;
 import com.dreamsol.dtos.responseDtos.DepartmentResponseDto;
 import com.dreamsol.dtos.responseDtos.PlantResponseDto;
+import com.dreamsol.dtos.responseDtos.PurposeResponseDto;
 import com.dreamsol.dtos.responseDtos.UnitResponseDto;
 import com.dreamsol.dtos.responseDtos.UserResponseDto;
+import com.dreamsol.entites.Contact;
 import com.dreamsol.entites.Department;
 import com.dreamsol.entites.Plant;
+import com.dreamsol.entites.Purpose;
 import com.dreamsol.entites.Unit;
 import com.dreamsol.entites.User;
 import lombok.RequiredArgsConstructor;
@@ -129,5 +135,49 @@ public class DtoUtilities {
         DepartmentResponseDto departmentResponseDto = new DepartmentResponseDto();
         BeanUtils.copyProperties(department, departmentResponseDto);
         return departmentResponseDto;
+    }
+
+    public static Contact contactRequestDtoToContact(ContactRequestDto contactRequestDto) {
+        Contact contact = new Contact();
+        BeanUtils.copyProperties(contactRequestDto, contact);
+        contact.setUnit(DtoUtilities.unitRequestDtoToUnit(contactRequestDto.getUnit()));
+        contact.setDepartment(DtoUtilities.departmentRequestDtoToDepartment(contactRequestDto.getDepartment()));
+        contact.setCreatedAt(LocalDateTime.now());
+        contact.setUpdatedAt(LocalDateTime.now());
+        return contact;
+    }
+
+    public static Contact contactRequestDtoToContact(Contact contact, ContactRequestDto contactRequestDto) {
+        BeanUtils.copyProperties(contactRequestDto, contact);
+        contact.setUnit(DtoUtilities.unitRequestDtoToUnit(contactRequestDto.getUnit()));
+        contact.setDepartment(DtoUtilities.departmentRequestDtoToDepartment(contactRequestDto.getDepartment()));
+        contact.setUpdatedAt(LocalDateTime.now());
+        return contact;
+    }
+
+    public static ContactResponseDto contactToContactResponseDto(Contact contact) {
+        ContactResponseDto contactResponseDto = new ContactResponseDto();
+        BeanUtils.copyProperties(contact, contactResponseDto);
+        contactResponseDto.setUnit(DtoUtilities.unitToUnitResponseDtoForDep(contact.getUnit()));
+        contactResponseDto
+                .setDepartment(DtoUtilities.departmentToDepartmentResponseDtoForUnit(contact.getDepartment()));
+        return contactResponseDto;
+    }
+
+    public static Purpose purposeRequestDtoToPurpose(PurposeRequestDto purposeRequestDto) {
+        Purpose purpose = new Purpose();
+        BeanUtils.copyProperties(purposeRequestDto, purpose);
+        return purpose;
+    }
+
+    public static Purpose purposeRequestDtoToPurpose(Purpose purpose, PurposeRequestDto purposeRequestDto) {
+        BeanUtils.copyProperties(purposeRequestDto, purpose);
+        return purpose;
+    }
+
+    public static PurposeResponseDto purposeToPurposeResponseDto(Purpose purpose) {
+        PurposeResponseDto purposeResponseDto = new PurposeResponseDto();
+        BeanUtils.copyProperties(purpose, purposeResponseDto);
+        return purposeResponseDto;
     }
 }

@@ -20,4 +20,5 @@ public class Plant extends CommonAutoIdEntity {
 
     @Column(nullable = false, length = 250)
     private String plantBrief;
+
 }

@@ -13,11 +13,13 @@ import com.dreamsol.dtos.requestDtos.DepartmentRequestDto;
 import com.dreamsol.dtos.responseDtos.DepartmentResponseDto;
 import com.dreamsol.services.DepartmentService;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/api/departments")
+@RequiredArgsConstructor
 public class DepartmentController {
 
-    @Autowired
     private DepartmentService departmentService;
 
     @PostMapping("/create-department")
