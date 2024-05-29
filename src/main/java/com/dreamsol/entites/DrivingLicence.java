@@ -32,6 +32,6 @@ public class DrivingLicence extends  CommonAutoIdEntity{
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "fileId")
-    private LicenceAttachment file;
+    private DrivingLicenceAttachment file;
 
 }

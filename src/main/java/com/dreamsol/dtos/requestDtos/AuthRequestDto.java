@@ -1,6 +1,5 @@
 package com.dreamsol.dtos.requestDtos;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 

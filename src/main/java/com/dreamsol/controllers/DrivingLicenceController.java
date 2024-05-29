@@ -5,6 +5,7 @@ import com.dreamsol.dtos.responseDtos.DrivingLicenceResDto;
 import com.dreamsol.services.DrivingLicenceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -12,10 +13,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/licence")
+@RequestMapping("/api/driving-licence")
 public class DrivingLicenceController {
 
     private final DrivingLicenceService drivingLicenceService;
@@ -29,14 +31,15 @@ public class DrivingLicenceController {
         return drivingLicenceService.addLicence(licenceReqDto, file, uploadDir);
     }
 
-    @DeleteMapping("/delete/{Id}")
+    @DeleteMapping("/delete/{licenceId}")
     public ResponseEntity<?> deleteLicence(@PathVariable Long licenceId) {
         return drivingLicenceService.deleteLicence(licenceId);
     }
 
     @PutMapping("/update/{licenceId}")
-    public ResponseEntity<?> updateLicence(@RequestBody DrivingLicenceReqDto drivingLicenceReqDto, @PathVariable Long licenceId) {
-        return drivingLicenceService.updateLicence(drivingLicenceReqDto, licenceId);
+    public ResponseEntity<?> updateLicence(@RequestPart DrivingLicenceReqDto drivingLicenceReqDto, @PathVariable Long licenceId,
+                                           @RequestParam("file") MultipartFile file) {
+        return drivingLicenceService.updateLicence(drivingLicenceReqDto, licenceId,file,uploadDir);
     }
 
     @GetMapping("/get/{licenceId}")
@@ -51,5 +54,11 @@ public class DrivingLicenceController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy) {
         return drivingLicenceService.fetchAllDrivers(search, page, size, sortBy);
+    }
+
+
+    @GetMapping(path = "/download/{fileName}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) throws IOException {
+        return drivingLicenceService.getFile(fileName, uploadDir);
     }
 }

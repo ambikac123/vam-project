@@ -9,7 +9,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
@@ -43,22 +42,23 @@ public class FileService {
         return newFileName;
     }
 
-    public byte[] getFile(String path, String fileName) throws IOException {
-        String fullPath = path + fileName;
+    public byte[] getFile( String uploadDir,String fileName) throws IOException {
+        String fullPath = uploadDir + fileName;
         InputStream stream = new FileInputStream(fullPath);
         byte[] bytes = stream.readAllBytes();
         stream.close();
         return bytes;
     }
 
-    public boolean deleteFile(String path, String fileName) {
-        Path filePath = Paths.get(path, fileName);
-        try {
-            Files.delete(filePath);
-            return true;
-        } catch (IOException exception) {
-            exception.printStackTrace();
-            return false;
-        }
-    }
+
+//    public boolean deleteFile(String path, String fileName) {
+//        Path filePath = Paths.get(path, fileName);
+//        try {
+//            Files.delete(filePath);
+//            return true;
+//        } catch (IOException exception) {
+//            exception.printStackTrace();
+//            return false;
+//        }
+//    }
 }
