@@ -15,6 +15,5 @@ public class ContactResponseDto extends CommonAutoIdEntityResponseDto {
     private String email;
     private String contactName;
     private String communicationName;
-    private UnitResponseDto unit;
     private DepartmentResponseDto department;
 }

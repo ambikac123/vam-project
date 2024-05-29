@@ -7,7 +7,9 @@ import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.repositories.PurposeRepository;
 import com.dreamsol.services.PurposeService;
 import com.dreamsol.utility.DtoUtilities;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,10 +18,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Service
+@RequiredArgsConstructor
 public class PurposeServiceImpl implements PurposeService {
 
-    @Autowired
-    private PurposeRepository purposeRepository;
+    private final PurposeRepository purposeRepository;
 
     @Override
     public PurposeResponseDto createPurpose(PurposeRequestDto purposeRequestDto) {

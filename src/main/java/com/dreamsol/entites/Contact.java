@@ -33,10 +33,6 @@ public class Contact extends CommonAutoIdEntity {
     private String communicationName;
 
     @ManyToOne
-    @JoinColumn(name = "unitId")
-    private Unit unit;
-
-    @ManyToOne
     @JoinColumn(name = "departmentId")
     private Department department;
 }

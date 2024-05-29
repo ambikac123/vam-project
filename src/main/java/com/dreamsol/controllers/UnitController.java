@@ -13,13 +13,12 @@ import com.dreamsol.dtos.requestDtos.UnitRequestDto;
 import com.dreamsol.dtos.responseDtos.UnitResponseDto;
 import com.dreamsol.services.UnitService;
 
-import lombok.RequiredArgsConstructor;
-
 @RestController
 @RequestMapping("/api/units")
-@RequiredArgsConstructor
+
 public class UnitController {
 
+    @Autowired
     private UnitService unitService;
 
     @PostMapping("/create-unit")

@@ -8,7 +8,8 @@ import com.dreamsol.services.PlantService;
 import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.utility.DtoUtilities;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,10 +18,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Service
+@RequiredArgsConstructor
 public class PlantServiceImpl implements PlantService {
 
-    @Autowired
-    private PlantRepository plantRepository;
+    private final PlantRepository plantRepository;
 
     @Override
     public PlantResponseDto createPlant(PlantRequestDto plantRequestDto) {

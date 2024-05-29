@@ -4,15 +4,14 @@ import com.dreamsol.dtos.requestDtos.ContactRequestDto;
 import com.dreamsol.dtos.responseDtos.ContactResponseDto;
 import com.dreamsol.entites.Contact;
 import com.dreamsol.entites.Department;
-import com.dreamsol.entites.Unit;
 import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.repositories.ContactRepository;
 import com.dreamsol.repositories.DepartmentRepository;
-import com.dreamsol.repositories.UnitRepository;
 import com.dreamsol.services.ContactService;
 import com.dreamsol.utility.DtoUtilities;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,16 +20,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Service
+@RequiredArgsConstructor
 public class ContactServiceImpl implements ContactService {
 
-    @Autowired
-    private ContactRepository contactRepository;
+    private final ContactRepository contactRepository;
 
-    @Autowired
-    private UnitRepository unitRepository;
-
-    @Autowired
-    private DepartmentRepository departmentRepository;
+    private final DepartmentRepository departmentRepository;
 
     @Override
     public ContactResponseDto createContact(ContactRequestDto contactRequestDto) {
@@ -44,21 +39,12 @@ public class ContactServiceImpl implements ContactService {
             throw new RuntimeException("Employee Id already exists");
         }
 
-        Unit unit = unitRepository.findByUnitName(contactRequestDto.getUnit().getUnitName())
-                .orElseThrow(() -> new RuntimeException("Choose a valid Unit"));
-
         // Check if the department exists
         Department department = departmentRepository
                 .findByDepartmentCode(contactRequestDto.getDepartment().getDepartmentCode())
                 .orElseThrow(() -> new RuntimeException("Choose a valid department"));
 
-        // Verify the department belongs to the unit
-        if (!department.getUnit().getId().equals(unit.getId())) {
-            throw new RuntimeException("The department is not mapped with the Unit Specified");
-        }
-
         Contact contact = DtoUtilities.contactRequestDtoToContact(contactRequestDto);
-        contact.setUnit(unit);
         contact.setDepartment(department);
 
         Contact savedContact = contactRepository.save(contact);
@@ -82,23 +68,13 @@ public class ContactServiceImpl implements ContactService {
             throw new RuntimeException("Contact mobile number already exists");
         }
 
-        // Check if the unit exists
-        Unit unit = unitRepository.findByUnitName(contactRequestDto.getUnit().getUnitName())
-                .orElseThrow(() -> new RuntimeException("Choose a valid unit"));
-
         // Check if the department exists
         Department department = departmentRepository
                 .findByDepartmentCode(contactRequestDto.getDepartment().getDepartmentCode())
                 .orElseThrow(() -> new RuntimeException("Choose a valid department"));
 
-        // Verify the department belongs to the unit
-        if (!department.getUnit().getId().equals(unit.getId())) {
-            throw new RuntimeException("This department is not mapped with the Unit that has been Specified");
-        }
-
         // Update contact fields
         Contact updatedContact = DtoUtilities.contactRequestDtoToContact(existingContact, contactRequestDto);
-        updatedContact.setUnit(unit);
         updatedContact.setDepartment(department);
 
         // Save the updated contact

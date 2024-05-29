@@ -43,8 +43,5 @@ public class ContactRequestDto extends CommonAutoIdEntityRequestDto {
     private String communicationName;
 
     @Valid
-    private UnitRequestDto unit;
-
-    @Valid
     private DepartmentRequestDto department;
 }

@@ -1,10 +1,7 @@
 package com.dreamsol.entites;
 
-import java.util.Set;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.OneToMany;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -33,8 +30,5 @@ public class Unit extends CommonAutoIdEntity {
 
     @Column(nullable = false, length = 50)
     private String passDisclaimer;
-
-    @OneToMany(mappedBy = "unit")
-    private Set<Department> departments;
 
 }

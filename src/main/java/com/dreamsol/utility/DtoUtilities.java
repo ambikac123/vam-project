@@ -21,8 +21,6 @@ import com.dreamsol.entites.User;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -89,20 +87,6 @@ public class DtoUtilities {
     public static UnitResponseDto unitToUnitResponseDto(Unit unit) {
         UnitResponseDto unitResponseDto = new UnitResponseDto();
         BeanUtils.copyProperties(unit, unitResponseDto);
-        Set<Department> departments = unit.getDepartments();
-        if (departments != null) {
-            Set<DepartmentResponseDto> res = departments.stream()
-                    .map(DtoUtilities::departmentToDepartmentResponseDtoForUnit)
-                    .collect(Collectors.toSet());
-            unitResponseDto.setDepartments(res);
-        }
-        return unitResponseDto;
-    }
-
-    public static UnitResponseDto unitToUnitResponseDtoForDep(Unit unit) {
-        UnitResponseDto unitResponseDto = new UnitResponseDto();
-        BeanUtils.copyProperties(unit, unitResponseDto);
-
         return unitResponseDto;
     }
 
@@ -127,20 +111,13 @@ public class DtoUtilities {
     public static DepartmentResponseDto departmentToDepartmentResponseDto(Department department) {
         DepartmentResponseDto departmentResponseDto = new DepartmentResponseDto();
         BeanUtils.copyProperties(department, departmentResponseDto);
-        departmentResponseDto.setUnit(DtoUtilities.unitToUnitResponseDtoForDep(department.getUnit()));
-        return departmentResponseDto;
-    }
-
-    public static DepartmentResponseDto departmentToDepartmentResponseDtoForUnit(Department department) {
-        DepartmentResponseDto departmentResponseDto = new DepartmentResponseDto();
-        BeanUtils.copyProperties(department, departmentResponseDto);
+        departmentResponseDto.setUnit(DtoUtilities.unitToUnitResponseDto(department.getUnit()));
         return departmentResponseDto;
     }
 
     public static Contact contactRequestDtoToContact(ContactRequestDto contactRequestDto) {
         Contact contact = new Contact();
         BeanUtils.copyProperties(contactRequestDto, contact);
-        contact.setUnit(DtoUtilities.unitRequestDtoToUnit(contactRequestDto.getUnit()));
         contact.setDepartment(DtoUtilities.departmentRequestDtoToDepartment(contactRequestDto.getDepartment()));
         contact.setCreatedAt(LocalDateTime.now());
         contact.setUpdatedAt(LocalDateTime.now());
@@ -149,7 +126,6 @@ public class DtoUtilities {
 
     public static Contact contactRequestDtoToContact(Contact contact, ContactRequestDto contactRequestDto) {
         BeanUtils.copyProperties(contactRequestDto, contact);
-        contact.setUnit(DtoUtilities.unitRequestDtoToUnit(contactRequestDto.getUnit()));
         contact.setDepartment(DtoUtilities.departmentRequestDtoToDepartment(contactRequestDto.getDepartment()));
         contact.setUpdatedAt(LocalDateTime.now());
         return contact;
@@ -158,9 +134,8 @@ public class DtoUtilities {
     public static ContactResponseDto contactToContactResponseDto(Contact contact) {
         ContactResponseDto contactResponseDto = new ContactResponseDto();
         BeanUtils.copyProperties(contact, contactResponseDto);
-        contactResponseDto.setUnit(DtoUtilities.unitToUnitResponseDtoForDep(contact.getUnit()));
         contactResponseDto
-                .setDepartment(DtoUtilities.departmentToDepartmentResponseDtoForUnit(contact.getDepartment()));
+                .setDepartment(DtoUtilities.departmentToDepartmentResponseDto(contact.getDepartment()));
         return contactResponseDto;
     }
 

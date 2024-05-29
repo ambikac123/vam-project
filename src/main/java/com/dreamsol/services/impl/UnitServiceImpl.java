@@ -8,7 +8,8 @@ import com.dreamsol.repositories.UnitRepository;
 import com.dreamsol.services.UnitService;
 import com.dreamsol.utility.DtoUtilities;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,10 +18,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Service
+@RequiredArgsConstructor
 public class UnitServiceImpl implements UnitService {
 
-    @Autowired
-    private UnitRepository unitRepository;
+    private final UnitRepository unitRepository;
 
     @Override
     public UnitResponseDto createUnit(UnitRequestDto unitRequestDto) {

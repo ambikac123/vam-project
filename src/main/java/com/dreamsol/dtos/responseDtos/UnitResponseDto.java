@@ -1,7 +1,5 @@
 package com.dreamsol.dtos.responseDtos;
 
-import java.util.Set;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,5 +15,4 @@ public class UnitResponseDto extends CommonAutoIdEntityResponseDto {
     private String unitCity;
     private String passAddress;
     private String passDisclaimer;
-    private Set<DepartmentResponseDto> departments;
 }

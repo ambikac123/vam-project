@@ -10,23 +10,22 @@ import com.dreamsol.repositories.UnitRepository;
 import com.dreamsol.services.DepartmentService;
 import com.dreamsol.utility.DtoUtilities;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class DepartmentServiceImpl implements DepartmentService {
 
-    @Autowired
-    private DepartmentRepository departmentRepository;
+    private final DepartmentRepository departmentRepository;
 
-    @Autowired
-    private UnitRepository unitRepository;
+    private final UnitRepository unitRepository;
 
     @Override
     public DepartmentResponseDto createDepartment(DepartmentRequestDto departmentRequestDto) {
