@@ -7,12 +7,10 @@ import javax.validation.constraints.NotEmpty;
 
 @Getter
 @Setter
-public class AuthRequestDto
-{
+public class AuthRequestDto {
     @NotEmpty
     private String username;
 
     @NotEmpty
     private String password;
 }
-

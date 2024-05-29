@@ -12,14 +12,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler
-{
+public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String,String>> methodArgumentNotFoundExceptionHandler(MethodArgumentNotValidException ex)
-    {
-        Map<String,String> errorResponseMap = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error)->{
-            String fieldName = ((FieldError)error).getField();
+    public ResponseEntity<Map<String, String>> methodArgumentNotFoundExceptionHandler(
+            MethodArgumentNotValidException ex) {
+        Map<String, String> errorResponseMap = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
             String message = error.getDefaultMessage();
             errorResponseMap.put(fieldName, message);
         });
@@ -27,10 +26,21 @@ public class GlobalExceptionHandler
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
+
     public ResponseEntity<ApiResponse> resourceNotFoundExceptionHandler(ResourceNotFoundException ex)
     {
         String message = ex.getMessage();
         ApiResponse apiResponse = new ApiResponse(message, false);
         return new ResponseEntity<ApiResponse>(apiResponse, HttpStatus.NOT_FOUND);
     }
+
+    public ResponseEntity<?> resourceNotFoundException(ResourceNotFoundException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> globalExceptionHandler(Exception ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 }

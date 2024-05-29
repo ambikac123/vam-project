@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ResourceNotFoundException extends RuntimeException 
+public class ResourceNotFoundException extends RuntimeException
 {
 	String resourceName;
 	String fieldName;
@@ -20,4 +20,5 @@ public class ResourceNotFoundException extends RuntimeException
 		this.fieldName = fieldName;
 		this.fieldValue = fieldValue;
 	}
+
 }
