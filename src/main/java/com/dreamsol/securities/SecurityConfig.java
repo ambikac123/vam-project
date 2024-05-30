@@ -23,39 +23,15 @@ public class SecurityConfig
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final String[] PUBLIC_URLS = {
             "/swagger-ui/**",
-            "/v3/api-docs/swagger-config",
-            "/v3/api-docs",
+            "/v2/api-docs/**",
+            "/swagger-resources/**",
+            "/webjars/**",
+            "/v2/api-docs/swagger-config",
+            "/v2/api-docs",
             "/api/authenticate-user",
             "/api/register-user"
     };
-    /*private final String[] PUBLIC_URLS = {
-            "/swagger-ui/index.html",
-            "/swagger-ui/swagger-ui.css",
-            "/swagger-ui/index.css",
-            "/swagger-ui/swagger-ui-bundle.js",
-            "/swagger-ui/swagger-initializer.js",
-            "/swagger-ui/swagger-ui-standalone-preset.js",
-            "/v3/api-docs/swagger-config",
-            "/swagger-ui/favicon-32x32.png",
-            "/v3/api-docs",
-            "/api/authenticate-user",
-            "/api/register-user"
-    };*/
-    /*@Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.csrf(AbstractHttpConfigurer::disable)
-                .cors(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(PUBLIC_URLS).permitAll()
-                        .anyRequest().authenticated())
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(authenticationEntryPoint)
-                        .accessDeniedHandler(accessDeniedHandler))
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        return httpSecurity.build();
-    }*/
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity

@@ -29,6 +29,7 @@ import com.dreamsol.entites.VehicleLicence;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -50,7 +51,10 @@ public class DtoUtilities {
 
     public UserResponseDto userToUserResponseDto(User user) {
         UserResponseDto userResponseDto = new UserResponseDto();
-        BeanUtils.copyProperties(user, userResponseDto);
+        BeanUtils.copyProperties(user,userResponseDto);
+        if(user.getDepartment()!=null){
+            userResponseDto.setDepartment(departmentToDepartmentResponseDto(user.getDepartment()));
+        }
         return userResponseDto;
     }
 

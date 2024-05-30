@@ -5,10 +5,9 @@ import com.dreamsol.dtos.requestDtos.UserRequestDto;
 import com.dreamsol.services.AuthRequestService;
 import com.dreamsol.services.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,9 +22,7 @@ import javax.validation.Valid;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-@Tag(name = "SECURITY API", description = "This api has access to login, re-generate token, ")
 @SecurityRequirement(name = "bearerAuth")
-@Validated
 public class AuthenticationController
 {
     private final AuthRequestService authRequestService;
@@ -65,5 +62,10 @@ public class AuthenticationController
     public ResponseEntity<?> fetchAllUsers()
     {
         return userService.getUsers();
+    }
+    @GetMapping(value = "/download-excel", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<?> downloadExcel()
+    {
+        return userService.downloadUsersDataAsExcel();
     }
 }

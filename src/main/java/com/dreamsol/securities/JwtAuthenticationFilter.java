@@ -24,15 +24,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
     private final String[] PUBLIC_URLS = {
+            "/swagger-ui/**",
             "/swagger-ui/index.html",
+            "/v2/api-docs/**",
+            "/swagger-resources/**",
+            "/webjars/**",
             "/swagger-ui/swagger-ui.css",
             "/swagger-ui/index.css",
             "/swagger-ui/swagger-ui-bundle.js",
             "/swagger-ui/swagger-initializer.js",
             "/swagger-ui/swagger-ui-standalone-preset.js",
-            "/v3/api-docs/swagger-config",
+            "/v2/api-docs/swagger-config",
             "/swagger-ui/favicon-32x32.png",
-            "/v3/api-docs",
+            "/v2/api-docs",
             "/api/authenticate-user",
             "/api/register-user"
     };

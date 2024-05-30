@@ -4,13 +4,17 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.OneToOne;
 
 @Entity
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class User extends CommonAutoIdEntity
@@ -26,4 +30,7 @@ public class User extends CommonAutoIdEntity
 
     @Column(nullable = false)
     private String password;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    private Department department;
 }
