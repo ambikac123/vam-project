@@ -13,9 +13,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UnitRepository extends JpaRepository<Unit, Long> {
 
-    Page<Unit> findByUnitNameContainingIgnoreCaseOrUnitIpContainingIgnoreCaseOrUnitCityContainingIgnoreCaseOrPassAddressContainingIgnoreCaseOrPassDisclaimerContainingIgnoreCaseOrStatusOrCreatedAtOrUpdatedAt(
-            String search, String search2, String search3, String search4, String search5, boolean parsedStatus,
+    Page<Unit> findByUnitNameContainingIgnoreCaseOrUnitIpContainingIgnoreCaseOrUnitCityContainingIgnoreCaseOrPassAddressContainingIgnoreCaseOrPassDisclaimerContainingIgnoreCaseOrCreatedByContainingIgnoreCaseOrUpdatedByContainingIgnoreCaseOrStatusOrCreatedAtOrUpdatedAt(
+            String unitName, String unitIp, String passDisclaimer, String unitCity, String passAddress,
+            String createdBy, String updatedBy, boolean parsedStatus,
             LocalDateTime parsedDateTime, LocalDateTime parsedDateTime2, Pageable pageable);
 
-    Optional<Unit> findByUnitName(String unitName);
+    Optional<Unit> findByUnitNameIgnoreCaseOrUnitIp(String unitName, String unitIp);
+
+    Optional<Unit> findByUnitNameIgnoreCaseAndUnitIp(String unitName, String unitIp);
+
 }

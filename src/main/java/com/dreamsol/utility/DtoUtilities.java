@@ -11,18 +11,19 @@ import com.dreamsol.dtos.requestDtos.ContactRequestDto;
 import com.dreamsol.dtos.requestDtos.DepartmentRequestDto;
 import com.dreamsol.dtos.requestDtos.PlantRequestDto;
 import com.dreamsol.dtos.requestDtos.PurposeRequestDto;
+import com.dreamsol.dtos.requestDtos.SeriesRequestDto;
 import com.dreamsol.dtos.requestDtos.UnitRequestDto;
-import com.dreamsol.dtos.requestDtos.UserRequestDto;
 import com.dreamsol.dtos.responseDtos.ContactResponseDto;
 import com.dreamsol.dtos.responseDtos.DepartmentResponseDto;
 import com.dreamsol.dtos.responseDtos.PlantResponseDto;
 import com.dreamsol.dtos.responseDtos.PurposeResponseDto;
+import com.dreamsol.dtos.responseDtos.SeriesResponseDto;
 import com.dreamsol.dtos.responseDtos.UnitResponseDto;
-import com.dreamsol.dtos.responseDtos.UserResponseDto;
 import com.dreamsol.entites.Contact;
 import com.dreamsol.entites.Department;
 import com.dreamsol.entites.Plant;
 import com.dreamsol.entites.Purpose;
+import com.dreamsol.entites.Series;
 import com.dreamsol.entites.Unit;
 import com.dreamsol.entites.User;
 import com.dreamsol.entites.VehicleLicence;
@@ -35,12 +36,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-
 @Component
 @RequiredArgsConstructor
 public class DtoUtilities {
     private final PasswordEncoder passwordEncoder;
-
 
     public User userRequstDtoToUser(UserRequestDto userRequestDto) {
         User user = new User();
@@ -51,13 +50,12 @@ public class DtoUtilities {
 
     public UserResponseDto userToUserResponseDto(User user) {
         UserResponseDto userResponseDto = new UserResponseDto();
-        BeanUtils.copyProperties(user,userResponseDto);
-        if(user.getDepartment()!=null){
+        BeanUtils.copyProperties(user, userResponseDto);
+        if (user.getDepartment() != null) {
             userResponseDto.setDepartment(departmentToDepartmentResponseDto(user.getDepartment()));
         }
         return userResponseDto;
     }
-
 
     public DrivingLicence licenceDtoToLicence(DrivingLicenceReqDto drivingLicenceReqDto) {
         DrivingLicence drivingLicence = new DrivingLicence();
@@ -79,8 +77,8 @@ public class DtoUtilities {
     }
 
     public VehicleLicence vehicleLicenceDtoToVehicleLicence(VehicleLicenceReqDto vehicleLicenceReqDto) {
-        VehicleLicence vehicleLicence=new VehicleLicence();
-        BeanUtils.copyProperties(vehicleLicenceReqDto,vehicleLicence);
+        VehicleLicence vehicleLicence = new VehicleLicence();
+        BeanUtils.copyProperties(vehicleLicenceReqDto, vehicleLicence);
         return vehicleLicence;
     }
 
@@ -114,6 +112,7 @@ public class DtoUtilities {
 
         return vehicleLicenceDto;
     }
+
     public static Plant plantRequestDtoToPlant(PlantRequestDto plantRequestDto) {
         Plant plant = new Plant();
 
@@ -212,12 +211,15 @@ public class DtoUtilities {
 
     public static Purpose purposeRequestDtoToPurpose(PurposeRequestDto purposeRequestDto) {
         Purpose purpose = new Purpose();
+        purpose.setCreatedAt(LocalDateTime.now());
+        purpose.setUpdatedAt(LocalDateTime.now());
         BeanUtils.copyProperties(purposeRequestDto, purpose);
         return purpose;
     }
 
     public static Purpose purposeRequestDtoToPurpose(Purpose purpose, PurposeRequestDto purposeRequestDto) {
         BeanUtils.copyProperties(purposeRequestDto, purpose);
+        purpose.setUpdatedAt(LocalDateTime.now());
         return purpose;
     }
 
@@ -225,5 +227,25 @@ public class DtoUtilities {
         PurposeResponseDto purposeResponseDto = new PurposeResponseDto();
         BeanUtils.copyProperties(purpose, purposeResponseDto);
         return purposeResponseDto;
+    }
+
+    public static Series seriesRequestDtoToSeries(SeriesRequestDto seriesRequestDto) {
+        Series series = new Series();
+        BeanUtils.copyProperties(seriesRequestDto, series);
+        series.setCreatedAt(LocalDateTime.now());
+        series.setUpdatedAt(LocalDateTime.now());
+        return series;
+    }
+
+    public static Series seriesRequestDtoToSeries(Series series, SeriesRequestDto seriesRequestDto) {
+        BeanUtils.copyProperties(seriesRequestDto, series);
+        series.setUpdatedAt(LocalDateTime.now());
+        return series;
+    }
+
+    public static SeriesResponseDto seriesToSeriesResponseDto(Series series) {
+        SeriesResponseDto seriesResponseDto = new SeriesResponseDto();
+        BeanUtils.copyProperties(series, seriesResponseDto);
+        return seriesResponseDto;
     }
 }

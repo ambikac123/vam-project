@@ -19,8 +19,9 @@ public interface ContactRepository extends JpaRepository<Contact, Long> {
 
     Optional<Contact> findById(Long id);
 
-    Page<Contact> findByEmployeeIdContainingIgnoreCaseOrMobileNumberOrEmailContainingIgnoreCaseOrContactNameContainingIgnoreCaseOrCommunicationNameContainingIgnoreCaseOrStatusOrCreatedAtOrUpdatedAt(
+    Page<Contact> findByEmployeeIdContainingIgnoreCaseOrMobileNumberOrEmailContainingIgnoreCaseOrContactNameContainingIgnoreCaseOrCommunicationNameContainingIgnoreCaseOrCreatedByContainingIgnoreCaseOrUpdatedByContainingIgnoreCaseOrStatusOrCreatedAtOrUpdatedAt(
             String employeeId, long mobileNumber, String email, String contactName, String communicationName,
+            String createdBy, String updatedBy,
             Boolean status, LocalDateTime createdAt, LocalDateTime updatedAt, Pageable pageable);
 
     Page<Contact> findAll(Pageable pageable);

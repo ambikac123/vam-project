@@ -3,6 +3,7 @@ package com.dreamsol.repositories;
 import com.dreamsol.entites.Plant;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,4 +16,6 @@ public interface PlantRepository extends JpaRepository<Plant, Long>, JpaSpecific
     Page<Plant> findByPlantNameContainingIgnoreCaseOrPlantBriefContainingIgnoreCaseOrCreatedByContainingIgnoreCaseOrUpdatedByContainingIgnoreCaseOrStatusOrCreatedAtOrUpdatedAt(
             String plantName, String plantBrief, String createdBy, String updatedBy, boolean status,
             LocalDateTime createdAt, LocalDateTime updatedAt, Pageable pageable);
+
+    Optional<Plant> findByPlantNameIgnoreCase(String plantName);
 }

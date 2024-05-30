@@ -26,8 +26,14 @@ public class UnitServiceImpl implements UnitService {
     @Override
     public UnitResponseDto createUnit(UnitRequestDto unitRequestDto) {
         Unit unit = DtoUtilities.unitRequestDtoToUnit(unitRequestDto);
+        unitRepository.findByUnitNameIgnoreCaseOrUnitIp(unit.getUnitName(),
+                unit.getUnitIp())
+                .orElseThrow(() -> new RuntimeException("Unit with this details already exists UnitName: "
+                        + unitRequestDto.getUnitName() + " ,UnitIp: " + unitRequestDto.getUnitIp()));
+
         Unit savedUnit = unitRepository.save(unit);
         return DtoUtilities.unitToUnitResponseDto(savedUnit);
+
     }
 
     @Override
@@ -66,8 +72,9 @@ public class UnitServiceImpl implements UnitService {
 
             // Search using parsed values
             return unitRepository
-                    .findByUnitNameContainingIgnoreCaseOrUnitIpContainingIgnoreCaseOrUnitCityContainingIgnoreCaseOrPassAddressContainingIgnoreCaseOrPassDisclaimerContainingIgnoreCaseOrStatusOrCreatedAtOrUpdatedAt(
-                            search, search, search, search, search, parsedStatus, parsedDateTime, parsedDateTime,
+                    .findByUnitNameContainingIgnoreCaseOrUnitIpContainingIgnoreCaseOrUnitCityContainingIgnoreCaseOrPassAddressContainingIgnoreCaseOrPassDisclaimerContainingIgnoreCaseOrCreatedByContainingIgnoreCaseOrUpdatedByContainingIgnoreCaseOrStatusOrCreatedAtOrUpdatedAt(
+                            search, search, search, search, search, search, search, parsedStatus, parsedDateTime,
+                            parsedDateTime,
                             pageable)
                     .map(DtoUtilities::unitToUnitResponseDto);
         } else {

@@ -41,7 +41,9 @@ public class ContactServiceImpl implements ContactService {
 
         // Check if the department exists
         Department department = departmentRepository
-                .findByDepartmentCode(contactRequestDto.getDepartment().getDepartmentCode())
+                .findByDepartmentNameIgnoreCaseAndDepartmentCodeIgnoreCase(
+                        contactRequestDto.getDepartment().getDepartmentName(),
+                        contactRequestDto.getDepartment().getDepartmentCode())
                 .orElseThrow(() -> new RuntimeException("Choose a valid department"));
 
         Contact contact = DtoUtilities.contactRequestDtoToContact(contactRequestDto);
@@ -109,8 +111,9 @@ public class ContactServiceImpl implements ContactService {
 
             // Search using parsed values
             return contactRepository
-                    .findByEmployeeIdContainingIgnoreCaseOrMobileNumberOrEmailContainingIgnoreCaseOrContactNameContainingIgnoreCaseOrCommunicationNameContainingIgnoreCaseOrStatusOrCreatedAtOrUpdatedAt(
-                            search, parsedStatus ? Long.parseLong(search) : -1, search, search, search, parsedStatus,
+                    .findByEmployeeIdContainingIgnoreCaseOrMobileNumberOrEmailContainingIgnoreCaseOrContactNameContainingIgnoreCaseOrCommunicationNameContainingIgnoreCaseOrCreatedByContainingIgnoreCaseOrUpdatedByContainingIgnoreCaseOrStatusOrCreatedAtOrUpdatedAt(
+                            search, parsedStatus ? Long.parseLong(search) : -1, search, search, search, search, search,
+                            parsedStatus,
                             parsedDateTime, parsedDateTime, pageable)
                     .map(DtoUtilities::contactToContactResponseDto);
         } else {

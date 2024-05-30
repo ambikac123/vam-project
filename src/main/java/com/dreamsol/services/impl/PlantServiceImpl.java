@@ -26,8 +26,8 @@ public class PlantServiceImpl implements PlantService {
     @Override
     public PlantResponseDto createPlant(PlantRequestDto plantRequestDto) {
         Plant plant = DtoUtilities.plantRequestDtoToPlant(plantRequestDto);
-        plant.setCreatedAt(LocalDateTime.now());
-        plant.setUpdatedAt(LocalDateTime.now());
+        plantRepository.findByPlantNameIgnoreCase(plantRequestDto.getPlantName()).orElseThrow(
+                () -> new RuntimeException("Plant with name " + plantRequestDto.getPlantName() + " already Exist"));
         Plant savedPlant = plantRepository.save(plant);
         return DtoUtilities.plantToPlantResponseDto(savedPlant);
     }
@@ -36,7 +36,6 @@ public class PlantServiceImpl implements PlantService {
     public PlantResponseDto updatePlant(Long id, PlantRequestDto plantRequestDto) {
         Plant plant = plantRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Plant", "Id", id));
         Plant updatedPlant = DtoUtilities.plantRequestDtoToPlant(plant, plantRequestDto);
-        updatedPlant.setUpdatedAt(LocalDateTime.now());
         updatedPlant = plantRepository.save(updatedPlant);
         return DtoUtilities.plantToPlantResponseDto(updatedPlant);
     }

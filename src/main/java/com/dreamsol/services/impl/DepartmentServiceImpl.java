@@ -29,21 +29,23 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Override
     public DepartmentResponseDto createDepartment(DepartmentRequestDto departmentRequestDto) {
-        // Check if department code already exists
-        Optional<Department> existingDepartment = departmentRepository
-                .findByDepartmentCode(departmentRequestDto.getDepartmentCode());
-        if (existingDepartment.isPresent()) {
-            throw new RuntimeException("Department code already exists");
-        }
+        // Check if department already exists
+        departmentRepository
+                .findByDepartmentNameIgnoreCaseAndDepartmentCodeIgnoreCase(departmentRequestDto.getDepartmentName(),
+                        departmentRequestDto.getDepartmentCode())
+                .orElseThrow(() -> new RuntimeException(
+                        "Department Already exists with name : " + departmentRequestDto.getDepartmentName()
+                                + " , and Code : " + departmentRequestDto.getDepartmentCode()));
 
         // Check if the unit exists
-        Optional<Unit> unit = unitRepository.findByUnitName(departmentRequestDto.getUnit().getUnitName());
-        if (!unit.isPresent()) {
-            throw new RuntimeException("Choose a valid Unit");
-        }
+        Unit unit = unitRepository.findByUnitNameIgnoreCaseAndUnitIp(
+                departmentRequestDto.getUnit().getUnitName(), departmentRequestDto.getUnit().getUnitIp())
+                .orElseThrow(() -> new RuntimeException("Unit with this details already exists UnitName: "
+                        + departmentRequestDto.getUnit().getUnitName() + " ,UnitIp: "
+                        + departmentRequestDto.getUnit().getUnitIp()));
 
         Department department = DtoUtilities.departmentRequestDtoToDepartment(departmentRequestDto);
-        department.setUnit(unit.get());
+        department.setUnit(unit);
 
         Department savedDepartment = departmentRepository.save(department);
         return DtoUtilities.departmentToDepartmentResponseDto(savedDepartment);
@@ -64,15 +66,16 @@ public class DepartmentServiceImpl implements DepartmentService {
         }
 
         // Check if the unit exists
-        Optional<Unit> unit = unitRepository.findByUnitName(departmentRequestDto.getUnit().getUnitName());
-        if (!unit.isPresent()) {
-            throw new RuntimeException("Choose a valid unit");
-        }
+        Unit unit = unitRepository.findByUnitNameIgnoreCaseAndUnitIp(
+                departmentRequestDto.getUnit().getUnitName(), departmentRequestDto.getUnit().getUnitIp())
+                .orElseThrow(() -> new RuntimeException("Unit with this details already exists UnitName: "
+                        + departmentRequestDto.getUnit().getUnitName() + " ,UnitIp: "
+                        + departmentRequestDto.getUnit().getUnitIp()));
 
         // Update department fields
         Department updatedDepartment = DtoUtilities.departmentRequestDtoToDepartment(existingDepartment,
                 departmentRequestDto);
-        updatedDepartment.setUnit(unit.get());
+        updatedDepartment.setUnit(unit);
 
         // Save the updated department
         updatedDepartment = departmentRepository.save(updatedDepartment);

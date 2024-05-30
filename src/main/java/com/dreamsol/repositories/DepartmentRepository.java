@@ -14,8 +14,15 @@ import org.springframework.stereotype.Repository;
 public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
     Page<Department> findByDepartmentNameContainingIgnoreCaseOrDepartmentCodeContainingIgnoreCaseOrCreatedByContainingIgnoreCaseOrUpdatedByContainingIgnoreCaseOrStatusOrCreatedAtOrUpdatedAt(
-            String search, String search2, String search3, String search4, boolean parsedStatus,
+            String departmentName, String departmentCode, String createdBy, String updatedBy, boolean parsedStatus,
             LocalDateTime parsedDateTime, LocalDateTime parsedDateTime2, Pageable pageable);
 
     Optional<Department> findByDepartmentCode(String departmentCode);
+
+    Optional<Department> findByDepartmentNameIgnoreCaseOrDepartmentCodeIgnoreCase(String departmentName,
+            String departmentCode);
+
+    Optional<Department> findByDepartmentNameIgnoreCaseAndDepartmentCodeIgnoreCase(String departmentName,
+            String departmentCode);
+
 }

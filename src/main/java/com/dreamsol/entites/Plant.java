@@ -15,7 +15,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Plant extends CommonAutoIdEntity {
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 50, unique = true)
     private String plantName;
 
     @Column(nullable = false, length = 250)
