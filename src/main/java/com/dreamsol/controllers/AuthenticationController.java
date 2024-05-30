@@ -52,14 +52,14 @@ public class AuthenticationController
         return userService.deleteUser(id);
     }
 
-    @GetMapping("/fetch-user/{id}")
-    public ResponseEntity<?> fetchUser(@PathVariable Long id)
+    @GetMapping("/get-user/{id}")
+    public ResponseEntity<?> getUser(@PathVariable Long id)
     {
         return userService.getUser(id);
     }
 
-    @GetMapping("/fetch-all-user")
-    public ResponseEntity<?> fetchAllUsers()
+    @GetMapping("/get-users")
+    public ResponseEntity<?> getAllUsers()
     {
         return userService.getUsers();
     }
@@ -67,5 +67,10 @@ public class AuthenticationController
     public ResponseEntity<?> downloadExcel()
     {
         return userService.downloadUsersDataAsExcel();
+    }
+    @GetMapping(value = "/download-excel-sample",produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<?> downloadExcelSample()
+    {
+        return userService.downloadExcelSample();
     }
 }

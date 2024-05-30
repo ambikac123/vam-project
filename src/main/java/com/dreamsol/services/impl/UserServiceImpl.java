@@ -132,4 +132,13 @@ public class UserServiceImpl implements UserService
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error!"+e);
         }
     }
+    public ResponseEntity<?> downloadExcelSample()
+    {
+        String fileName = "user_excel_sample";
+        Resource resource = excelUtility.downloadExcelSample(User.class,fileName);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment;fileName="+fileName)
+                .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                .body(resource);
+    }
 }
