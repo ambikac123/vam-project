@@ -11,4 +11,6 @@ public interface UserService
     ResponseEntity<?> getUser(Long id);
     ResponseEntity<?> getUsers();
     ResponseEntity<?> downloadUsersDataAsExcel();
+
+    ResponseEntity<?> downloadExcelSample();
 }
