@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 
@@ -63,8 +65,8 @@ public class AuthenticationController
     {
         return userService.getUsers();
     }
-    @GetMapping(value = "/download-excel", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<?> downloadExcel()
+    @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<?> downloadExcelData()
     {
         return userService.downloadUsersDataAsExcel();
     }
@@ -72,5 +74,10 @@ public class AuthenticationController
     public ResponseEntity<?> downloadExcelSample()
     {
         return userService.downloadExcelSample();
+    }
+    @PostMapping(value = "/upload-excel-data", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadExcelData(@RequestParam("file") MultipartFile file)
+    {
+        return userService.validateExcelData(file);
     }
 }

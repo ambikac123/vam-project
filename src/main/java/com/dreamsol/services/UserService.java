@@ -2,6 +2,7 @@ package com.dreamsol.services;
 
 import com.dreamsol.dtos.requestDtos.UserRequestDto;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService
 {
@@ -13,4 +14,5 @@ public interface UserService
     ResponseEntity<?> downloadUsersDataAsExcel();
 
     ResponseEntity<?> downloadExcelSample();
+    ResponseEntity<?> validateExcelData(MultipartFile file);
 }

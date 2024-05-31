@@ -11,19 +11,16 @@ import com.dreamsol.dtos.requestDtos.ContactRequestDto;
 import com.dreamsol.dtos.requestDtos.DepartmentRequestDto;
 import com.dreamsol.dtos.requestDtos.PlantRequestDto;
 import com.dreamsol.dtos.requestDtos.PurposeRequestDto;
-import com.dreamsol.dtos.requestDtos.SeriesRequestDto;
 import com.dreamsol.dtos.requestDtos.UnitRequestDto;
 import com.dreamsol.dtos.responseDtos.ContactResponseDto;
 import com.dreamsol.dtos.responseDtos.DepartmentResponseDto;
 import com.dreamsol.dtos.responseDtos.PlantResponseDto;
 import com.dreamsol.dtos.responseDtos.PurposeResponseDto;
-import com.dreamsol.dtos.responseDtos.SeriesResponseDto;
 import com.dreamsol.dtos.responseDtos.UnitResponseDto;
 import com.dreamsol.entites.Contact;
 import com.dreamsol.entites.Department;
 import com.dreamsol.entites.Plant;
 import com.dreamsol.entites.Purpose;
-import com.dreamsol.entites.Series;
 import com.dreamsol.entites.Unit;
 import com.dreamsol.entites.User;
 import com.dreamsol.entites.VehicleLicence;
@@ -227,25 +224,5 @@ public class DtoUtilities {
         PurposeResponseDto purposeResponseDto = new PurposeResponseDto();
         BeanUtils.copyProperties(purpose, purposeResponseDto);
         return purposeResponseDto;
-    }
-
-    public static Series seriesRequestDtoToSeries(SeriesRequestDto seriesRequestDto) {
-        Series series = new Series();
-        BeanUtils.copyProperties(seriesRequestDto, series);
-        series.setCreatedAt(LocalDateTime.now());
-        series.setUpdatedAt(LocalDateTime.now());
-        return series;
-    }
-
-    public static Series seriesRequestDtoToSeries(Series series, SeriesRequestDto seriesRequestDto) {
-        BeanUtils.copyProperties(seriesRequestDto, series);
-        series.setUpdatedAt(LocalDateTime.now());
-        return series;
-    }
-
-    public static SeriesResponseDto seriesToSeriesResponseDto(Series series) {
-        SeriesResponseDto seriesResponseDto = new SeriesResponseDto();
-        BeanUtils.copyProperties(series, seriesResponseDto);
-        return seriesResponseDto;
     }
 }

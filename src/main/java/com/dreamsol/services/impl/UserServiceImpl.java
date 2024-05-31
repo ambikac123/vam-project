@@ -1,11 +1,10 @@
 package com.dreamsol.services.impl;
 
 import com.dreamsol.dtos.requestDtos.UserRequestDto;
+import com.dreamsol.dtos.responseDtos.ExcelValidateDataResponseDto;
 import com.dreamsol.dtos.responseDtos.UserResponseDto;
-import com.dreamsol.entites.Contact;
 import com.dreamsol.entites.Department;
 import com.dreamsol.entites.User;
-import com.dreamsol.repositories.ContactRepository;
 import com.dreamsol.repositories.DepartmentRepository;
 import com.dreamsol.repositories.UserRepository;
 import com.dreamsol.services.UserService;
@@ -18,8 +17,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -31,7 +31,6 @@ public class UserServiceImpl implements UserService
     private final ExcelUtility excelUtility;
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
-    private final ContactRepository contactRepository;
     @Override
     public ResponseEntity<?> addUser(UserRequestDto userRequestDto)
     {
@@ -135,10 +134,25 @@ public class UserServiceImpl implements UserService
     public ResponseEntity<?> downloadExcelSample()
     {
         String fileName = "user_excel_sample";
-        Resource resource = excelUtility.downloadExcelSample(User.class,fileName);
+        Resource resource = excelUtility.downloadExcelSample(UserRequestDto.class,fileName);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,"attachment;fileName="+fileName)
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                 .body(resource);
+    }
+    public ResponseEntity<?> validateExcelData(MultipartFile file)
+    {
+        try{
+            if(excelUtility.isExcelFile(file))
+            {
+                ExcelValidateDataResponseDto validateDataResponse = excelUtility.validateExcelData(file,UserRequestDto.class);
+                return ResponseEntity.status(HttpStatus.OK).body(validateDataResponse);
+            }else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect uploaded file type!");
+            }
+        }catch(Exception e)
+        {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 }
