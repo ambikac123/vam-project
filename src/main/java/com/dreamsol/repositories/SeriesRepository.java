@@ -20,7 +20,7 @@ public interface SeriesRepository extends JpaRepository<Series, Long>, JpaSpecif
 
     boolean existsBySeriesFor(String seriesFor);
 
-    Optional<List<Series>> findBySeriesForIgnoreCaseAndPrefixIgnoreCase(String seriesFor, String prefix);
+    Optional<List<Series>> findBySeriesForIgnoreCaseAndSubPrefixIgnoreCase(String seriesFor, String subPrefix);
 
     boolean existsByPrefix(String prefix);
 }

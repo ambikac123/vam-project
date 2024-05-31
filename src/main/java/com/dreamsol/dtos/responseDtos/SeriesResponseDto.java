@@ -14,5 +14,5 @@ public class SeriesResponseDto extends CommonAutoIdEntityResponseDto {
     private String seriesFor;
     private String prefix;
     private String subPrefix;
-    private String numberSeries;
+    private int numberSeries;
 }

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,8 +27,10 @@ public class PlantServiceImpl implements PlantService {
     @Override
     public PlantResponseDto createPlant(PlantRequestDto plantRequestDto) {
         Plant plant = DtoUtilities.plantRequestDtoToPlant(plantRequestDto);
-        plantRepository.findByPlantNameIgnoreCase(plantRequestDto.getPlantName()).orElseThrow(
-                () -> new RuntimeException("Plant with name " + plantRequestDto.getPlantName() + " already Exist"));
+        Optional<Plant> dbPlant = plantRepository.findByPlantNameIgnoreCase(plantRequestDto.getPlantName());
+        if (dbPlant.isPresent()) {
+            throw new RuntimeException("Plant with name " + plantRequestDto.getPlantName() + " already Exist");
+        }
         Plant savedPlant = plantRepository.save(plant);
         return DtoUtilities.plantToPlantResponseDto(savedPlant);
     }

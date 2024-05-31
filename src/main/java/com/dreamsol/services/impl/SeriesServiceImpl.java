@@ -24,17 +24,20 @@ import java.util.Optional;
 public class SeriesServiceImpl implements SeriesService {
 
     private final SeriesRepository seriesRepository;
-    int num = 0;
+    private int num;
 
     @Override
     public SeriesResponseDto createSeries(SeriesRequestDto seriesRequestDto) {
+        num = 0;
         Series series = DtoUtilities.seriesRequestDtoToSeries(seriesRequestDto);
         Optional<List<Series>> dbSeries = seriesRepository
-                .findBySeriesForIgnoreCaseAndPrefixIgnoreCase(seriesRequestDto.getSeriesFor(), series.getPrefix());
-        if (dbSeries.isPresent()) {
+                .findBySeriesForIgnoreCaseAndSubPrefixIgnoreCase(seriesRequestDto.getSeriesFor(),
+                        seriesRequestDto.getSubPrefix());
+        if (dbSeries.isPresent() && dbSeries.get().size() > 0) {
             dbSeries.get().stream()
-                    .map(numSeries -> num = numSeries.getNumberSeries() > num ? numSeries.getNumberSeries() : num);
-            series.setNumberSeries(num);
+                    .forEach(numSeries -> num = numSeries.getNumberSeries() > num ? numSeries.getNumberSeries() : num);
+            series.setNumberSeries(num + 1);
+            series.setPrefix(series.getSeriesFor().substring(0, 3).toUpperCase());
             Series savedSeries = seriesRepository.save(series);
             return DtoUtilities.seriesToSeriesResponseDto(savedSeries);
         } else {
@@ -46,14 +49,16 @@ public class SeriesServiceImpl implements SeriesService {
 
     @Override
     public SeriesResponseDto updateSeries(Long id, SeriesRequestDto seriesRequestDto) {
+        num = 0;
         Series series = seriesRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Series", "Id", id));
         Optional<List<Series>> dbSeries = seriesRepository
-                .findBySeriesForIgnoreCaseAndPrefixIgnoreCase(seriesRequestDto.getSeriesFor(), series.getPrefix());
+                .findBySeriesForIgnoreCaseAndSubPrefixIgnoreCase(seriesRequestDto.getSeriesFor(),
+                        series.getSubPrefix());
         if (dbSeries.isPresent()) {
             dbSeries.get().stream()
-                    .map(numSeries -> num = numSeries.getNumberSeries() > num ? numSeries.getNumberSeries() : num);
-            series.setNumberSeries(num);
+                    .forEach(numSeries -> num = numSeries.getNumberSeries() > num ? numSeries.getNumberSeries() : num);
+            series.setNumberSeries(num + 1);
             Series savedSeries = seriesRepository.save(series);
             return DtoUtilities.seriesToSeriesResponseDto(savedSeries);
         } else {

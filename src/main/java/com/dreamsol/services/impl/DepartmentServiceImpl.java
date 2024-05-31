@@ -30,13 +30,14 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Override
     public DepartmentResponseDto createDepartment(DepartmentRequestDto departmentRequestDto) {
         // Check if department already exists
-        departmentRepository
+        Optional<Department> dbDepartment = departmentRepository
                 .findByDepartmentNameIgnoreCaseAndDepartmentCodeIgnoreCase(departmentRequestDto.getDepartmentName(),
-                        departmentRequestDto.getDepartmentCode())
-                .orElseThrow(() -> new RuntimeException(
-                        "Department Already exists with name : " + departmentRequestDto.getDepartmentName()
-                                + " , and Code : " + departmentRequestDto.getDepartmentCode()));
-
+                        departmentRequestDto.getDepartmentCode());
+        if (dbDepartment.isPresent()) {
+            throw new RuntimeException(
+                    "Department Already exists with name : " + departmentRequestDto.getDepartmentName()
+                            + " , and Code : " + departmentRequestDto.getDepartmentCode());
+        }
         // Check if the unit exists
         Unit unit = unitRepository.findByUnitNameIgnoreCaseAndUnitIp(
                 departmentRequestDto.getUnit().getUnitName(), departmentRequestDto.getUnit().getUnitIp())

@@ -1,6 +1,7 @@
 package com.dreamsol.entites;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,6 +12,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Entity
 public class Series extends CommonAutoIdEntity {
 
     @Column(length = 50, nullable = false)
