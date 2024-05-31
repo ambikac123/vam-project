@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,14 +27,15 @@ public class UnitServiceImpl implements UnitService {
     @Override
     public UnitResponseDto createUnit(UnitRequestDto unitRequestDto) {
         Unit unit = DtoUtilities.unitRequestDtoToUnit(unitRequestDto);
-        unitRepository.findByUnitNameIgnoreCaseOrUnitIp(unit.getUnitName(),
-                unit.getUnitIp())
-                .orElseThrow(() -> new RuntimeException("Unit with this details already exists UnitName: "
-                        + unitRequestDto.getUnitName() + " ,UnitIp: " + unitRequestDto.getUnitIp()));
-
-        Unit savedUnit = unitRepository.save(unit);
-        return DtoUtilities.unitToUnitResponseDto(savedUnit);
-
+        Optional<Unit> dbUnit = unitRepository.findByUnitNameIgnoreCaseOrUnitIp(unit.getUnitName(),
+                unit.getUnitIp());
+        if (dbUnit.isPresent()) {
+            throw new RuntimeException("Unit with this details already exists UnitName: "
+                    + unitRequestDto.getUnitName() + " ,UnitIp: " + unitRequestDto.getUnitIp());
+        } else {
+            Unit savedUnit = unitRepository.save(unit);
+            return DtoUtilities.unitToUnitResponseDto(savedUnit);
+        }
     }
 
     @Override

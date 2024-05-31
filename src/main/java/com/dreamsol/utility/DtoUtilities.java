@@ -1,9 +1,11 @@
 package com.dreamsol.utility;
 
 import com.dreamsol.dtos.requestDtos.DrivingLicenceReqDto;
+import com.dreamsol.dtos.requestDtos.SeriesRequestDto;
 import com.dreamsol.dtos.requestDtos.UserRequestDto;
 import com.dreamsol.dtos.requestDtos.VehicleLicenceReqDto;
 import com.dreamsol.dtos.responseDtos.DrivingLicenceResDto;
+import com.dreamsol.dtos.responseDtos.SeriesResponseDto;
 import com.dreamsol.dtos.responseDtos.UserResponseDto;
 import com.dreamsol.dtos.responseDtos.VehicleLicenceResDto;
 import com.dreamsol.entites.DrivingLicence;
@@ -21,6 +23,7 @@ import com.dreamsol.entites.Contact;
 import com.dreamsol.entites.Department;
 import com.dreamsol.entites.Plant;
 import com.dreamsol.entites.Purpose;
+import com.dreamsol.entites.Series;
 import com.dreamsol.entites.Unit;
 import com.dreamsol.entites.User;
 import com.dreamsol.entites.VehicleLicence;
@@ -224,5 +227,25 @@ public class DtoUtilities {
         PurposeResponseDto purposeResponseDto = new PurposeResponseDto();
         BeanUtils.copyProperties(purpose, purposeResponseDto);
         return purposeResponseDto;
+    }
+
+    public static Series seriesRequestDtoToSeries(SeriesRequestDto seriesRequestDto) {
+        Series series = new Series();
+        BeanUtils.copyProperties(seriesRequestDto, series);
+        series.setCreatedAt(LocalDateTime.now());
+        series.setUpdatedAt(LocalDateTime.now());
+        return series;
+    }
+
+    public static Series seriesRequestDtoToSeries(Series series, SeriesRequestDto seriesRequestDto) {
+        BeanUtils.copyProperties(seriesRequestDto, series);
+        series.setUpdatedAt(LocalDateTime.now());
+        return series;
+    }
+
+    public static SeriesResponseDto seriesToSeriesResponseDto(Series series) {
+        SeriesResponseDto seriesResponseDto = new SeriesResponseDto();
+        BeanUtils.copyProperties(series, seriesResponseDto);
+        return seriesResponseDto;
     }
 }

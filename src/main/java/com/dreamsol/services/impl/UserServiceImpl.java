@@ -25,39 +25,37 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService
-{
+public class UserServiceImpl implements UserService {
     private final DtoUtilities dtoUtilities;
     private final ExcelUtility excelUtility;
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
+
     @Override
-    public ResponseEntity<?> addUser(UserRequestDto userRequestDto)
-    {
-        try
-        {
-            User user = userRepository.findByEmailOrMobile(userRequestDto.getEmail(),userRequestDto.getMobile());
-            if(user!=null)
+    public ResponseEntity<?> addUser(UserRequestDto userRequestDto) {
+        try {
+            User user = userRepository.findByEmailOrMobile(userRequestDto.getEmail(), userRequestDto.getMobile());
+            if (user != null)
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user already exist");
             user = dtoUtilities.userRequstDtoToUser(userRequestDto);
             user.setCreatedBy(userRequestDto.getName());
             user.setUpdatedBy(userRequestDto.getName());
-            Optional<Department> departmentOptional = departmentRepository.findByDepartmentCode(userRequestDto.getDepartment().getDepartmentCode());
-            if(departmentOptional.isPresent())
-                user.setDepartment(departmentOptional.get());
+            // Optional<Department> departmentOptional =
+            // departmentRepository.findByDepartmentCode(userRequestDto.getDepartment().getDepartmentCode());
+            // if(departmentOptional.isPresent())
+            // user.setDepartment(departmentOptional.get());
             userRepository.save(user);
             return ResponseEntity.status(HttpStatus.CREATED).body("New user created successfully!");
-        }catch(Exception e){
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error!");
         }
     }
 
     @Override
-    public ResponseEntity<?> updateUser(UserRequestDto userRequestDto, Long id)
-    {
-        try
-        {
-            User user = userRepository.findById(id).orElseThrow(()->new RuntimeException("user not found with id: " + id));
+    public ResponseEntity<?> updateUser(UserRequestDto userRequestDto, Long id) {
+        try {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("user not found with id: " + id));
             if (!user.isStatus())
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("user not found with id: " + id);
             user = dtoUtilities.userRequstDtoToUser(userRequestDto);
@@ -65,42 +63,39 @@ public class UserServiceImpl implements UserService
             user.setUpdatedBy(userRequestDto.getName());
             userRepository.save(user);
             return ResponseEntity.status(HttpStatus.OK).body("User updated successfully!");
-        }catch(Exception e){
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error!");
         }
     }
 
     @Override
-    public ResponseEntity<?> deleteUser(Long id)
-    {
-        try
-        {
-            User user = userRepository.findById(id).orElseThrow(()-> new RuntimeException("user not found with id: "+id));
+    public ResponseEntity<?> deleteUser(Long id) {
+        try {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("user not found with id: " + id));
             user.setStatus(false);
             userRepository.save(user);
             return ResponseEntity.status(HttpStatus.OK).body("User deleted!");
-        }catch(Exception e){
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error!");
         }
     }
 
     @Override
-    public ResponseEntity<?> getUser(Long id)
-    {
+    public ResponseEntity<?> getUser(Long id) {
         try {
             User user = userRepository.findByIdAndStatusTrue(id);
             if (user == null)
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with id: " + id);
             UserResponseDto userResponseDto = dtoUtilities.userToUserResponseDto(user);
             return ResponseEntity.status(HttpStatus.FOUND).body(userResponseDto);
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error!");
         }
     }
 
     @Override
-    public ResponseEntity<?> getUsers()
-    {
+    public ResponseEntity<?> getUsers() {
         try {
             List<User> userList = userRepository.findAll();
             System.out.println(userList);
@@ -109,26 +104,26 @@ public class UserServiceImpl implements UserService
             List<UserResponseDto> userResponseDtoList = userList.stream()
                     .map(dtoUtilities::userToUserResponseDto).collect(Collectors.toList());
             return ResponseEntity.status(HttpStatus.OK).body(userResponseDtoList);
-        }catch(Exception e){
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error!");
         }
     }
-    public ResponseEntity<?> downloadUsersDataAsExcel()
-    {
-        try{
+
+    public ResponseEntity<?> downloadUsersDataAsExcel() {
+        try {
             List<User> userList = userRepository.findAll();
             if (userList.isEmpty())
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No users available!");
-            List<UserResponseDto> userResponseDtoList = userList.stream().map(dtoUtilities::userToUserResponseDto).collect(Collectors.toList());
+            List<UserResponseDto> userResponseDtoList = userList.stream().map(dtoUtilities::userToUserResponseDto)
+                    .collect(Collectors.toList());
             String fileName = "user_excel_data";
-            Resource resource = excelUtility.downloadDataAsExcel(userResponseDtoList,fileName);
+            Resource resource = excelUtility.downloadDataAsExcel(userResponseDtoList, fileName);
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;fileName=" + fileName)
                     .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                     .body(resource);
-        }catch(Exception e)
-        {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error!"+e);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error!" + e);
         }
     }
     public ResponseEntity<?> downloadExcelSample()
