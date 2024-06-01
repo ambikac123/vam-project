@@ -29,10 +29,10 @@ public class CommonAutoIdEntity {
     private boolean status;
 
     @CreationTimestamp
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    private LocalDateTime updatedAt;
 
     @Column(length = 50, updatable = false)
     private String createdBy;

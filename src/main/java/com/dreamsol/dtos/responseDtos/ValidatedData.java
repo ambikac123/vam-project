@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 public class ValidatedData
 {
-    Object data;
-    String message;
+    private Object data;
+    private boolean status;
+    private String message;
 }
