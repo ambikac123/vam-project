@@ -4,10 +4,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+
 @Getter
 @Setter
-public class ExcelValidateDataResponseDto
-{
+public class ExcelValidateDataResponseDto {
     List<ValidatedData> validDataList;
     List<ValidatedData> invalidDataList;
     long totalData;

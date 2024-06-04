@@ -8,7 +8,5 @@ public class VamProjectApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(VamProjectApplication.class, args);
-		System.out.println("Application Start.................");
 	}
-
 }
