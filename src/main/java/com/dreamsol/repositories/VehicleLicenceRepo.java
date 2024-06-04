@@ -5,9 +5,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
+
 public interface VehicleLicenceRepo extends JpaRepository<VehicleLicence, Long> {
 
     boolean existsByVehicleNumber(String vehicleNumber);
 
-    Page<VehicleLicence> findByVehicleOwnerContainingIgnoreCase(String vehicleOwner, Pageable pageable);
+    Optional<VehicleLicence> findByVehicleNumber(String vehicleNumber);
+
+    Page<VehicleLicence> findByStatus(boolean b, Pageable pageable);
 }

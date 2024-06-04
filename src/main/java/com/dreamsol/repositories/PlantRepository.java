@@ -17,5 +17,6 @@ public interface PlantRepository extends JpaRepository<Plant, Long>, JpaSpecific
             String plantName, String plantBrief, String createdBy, String updatedBy, boolean status,
             LocalDateTime createdAt, LocalDateTime updatedAt, Pageable pageable);
 
+    Optional<Plant> findByPlantNameContainingIgnoreCase(String vehicleNumber);
     Optional<Plant> findByPlantNameIgnoreCase(String plantName);
 }

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
 
 public interface DrivingLicenceService {
 
@@ -19,7 +20,17 @@ public interface DrivingLicenceService {
 
     ResponseEntity<?> fetchById(Long licenceId);
 
-    ResponseEntity<Page<DrivingLicenceResDto>> fetchAllDrivers(String search, int page, int size, String sortBy);
+    ResponseEntity<Page<DrivingLicenceResDto>> fetchAllDrivers(
+            String status,
+            int page,
+            int size,
+            String sortBy);
 
     ResponseEntity<Resource> getFile(String fileName, String uploadDir) throws IOException;
+
+    ResponseEntity<?> downloadDriverDataAsExcel();
+
+    ResponseEntity<?> downloadExcelSample();
+
+    ResponseEntity<?> validateExcelData(MultipartFile file);
 }

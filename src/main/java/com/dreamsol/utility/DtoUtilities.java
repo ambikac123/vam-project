@@ -1,5 +1,6 @@
 package com.dreamsol.utility;
 
+
 import com.dreamsol.dtos.requestDtos.DrivingLicenceReqDto;
 import com.dreamsol.dtos.requestDtos.SeriesRequestDto;
 import com.dreamsol.dtos.requestDtos.UserRequestDto;
@@ -13,13 +14,11 @@ import com.dreamsol.dtos.requestDtos.ContactRequestDto;
 import com.dreamsol.dtos.requestDtos.DepartmentRequestDto;
 import com.dreamsol.dtos.requestDtos.PlantRequestDto;
 import com.dreamsol.dtos.requestDtos.PurposeRequestDto;
-import com.dreamsol.dtos.requestDtos.SeriesRequestDto;
 import com.dreamsol.dtos.requestDtos.UnitRequestDto;
 import com.dreamsol.dtos.responseDtos.ContactResponseDto;
 import com.dreamsol.dtos.responseDtos.DepartmentResponseDto;
 import com.dreamsol.dtos.responseDtos.PlantResponseDto;
 import com.dreamsol.dtos.responseDtos.PurposeResponseDto;
-import com.dreamsol.dtos.responseDtos.SeriesResponseDto;
 import com.dreamsol.dtos.responseDtos.UnitResponseDto;
 import com.dreamsol.entites.Contact;
 import com.dreamsol.entites.Department;
@@ -29,6 +28,9 @@ import com.dreamsol.entites.Series;
 import com.dreamsol.entites.Unit;
 import com.dreamsol.entites.User;
 import com.dreamsol.entites.VehicleLicence;
+import com.dreamsol.dtos.requestDtos.*;
+import com.dreamsol.dtos.responseDtos.*;
+import com.dreamsol.entites.*;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
@@ -249,5 +251,29 @@ public class DtoUtilities {
         SeriesResponseDto seriesResponseDto = new SeriesResponseDto();
         BeanUtils.copyProperties(series, seriesResponseDto);
         return seriesResponseDto;
+    }
+
+    public VehicleEntry vehicleEntryDtoToVehicleEntry(VehicleEntryReqDto vehicleEntryReqDto, DrivingLicence drivingLicence, VehicleLicence vehicleLicence, Plant plant, Purpose purpose) {
+        VehicleEntry vehicleEntry = new VehicleEntry();
+        BeanUtils.copyProperties(vehicleEntryReqDto, vehicleEntry);
+        vehicleEntry.setDrivingLicence(drivingLicence);
+        vehicleEntry.setVehicleLicence(vehicleLicence);
+        vehicleEntry.setPlant(plant);
+        vehicleEntry.setPurpose(purpose);
+        return vehicleEntry;
+    }
+
+
+    public VehicleEntryResDto vehicleEntryToDto(VehicleEntry savedVehicleEntry) {
+        VehicleEntryResDto vehicleEntryResDto = new VehicleEntryResDto();
+        BeanUtils.copyProperties(savedVehicleEntry, vehicleEntryResDto);
+        vehicleEntryResDto.setVehicleNumber(savedVehicleEntry.getVehicleLicence().getVehicleNumber());
+        vehicleEntryResDto.setVehicleOwner(savedVehicleEntry.getVehicleLicence().getVehicleOwner());
+        vehicleEntryResDto.setVehicleType(savedVehicleEntry.getVehicleLicence().getVehicleType());
+        vehicleEntryResDto.setDriverName(savedVehicleEntry.getDrivingLicence().getDriverName());
+        vehicleEntryResDto.setDriverMobileNumber(savedVehicleEntry.getDrivingLicence().getDriverMobile());
+        vehicleEntryResDto.setPlantTo(savedVehicleEntry.getPlant().getPlantName());
+        vehicleEntryResDto.setVisitPurpose(savedVehicleEntry.getPurpose().getPurposeFor());
+        return vehicleEntryResDto;
     }
 }

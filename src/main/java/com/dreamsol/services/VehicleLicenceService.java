@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
 
 public interface VehicleLicenceService {
 
@@ -25,7 +26,15 @@ public interface VehicleLicenceService {
 
     ResponseEntity<?> fetchById(Long licenceId);
 
-    ResponseEntity<Page<VehicleLicenceResDto>> fetchAllVehicles(String search, int page, int size, String sortBy);
+    ResponseEntity<Page<VehicleLicenceResDto>> fetchAllVehicles(
+            String status,
+            int page,
+            int size,
+            String sortBy);
 
     ResponseEntity<Resource> getFile(String fileName, String uploadDir) throws IOException;
+
+    ResponseEntity<?> downloadVehicleDataAsExcel();
+
+    ResponseEntity<?> downloadExcelSample();
 }

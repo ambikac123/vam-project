@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.io.IOException;
+import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
@@ -54,16 +55,28 @@ public class VehicleLicenceController {
 
     @GetMapping("/get-all")
     public ResponseEntity<Page<VehicleLicenceResDto>> fetchAll(
-            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy) {
-        return vehicleLicenceService.fetchAllVehicles(search, page, size, sortBy);
+        return vehicleLicenceService.fetchAllVehicles(status, page, size, sortBy);
     }
 
     @GetMapping(path = "/download/{fileName}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) throws IOException {
         return vehicleLicenceService.getFile(fileName, uploadDir);
+    }
+
+    @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<?> downloadExcelData()
+    {
+        return vehicleLicenceService.downloadVehicleDataAsExcel();
+    }
+
+    @GetMapping(value = "/download-excel-sample",produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<?> downloadExcelSample()
+    {
+        return vehicleLicenceService.downloadExcelSample();
     }
 
 }

@@ -3,6 +3,7 @@ package com.dreamsol.services.impl;
 import com.dreamsol.dtos.requestDtos.DrivingLicenceReqDto;
 import com.dreamsol.dtos.responseDtos.ApiResponse;
 import com.dreamsol.dtos.responseDtos.DrivingLicenceResDto;
+import com.dreamsol.dtos.responseDtos.ExcelValidateDataResponseDto;
 import com.dreamsol.entites.DrivingLicence;
 import com.dreamsol.entites.DrivingLicenceAttachment;
 import com.dreamsol.exceptions.ResourceNotFoundException;
@@ -10,6 +11,7 @@ import com.dreamsol.repositories.DrivingLicenceRepo;
 import com.dreamsol.repositories.DrivingLicenceAttachmentRepo;
 import com.dreamsol.services.DrivingLicenceService;
 import com.dreamsol.utility.DtoUtilities;
+import com.dreamsol.utility.ExcelUtility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.io.ByteArrayResource;
@@ -28,12 +30,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class DrivingLicenceServiceImpl implements DrivingLicenceService
-{
+public class DrivingLicenceServiceImpl implements DrivingLicenceService {
     private final DrivingLicenceRepo drivingLicenceRepo;
 
     private final DtoUtilities dtoUtilities;
@@ -41,6 +44,8 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService
     private final FileService fileService;
 
     private final DrivingLicenceAttachmentRepo licenceAttachmentRepo;
+
+    private final ExcelUtility excelUtility;
 
     @Override
     public ResponseEntity<?> addLicence(DrivingLicenceReqDto drivingLicenceReqDto, MultipartFile file, String path) {
@@ -54,8 +59,8 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService
         } else {
             DrivingLicence drivingLicence = dtoUtilities.licenceDtoToLicence(drivingLicenceReqDto);
             drivingLicence.setFile(uploadFile(file, path));
-            drivingLicenceRepo.save(drivingLicence);
-            return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse("New Driving Licence created successfully!", true));
+            DrivingLicence savedDriving = drivingLicenceRepo.save(drivingLicence);
+            return ResponseEntity.status(HttpStatus.CREATED).body(dtoUtilities.licenceToLicenceDto(savedDriving));
         }
     }
 
@@ -75,7 +80,7 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService
         return ResponseEntity.ok(new ApiResponse("Licence deleted successfully!", true));
     }
 
-    public ResponseEntity<?> updateLicence(DrivingLicenceReqDto drivingLicenceReqDto, Long licenceId, MultipartFile file,String path) {
+    public ResponseEntity<?> updateLicence(DrivingLicenceReqDto drivingLicenceReqDto, Long licenceId, MultipartFile file, String path) {
         DrivingLicence drivingLicence = drivingLicenceRepo.findById(licenceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Driving Licence", "Id", licenceId));
 
@@ -83,14 +88,14 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService
         DrivingLicenceAttachment existingAttachment = drivingLicence.getFile();
 
         if (existingAttachment != null) {
-            uploadFile(file, path, existingAttachment,drivingLicenceReqDto);
+            uploadFile(file, path, existingAttachment, drivingLicenceReqDto);
         } else {
             DrivingLicenceAttachment newAttachment = uploadFile(file, path);
             drivingLicence.setFile(newAttachment);
         }
-        drivingLicenceRepo.save(drivingLicence);
+        DrivingLicence updatedDriving = drivingLicenceRepo.save(drivingLicence);
 
-        return ResponseEntity.ok(new ApiResponse("Licence updated successfully!", true));
+        return ResponseEntity.ok(dtoUtilities.licenceToLicenceDto(updatedDriving));
     }
 
     @Override
@@ -100,13 +105,24 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService
         return ResponseEntity.ok(dtoUtilities.licenceToLicenceDto(drivingLicence));
     }
 
-    @Override
-    public ResponseEntity<Page<DrivingLicenceResDto>> fetchAllDrivers(String search, int page, int size, String sortBy) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
-        Page<DrivingLicence> drivingLicences;
 
-        if (search != null && !search.isEmpty()) {
-            drivingLicences = drivingLicenceRepo.findByDriverNameContainingIgnoreCase(search, pageable);
+    public ResponseEntity<Page<DrivingLicenceResDto>> fetchAllDrivers(
+            String status,
+            int page,
+            int size,
+            String sortBy) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+
+        Page<DrivingLicence> drivingLicences;
+        boolean bool=false;
+        if (status != null) {
+            try {
+                bool = Boolean.parseBoolean(status);
+            } catch (Exception e) {
+                drivingLicences = drivingLicenceRepo.findAll(pageable);
+            }
+            drivingLicences = drivingLicenceRepo.findByStatus(bool, pageable);
         } else {
             drivingLicences = drivingLicenceRepo.findAll(pageable);
         }
@@ -115,6 +131,7 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService
 
         return ResponseEntity.ok(drivingLicenceResDtoPage);
     }
+
 
     @Override
     public ResponseEntity<Resource> getFile(String fileName, String uploadDir) throws IOException {
@@ -126,6 +143,51 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService
                 .contentType(MediaType.parseMediaType(licenceAttachment.getFileType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + licenceAttachment.getOriginalFileName() + "\"")
                 .body(new ByteArrayResource(fileService.getFile(uploadDir, licenceAttachment.getGeneratedFileName())));
+    }
+
+    @Override
+    public ResponseEntity<?> downloadDriverDataAsExcel() {
+        try {
+            List<DrivingLicence> drivingLicenceList = drivingLicenceRepo.findAll();
+            if (drivingLicenceList.isEmpty())
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No users available!");
+            List<DrivingLicenceResDto> drivingLicenceResDtoList = drivingLicenceList.stream().map(dtoUtilities::licenceToLicenceDto)
+                    .collect(Collectors.toList());
+            String fileName = "driver_excel_data.xlsx";
+            String sheetName = fileName.substring(0, fileName.indexOf('.'));
+            Resource resource = excelUtility.downloadDataAsExcel(drivingLicenceResDtoList, sheetName);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
+                    .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                    .body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error!" + e);
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> downloadExcelSample() {
+        String fileName = "driver_excel_sample.xlsx";
+        String sheetName = fileName.substring(0, fileName.indexOf('.'));
+        Resource resource = excelUtility.downloadExcelSample(DrivingLicenceReqDto.class, sheetName);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
+                .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                .body(resource);
+    }
+
+    @Override
+    public ResponseEntity<?> validateExcelData(MultipartFile file) {
+        try {
+            if (excelUtility.isExcelFile(file)) {
+                ExcelValidateDataResponseDto validateDataResponse = excelUtility.validateExcelData(file, DrivingLicenceReqDto.class);
+                return ResponseEntity.status(HttpStatus.OK).body(validateDataResponse);
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect uploaded file type!");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     private DrivingLicenceAttachment uploadFile(MultipartFile file, String path) {
@@ -174,15 +236,4 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService
             new DrivingLicenceAttachment();
         }
     }
-
-//    public ResponseEntity<Resource> getFile(String fileName, String path) throws IOException {
-//        LicenceAttachment licenceAttachment = licenceAttachmentRepo.findByGeneratedFileName(fileName).orElseThrow(() -> {
-//            throw new ResourceNotFoundException();
-//        });
-//        return ResponseEntity
-//                .ok()
-//                .contentType(MediaType.parseMediaType(file.getFileType()))
-//                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getOriginalFileName() + "\"")
-//                .body(new ByteArrayResource(fileService.getFile(path, file.getGeneratedFileName())));
-//    }
 }

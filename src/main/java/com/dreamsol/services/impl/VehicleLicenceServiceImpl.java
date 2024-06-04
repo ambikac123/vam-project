@@ -1,5 +1,6 @@
 package com.dreamsol.services.impl;
 
+
 import com.dreamsol.dtos.requestDtos.VehicleLicenceReqDto;
 import com.dreamsol.dtos.responseDtos.ApiResponse;
 import com.dreamsol.dtos.responseDtos.VehicleLicenceResDto;
@@ -10,6 +11,7 @@ import com.dreamsol.repositories.VehicleLicenceAttachmentRepo;
 import com.dreamsol.repositories.VehicleLicenceRepo;
 import com.dreamsol.services.VehicleLicenceService;
 import com.dreamsol.utility.DtoUtilities;
+import com.dreamsol.utility.ExcelUtility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.io.ByteArrayResource;
@@ -28,6 +30,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,17 +45,19 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
 
     private final VehicleLicenceAttachmentRepo vehicleLicenceAttachmentRepo;
 
+    private final ExcelUtility excelUtility;
+
     @Override
     public ResponseEntity<?> addLicence(VehicleLicenceReqDto vehicleLicenceReqDto,
                                         MultipartFile pucFile,
                                         MultipartFile insuranceFile,
                                         MultipartFile registrationFile,
                                         String path) {
-        try {
-            if (vehicleLicenceRepo.existsByVehicleNumber(vehicleLicenceReqDto.getVehicleNumber())) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse("Vehicle number already exists.", false));
-            }
 
+        if (vehicleLicenceRepo.existsByVehicleNumber(vehicleLicenceReqDto.getVehicleNumber())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse("Vehicle number already exists.", false));
+        }
+        try {
             VehicleLicence vehicleLicence = dtoUtilities.vehicleLicenceDtoToVehicleLicence(vehicleLicenceReqDto);
 
             if (pucFile != null && !pucFile.isEmpty()) {
@@ -69,11 +75,10 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
                 vehicleLicence.setRegistrationAttachment(registrationAttachment);
             }
 
-            vehicleLicenceRepo.save(vehicleLicence);
+            VehicleLicence savedVehicle= vehicleLicenceRepo.save(vehicleLicence);
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse("New Vehicle Licence created successfully!", true));
+            return ResponseEntity.status(HttpStatus.CREATED).body(dtoUtilities.vehicleLicenceToVehicleLicenceDto(savedVehicle));
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse("Failed to add Vehicle Licence.", false));
         }
     }
@@ -135,11 +140,10 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
                 }
             }
 
-            vehicleLicenceRepo.save(vehicleLicence);
+            VehicleLicence updatedVehicle=vehicleLicenceRepo.save(vehicleLicence);
 
-            return ResponseEntity.ok(new ApiResponse("Licence updated successfully!", true));
+            return ResponseEntity.ok(dtoUtilities.vehicleLicenceToVehicleLicenceDto(updatedVehicle));
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse("Failed to update Licence.", false));
         }
     }
@@ -151,13 +155,23 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
         return ResponseEntity.ok(dtoUtilities.vehicleLicenceToVehicleLicenceDto(vehicleLicence));
     }
 
-    @Override
-    public ResponseEntity<Page<VehicleLicenceResDto>> fetchAllVehicles(String search, int page, int size, String sortBy) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
-        Page<VehicleLicence> vehicleLicences;
+    public ResponseEntity<Page<VehicleLicenceResDto>> fetchAllVehicles(
+            String status,
+            int page,
+            int size,
+            String sortBy) {
 
-        if (search != null && !search.isEmpty()) {
-            vehicleLicences = vehicleLicenceRepo.findByVehicleOwnerContainingIgnoreCase(search, pageable);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+
+        Page<VehicleLicence> vehicleLicences;
+        boolean bool=false;
+        if (status != null) {
+            try {
+                bool = Boolean.parseBoolean(status);
+            } catch (Exception e) {
+                vehicleLicences = vehicleLicenceRepo.findAll(pageable);
+            }
+            vehicleLicences = vehicleLicenceRepo.findByStatus(bool, pageable);
         } else {
             vehicleLicences = vehicleLicenceRepo.findAll(pageable);
         }
@@ -166,6 +180,7 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
 
         return ResponseEntity.ok(vehicleLicenceResDtoPage);
     }
+
 
     public ResponseEntity<Resource> getFile(String fileName, String uploadDir) {
         try {
@@ -179,9 +194,39 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + vehicleLicenceAttachment.getOriginalFileName() + "\"")
                     .body(resource);
         } catch (IOException e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @Override
+    public ResponseEntity<?> downloadVehicleDataAsExcel() {
+        try {
+            List<VehicleLicence> vehicleLicenceList = vehicleLicenceRepo.findAll();
+            if (vehicleLicenceList.isEmpty())
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No users available!");
+            List<VehicleLicenceResDto> vehicleLicenceResDtoList = vehicleLicenceList.stream().map(dtoUtilities::vehicleLicenceToVehicleLicenceDto)
+                    .collect(Collectors.toList());
+            String fileName = "vehicle_excel_data.xlsx";
+            String sheetName=fileName.substring(0,fileName.indexOf('.'));
+            Resource resource = excelUtility.downloadDataAsExcel(vehicleLicenceResDtoList, sheetName);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
+                    .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                    .body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error!" + e);
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> downloadExcelSample() {
+        String fileName = "vehicle_excel_sample.xlsx";
+        String sheetName=fileName.substring(0,fileName.indexOf('.'));
+        Resource resource = excelUtility.downloadExcelSample(VehicleLicenceReqDto.class,sheetName);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment;filename="+fileName)
+                .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                .body(resource);
     }
 
 

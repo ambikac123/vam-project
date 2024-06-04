@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.io.IOException;
+import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
@@ -49,16 +50,34 @@ public class DrivingLicenceController {
 
     @GetMapping("/get-all")
     public ResponseEntity<Page<DrivingLicenceResDto>> fetchAll(
-            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy) {
-        return drivingLicenceService.fetchAllDrivers(search, page, size, sortBy);
-    }
 
+        return drivingLicenceService.fetchAllDrivers(status, page, size, sortBy);
+    }
 
     @GetMapping(path = "/download/{fileName}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) throws IOException {
         return drivingLicenceService.getFile(fileName, uploadDir);
+    }
+
+    @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<?> downloadExcelData()
+    {
+        return drivingLicenceService.downloadDriverDataAsExcel();
+    }
+
+    @GetMapping(value = "/download-excel-sample",produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<?> downloadExcelSample()
+    {
+        return drivingLicenceService.downloadExcelSample();
+    }
+
+    @PostMapping(value = "/upload-excel-data", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadExcelData(@RequestParam("file") MultipartFile file)
+    {
+        return drivingLicenceService.validateExcelData(file);
     }
 }
