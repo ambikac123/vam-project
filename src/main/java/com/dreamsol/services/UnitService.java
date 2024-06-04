@@ -12,7 +12,7 @@ public interface UnitService {
 
     UnitResponseDto getUnitById(Long id);
 
-    Page<UnitResponseDto> getUnits(Pageable pageable, String search);
+    Page<UnitResponseDto> getUnits(Pageable pageable, String status);
 
     void deleteUnit(Long id);
 }

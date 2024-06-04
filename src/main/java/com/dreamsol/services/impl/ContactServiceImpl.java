@@ -17,7 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -92,33 +92,21 @@ public class ContactServiceImpl implements ContactService {
     }
 
     @Override
-    public Page<ContactResponseDto> getContacts(Pageable pageable, String search) {
-        LocalDateTime parsedDateTime = null;
-        boolean parsedStatus = false;
-        if (search != null) {
-            // Attempt to parse LocalDateTime and boolean from search string
+    public Page<ContactResponseDto> getContacts(Pageable pageable, String status, Long unitId, String departmentName) {
+        boolean bool = false;
+        Optional<Department> department = departmentRepository.findByDepartmentNameIgnoreCase(departmentName);
+        if (status != null) {
             try {
-                parsedDateTime = LocalDateTime.parse(search, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            } catch (Exception ignored) {
-                // Parsing failed, continue
+                bool = Boolean.parseBoolean(status);
+            } catch (Exception e) {
+                return contactRepository.findByUnitIdAndDepartment(unitId, department.get(), pageable)
+                        .map(DtoUtilities::contactToContactResponseDto);
             }
-
-            try {
-                parsedStatus = Boolean.parseBoolean(search);
-            } catch (Exception ignored) {
-                // Parsing failed, continue
-            }
-
-            // Search using parsed values
-            return contactRepository
-                    .findByEmployeeIdContainingIgnoreCaseOrMobileNumberOrEmailContainingIgnoreCaseOrContactNameContainingIgnoreCaseOrCommunicationNameContainingIgnoreCaseOrCreatedByContainingIgnoreCaseOrUpdatedByContainingIgnoreCaseOrStatusOrCreatedAtOrUpdatedAt(
-                            search, parsedStatus ? Long.parseLong(search) : -1, search, search, search, search, search,
-                            parsedStatus,
-                            parsedDateTime, parsedDateTime, pageable)
+            return contactRepository.findByStatusAndUnitIdAndDepartment(bool, unitId, department.get(), pageable)
                     .map(DtoUtilities::contactToContactResponseDto);
-        } else {
-            return contactRepository.findAll(pageable).map(DtoUtilities::contactToContactResponseDto);
         }
+
+        return contactRepository.findAll(pageable).map(DtoUtilities::contactToContactResponseDto);
     }
 
     @Override

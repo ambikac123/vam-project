@@ -44,8 +44,11 @@ public class ContactController {
     @GetMapping("/get-all-contacts")
     public ResponseEntity<Page<ContactResponseDto>> getAllContacts(
             @PageableDefault(size = 10, sort = "contactName", page = 0) Pageable pageable,
-            @RequestParam(required = false) String search) {
-        Page<ContactResponseDto> contactResponseDtos = contactService.getContacts(pageable, search);
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long unitId,
+            @RequestParam(required = false) String departmentName) {
+        Page<ContactResponseDto> contactResponseDtos = contactService.getContacts(pageable, status, unitId,
+                departmentName);
         return ResponseEntity.ok(contactResponseDtos);
     }
 

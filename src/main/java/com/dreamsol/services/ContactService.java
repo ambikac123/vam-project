@@ -12,7 +12,7 @@ public interface ContactService {
 
     ContactResponseDto getContactById(Long id);
 
-    Page<ContactResponseDto> getContacts(Pageable pageable, String search);
+    Page<ContactResponseDto> getContacts(Pageable pageable, String status, Long unitId, String departmentName);
 
     void deleteContact(Long id);
 }

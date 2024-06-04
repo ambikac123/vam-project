@@ -14,9 +14,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
 @Service
 @RequiredArgsConstructor
 public class PurposeServiceImpl implements PurposeService {
@@ -47,31 +44,21 @@ public class PurposeServiceImpl implements PurposeService {
     }
 
     @Override
-    public Page<PurposeResponseDto> getPurposes(Pageable pageable, String search) {
-        LocalDateTime parsedDateTime = null;
-        boolean parsedStatus = false;
-        if (search != null) {
-            // Attempt to parse LocalDateTime and boolean from search string
+    public Page<PurposeResponseDto> getPurposes(Pageable pageable, String status, Long unitId, String purposeFor) {
+        boolean bool = false;
+        if (status != null) {
             try {
-                parsedDateTime = LocalDateTime.parse(search, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            } catch (Exception ignored) {
-                // Parsing failed, continue
+                bool = Boolean.parseBoolean(status);
+            } catch (Exception e) {
+                return purposeRepository.findByPurposeForAndUnitId(pageable, purposeFor, unitId)
+                        .map(DtoUtilities::purposeToPurposeResponseDto);
             }
-
-            try {
-                parsedStatus = Boolean.parseBoolean(search);
-            } catch (Exception ignored) {
-                // Parsing failed, continue
-            }
-
-            // Search using parsed values
-            return purposeRepository
-                    .findByPurposeForContainingIgnoreCaseOrPurposeBriefContainingIgnoreCaseOrCreatedByContainingIgnoreCaseOrUpdatedByContainingIgnoreCaseOrStatusOrCreatedAtOrUpdatedAt(
-                            search, search, search, search, parsedStatus, parsedDateTime, parsedDateTime, pageable)
+            return purposeRepository.findByPurposeForAndUnitIdAndStatus(pageable, purposeFor, unitId, bool)
                     .map(DtoUtilities::purposeToPurposeResponseDto);
-        } else {
-            return purposeRepository.findAll(pageable).map(DtoUtilities::purposeToPurposeResponseDto);
         }
+
+        return purposeRepository.findAll(pageable).map(DtoUtilities::purposeToPurposeResponseDto);
+
     }
 
     @Override

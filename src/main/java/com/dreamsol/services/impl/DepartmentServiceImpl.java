@@ -16,7 +16,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 @Service
@@ -39,17 +38,15 @@ public class DepartmentServiceImpl implements DepartmentService {
                             + " , and Code : " + departmentRequestDto.getDepartmentCode());
         }
         // Check if the unit exists
-        Unit unit = unitRepository.findByUnitNameIgnoreCaseAndUnitIp(
-                departmentRequestDto.getUnit().getUnitName(), departmentRequestDto.getUnit().getUnitIp())
-                .orElseThrow(() -> new RuntimeException("Unit with this details already exists UnitName: "
-                        + departmentRequestDto.getUnit().getUnitName() + " ,UnitIp: "
-                        + departmentRequestDto.getUnit().getUnitIp()));
+        Optional<Unit> unit = unitRepository.findById(departmentRequestDto.getUnitId());
+        if (unit.isPresent()) {
 
-        Department department = DtoUtilities.departmentRequestDtoToDepartment(departmentRequestDto);
-        department.setUnit(unit);
-
-        Department savedDepartment = departmentRepository.save(department);
-        return DtoUtilities.departmentToDepartmentResponseDto(savedDepartment);
+            Department savedDepartment = departmentRepository
+                    .save(DtoUtilities.departmentRequestDtoToDepartment(departmentRequestDto));
+            return DtoUtilities.departmentToDepartmentResponseDto(savedDepartment);
+        } else {
+            throw new RuntimeException("Organization with this id does not exist");
+        }
     }
 
     @Override
@@ -67,16 +64,13 @@ public class DepartmentServiceImpl implements DepartmentService {
         }
 
         // Check if the unit exists
-        Unit unit = unitRepository.findByUnitNameIgnoreCaseAndUnitIp(
-                departmentRequestDto.getUnit().getUnitName(), departmentRequestDto.getUnit().getUnitIp())
-                .orElseThrow(() -> new RuntimeException("Unit with this details already exists UnitName: "
-                        + departmentRequestDto.getUnit().getUnitName() + " ,UnitIp: "
-                        + departmentRequestDto.getUnit().getUnitIp()));
-
+        Optional<Unit> unit = unitRepository.findById(departmentRequestDto.getUnitId());
+        if (!unit.isPresent()) {
+            throw new RuntimeException("Organization with this id does not exist");
+        }
         // Update department fields
         Department updatedDepartment = DtoUtilities.departmentRequestDtoToDepartment(existingDepartment,
                 departmentRequestDto);
-        updatedDepartment.setUnit(unit);
 
         // Save the updated department
         updatedDepartment = departmentRepository.save(updatedDepartment);
@@ -91,31 +85,22 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
-    public Page<DepartmentResponseDto> getDepartments(Pageable pageable, String search) {
-        LocalDateTime parsedDateTime = null;
-        boolean parsedStatus = false;
-        if (search != null) {
-            // Attempt to parse LocalDateTime and boolean from search string
+    public Page<DepartmentResponseDto> getDepartments(Pageable pageable, String status, Long unitId,
+            String departmentName) {
+        boolean bool = false;
+        if (status != null) {
             try {
-                parsedDateTime = LocalDateTime.parse(search, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            } catch (Exception ignored) {
-                // Parsing failed, continue
+                bool = Boolean.parseBoolean(status);
+            } catch (Exception e) {
+                return departmentRepository.findByUnitIdAndDepartmentName(unitId, departmentName, pageable)
+                        .map(DtoUtilities::departmentToDepartmentResponseDto);
             }
-
-            try {
-                parsedStatus = Boolean.parseBoolean(search);
-            } catch (Exception ignored) {
-                // Parsing failed, continue
-            }
-
-            // Search using parsed values
-            return departmentRepository
-                    .findByDepartmentNameContainingIgnoreCaseOrDepartmentCodeContainingIgnoreCaseOrCreatedByContainingIgnoreCaseOrUpdatedByContainingIgnoreCaseOrStatusOrCreatedAtOrUpdatedAt(
-                            search, search, search, search, parsedStatus, parsedDateTime, parsedDateTime, pageable)
+            return departmentRepository.findByStatusAndUnitIdAndDepartmentName(bool, unitId, departmentName, pageable)
                     .map(DtoUtilities::departmentToDepartmentResponseDto);
-        } else {
-            return departmentRepository.findAll(pageable).map(DtoUtilities::departmentToDepartmentResponseDto);
         }
+
+        return departmentRepository.findAll(pageable).map(DtoUtilities::departmentToDepartmentResponseDto);
+
     }
 
     @Override

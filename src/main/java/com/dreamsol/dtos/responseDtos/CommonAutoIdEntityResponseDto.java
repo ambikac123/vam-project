@@ -26,4 +26,6 @@ public class CommonAutoIdEntityResponseDto {
     private String updatedBy;
 
     private boolean status;
+
+    private Long unitId;
 }

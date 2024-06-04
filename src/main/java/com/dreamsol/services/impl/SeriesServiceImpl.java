@@ -15,7 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -76,30 +75,22 @@ public class SeriesServiceImpl implements SeriesService {
     }
 
     @Override
-    public Page<SeriesResponseDto> getSeries(Pageable pageable, String search) {
-        LocalDateTime parsedDateTime = null;
-        boolean parsedStatus = false;
-        if (search != null) {
-            // Attempt to parse LocalDateTime and boolean from search string
+    public Page<SeriesResponseDto> getSeries(Pageable pageable, String status, Long unitId, String seriesFor) {
+
+        boolean bool = false;
+        if (status != null) {
             try {
-                parsedDateTime = LocalDateTime.parse(search, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            } catch (Exception ignored) {
-                // Parsing failed, continue
+                bool = Boolean.parseBoolean(status);
+            } catch (Exception e) {
+                return seriesRepository.findBySeriesForAndUnitId(pageable, seriesFor, unitId)
+                        .map(DtoUtilities::seriesToSeriesResponseDto);
             }
-            try {
-                parsedStatus = Boolean.parseBoolean(search);
-            } catch (Exception ignored) {
-                // Parsing failed its ok
-            }
-            // Search using parsed values
-            return seriesRepository
-                    .findBySeriesForContainingIgnoreCaseOrPrefixContainingIgnoreCaseOrSubPrefixContainingIgnoreCaseOrCreatedByContainingIgnoreCaseOrUpdatedByContainingIgnoreCaseOrStatusOrCreatedAtOrUpdatedAt(
-                            search, search, search, search, search, parsedStatus, parsedDateTime, parsedDateTime,
-                            pageable)
+            return seriesRepository.findBySeriesForAndUnitIdAndStatus(pageable, seriesFor, unitId, bool)
                     .map(DtoUtilities::seriesToSeriesResponseDto);
-        } else {
-            return seriesRepository.findAll(pageable).map(DtoUtilities::seriesToSeriesResponseDto);
         }
+
+        return seriesRepository.findAll(pageable).map(DtoUtilities::seriesToSeriesResponseDto);
+
     }
 
     @Override

@@ -30,7 +30,9 @@ public class CommonAutoIdEntity {
     private Long id;
 
     private boolean status;
-
+    
+    private Long unitId;
+    
     @CreationTimestamp
     private LocalDateTime createdAt;
 

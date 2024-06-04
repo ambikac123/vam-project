@@ -12,7 +12,7 @@ public interface PurposeService {
 
     PurposeResponseDto getPurposeById(Long id);
 
-    Page<PurposeResponseDto> getPurposes(Pageable pageable, String search);
+    Page<PurposeResponseDto> getPurposes(Pageable pageable, String status, Long unitId, String purposeFor);
 
     void deletePurpose(Long id);
 }

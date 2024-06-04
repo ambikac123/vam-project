@@ -12,7 +12,7 @@ public interface DepartmentService {
 
     DepartmentResponseDto getDepartmentById(Long id);
 
-    Page<DepartmentResponseDto> getDepartments(Pageable pageable, String search);
+    Page<DepartmentResponseDto> getDepartments(Pageable pageable, String status, Long unitId, String departmentName);
 
     void deleteDepartment(Long id);
 }

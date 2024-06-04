@@ -1,6 +1,5 @@
 package com.dreamsol.utility;
 
-
 import com.dreamsol.dtos.requestDtos.DrivingLicenceReqDto;
 import com.dreamsol.dtos.requestDtos.SeriesRequestDto;
 import com.dreamsol.dtos.requestDtos.UserRequestDto;
@@ -60,14 +59,16 @@ public class DtoUtilities {
         BeanUtils.copyProperties(user, userResponseDto);
         return userResponseDto;
     }
-    public UserType userTypeRequestDtoToUserType(UserTypeRequestDto userTypeRequestDto){
+
+    public UserType userTypeRequestDtoToUserType(UserTypeRequestDto userTypeRequestDto) {
         UserType userType = new UserType();
-        BeanUtils.copyProperties(userTypeRequestDto,userType);
+        BeanUtils.copyProperties(userTypeRequestDto, userType);
         return userType;
     }
-    public UserTypeResponseDto userTypeToUserTypeResponseDto(UserType userType){
+
+    public UserTypeResponseDto userTypeToUserTypeResponseDto(UserType userType) {
         UserTypeResponseDto userTypeResponseDto = new UserTypeResponseDto();
-        BeanUtils.copyProperties(userType,userTypeResponseDto);
+        BeanUtils.copyProperties(userType, userTypeResponseDto);
         return userTypeResponseDto;
     }
 
@@ -180,7 +181,6 @@ public class DtoUtilities {
         BeanUtils.copyProperties(departmentRequestDto, department);
         department.setCreatedAt(LocalDateTime.now());
         department.setUpdatedAt(LocalDateTime.now());
-        department.setUnit(DtoUtilities.unitRequestDtoToUnit(departmentRequestDto.getUnit()));
         return department;
     }
 
@@ -188,14 +188,12 @@ public class DtoUtilities {
             DepartmentRequestDto departmentRequestDto) {
         BeanUtils.copyProperties(departmentRequestDto, department);
         department.setUpdatedAt(LocalDateTime.now());
-        department.setUnit(DtoUtilities.unitRequestDtoToUnit(departmentRequestDto.getUnit()));
         return department;
     }
 
     public static DepartmentResponseDto departmentToDepartmentResponseDto(Department department) {
         DepartmentResponseDto departmentResponseDto = new DepartmentResponseDto();
         BeanUtils.copyProperties(department, departmentResponseDto);
-        departmentResponseDto.setUnit(DtoUtilities.unitToUnitResponseDto(department.getUnit()));
         return departmentResponseDto;
     }
 
@@ -263,7 +261,8 @@ public class DtoUtilities {
         return seriesResponseDto;
     }
 
-    public VehicleEntry vehicleEntryDtoToVehicleEntry(VehicleEntryReqDto vehicleEntryReqDto, DrivingLicence drivingLicence, VehicleLicence vehicleLicence, Plant plant, Purpose purpose) {
+    public VehicleEntry vehicleEntryDtoToVehicleEntry(VehicleEntryReqDto vehicleEntryReqDto,
+            DrivingLicence drivingLicence, VehicleLicence vehicleLicence, Plant plant, Purpose purpose) {
         VehicleEntry vehicleEntry = new VehicleEntry();
         BeanUtils.copyProperties(vehicleEntryReqDto, vehicleEntry);
         vehicleEntry.setDrivingLicence(drivingLicence);
@@ -272,7 +271,6 @@ public class DtoUtilities {
         vehicleEntry.setPurpose(purpose);
         return vehicleEntry;
     }
-
 
     public VehicleEntryResDto vehicleEntryToDto(VehicleEntry savedVehicleEntry) {
         VehicleEntryResDto vehicleEntryResDto = new VehicleEntryResDto();

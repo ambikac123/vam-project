@@ -15,7 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 @Service
@@ -52,30 +51,22 @@ public class PlantServiceImpl implements PlantService {
     }
 
     @Override
-    public Page<PlantResponseDto> getPlants(Pageable pageable, String search) {
-        LocalDateTime parsedDateTime = null;
-        boolean parsedStatus = false;
-        if (search != null) {
-            // Attempt to parse LocalDateTime and boolean from search string
-            try {
-                parsedDateTime = LocalDateTime.parse(search, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            } catch (Exception ignored) {
-                // Parsing failed, continue
-            }
+    public Page<PlantResponseDto> getPlants(Pageable pageable, String status, Long unitId) {
 
+        boolean bool = false;
+        if (status != null) {
             try {
-                parsedStatus = Boolean.parseBoolean(search);
-            } catch (Exception ignored) {
-                // Parsing failed its ok
+                bool = Boolean.parseBoolean(status);
+            } catch (Exception e) {
+                return plantRepository.findByUnitId(pageable, unitId)
+                        .map(DtoUtilities::plantToPlantResponseDto);
             }
-            // Search using parsed values
-            return plantRepository
-                    .findByPlantNameContainingIgnoreCaseOrPlantBriefContainingIgnoreCaseOrCreatedByContainingIgnoreCaseOrUpdatedByContainingIgnoreCaseOrStatusOrCreatedAtOrUpdatedAt(
-                            search, search, search, search, parsedStatus, parsedDateTime, parsedDateTime, pageable)
+            return plantRepository.findByStatusAndUnitId(pageable, bool, unitId)
                     .map(DtoUtilities::plantToPlantResponseDto);
-        } else {
-            return plantRepository.findAll(pageable).map(DtoUtilities::plantToPlantResponseDto);
         }
+
+        return plantRepository.findAll(pageable)
+                .map(DtoUtilities::plantToPlantResponseDto);
     }
 
     @Override

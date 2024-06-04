@@ -23,7 +23,4 @@ public class Department extends CommonAutoIdEntity {
     @Column(nullable = false, length = 50, unique = true)
     private String departmentCode;
 
-    @ManyToOne
-    @JoinColumn(name = "unitId")
-    private Unit unit;
 }

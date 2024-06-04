@@ -26,6 +26,4 @@ public class DepartmentRequestDto extends CommonAutoIdEntityRequestDto {
     @Size(min = 3, max = 50, message = "departmentCode length must be between 3 and 50 characters")
     private String departmentCode;
 
-    @Valid
-    private UnitRequestDto unit;
 }

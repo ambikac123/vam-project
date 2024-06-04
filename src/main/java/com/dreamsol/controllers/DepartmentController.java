@@ -44,8 +44,11 @@ public class DepartmentController {
     @GetMapping("/get-all-departments")
     public ResponseEntity<Page<DepartmentResponseDto>> getAllDepartments(
             @PageableDefault(size = 10, sort = "departmentName", page = 0) Pageable pageable,
-            @RequestParam(required = false) String search) {
-        Page<DepartmentResponseDto> departmentResponseDtos = departmentService.getDepartments(pageable, search);
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long unitId,
+            @RequestParam(required = false) String departmentName) {
+        Page<DepartmentResponseDto> departmentResponseDtos = departmentService.getDepartments(pageable, status, unitId,
+                departmentName);
         return ResponseEntity.ok(departmentResponseDtos);
     }
 

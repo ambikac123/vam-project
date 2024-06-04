@@ -43,8 +43,10 @@ public class SeriesController {
     @GetMapping("get-all-series")
     public ResponseEntity<Page<SeriesResponseDto>> getAllSeries(
             @PageableDefault(size = 10, sort = "plantName", page = 0) Pageable pageable,
-            @RequestParam(required = false) String search) {
-        Page<SeriesResponseDto> seriesResponseDtos = seriesService.getSeries(pageable, search);
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long untiId,
+            @RequestParam(required = false) String seriesFor) {
+        Page<SeriesResponseDto> seriesResponseDtos = seriesService.getSeries(pageable, status, untiId, seriesFor);
         return ResponseEntity.ok(seriesResponseDtos);
     }
 

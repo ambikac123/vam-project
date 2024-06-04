@@ -15,7 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 @Service
@@ -55,33 +54,23 @@ public class UnitServiceImpl implements UnitService {
     }
 
     @Override
-    public Page<UnitResponseDto> getUnits(Pageable pageable, String search) {
-        LocalDateTime parsedDateTime = null;
-        boolean parsedStatus = false;
-        if (search != null) {
-            // Attempt to parse LocalDateTime and boolean from search string
+    public Page<UnitResponseDto> getUnits(Pageable pageable, String status) {
+        boolean bool = false;
+        if (status != null) {
             try {
-                parsedDateTime = LocalDateTime.parse(search, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            } catch (Exception ignored) {
-                // Parsing failed, continue
+                bool = Boolean.parseBoolean(status);
+            } catch (Exception e) {
+                return unitRepository
+                        .findAll(pageable)
+                        .map(DtoUtilities::unitToUnitResponseDto);
             }
-
-            try {
-                parsedStatus = Boolean.parseBoolean(search);
-            } catch (Exception ignored) {
-                // Parsing failed, continue
-            }
-
-            // Search using parsed values
             return unitRepository
-                    .findByUnitNameContainingIgnoreCaseOrUnitIpContainingIgnoreCaseOrUnitCityContainingIgnoreCaseOrPassAddressContainingIgnoreCaseOrPassDisclaimerContainingIgnoreCaseOrCreatedByContainingIgnoreCaseOrUpdatedByContainingIgnoreCaseOrStatusOrCreatedAtOrUpdatedAt(
-                            search, search, search, search, search, search, search, parsedStatus, parsedDateTime,
-                            parsedDateTime,
-                            pageable)
+                    .findByStatus(pageable, bool)
                     .map(DtoUtilities::unitToUnitResponseDto);
-        } else {
-            return unitRepository.findAll(pageable).map(DtoUtilities::unitToUnitResponseDto);
         }
+        return unitRepository
+                .findAll(pageable)
+                .map(DtoUtilities::unitToUnitResponseDto);
     }
 
     @Override

@@ -12,5 +12,4 @@ import lombok.Setter;
 public class DepartmentResponseDto extends CommonAutoIdEntityResponseDto {
     private String departmentName;
     private String departmentCode;
-    private UnitResponseDto unit;
 }

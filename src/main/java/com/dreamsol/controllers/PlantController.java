@@ -43,8 +43,9 @@ public class PlantController {
     @GetMapping("get-all-plants")
     public ResponseEntity<Page<PlantResponseDto>> getAllPlants(
             @PageableDefault(size = 10, sort = "plantName", page = 0) Pageable pageable,
-            @RequestParam(required = false) String search) {
-        Page<PlantResponseDto> plantResponseDtos = plantService.getPlants(pageable, search);
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long unitId) {
+        Page<PlantResponseDto> plantResponseDtos = plantService.getPlants(pageable, status, unitId);
         return ResponseEntity.ok(plantResponseDtos);
     }
 

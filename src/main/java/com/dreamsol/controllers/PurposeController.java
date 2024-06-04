@@ -46,8 +46,10 @@ public class PurposeController {
     @GetMapping("/get-all-purposes")
     public ResponseEntity<Page<PurposeResponseDto>> getAllPurposes(
             @PageableDefault(size = 10, sort = "purposeFor", page = 0) Pageable pageable,
-            @RequestParam(required = false) String search) {
-        Page<PurposeResponseDto> purposeResponseDtos = purposeService.getPurposes(pageable, search);
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long unitId,
+            @RequestParam(required = false) String purposeFor) {
+        Page<PurposeResponseDto> purposeResponseDtos = purposeService.getPurposes(pageable, status, unitId, purposeFor);
         return ResponseEntity.ok(purposeResponseDtos);
     }
 

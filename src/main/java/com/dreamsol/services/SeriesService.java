@@ -12,7 +12,7 @@ public interface SeriesService {
 
     SeriesResponseDto getSeriesById(Long id);
 
-    Page<SeriesResponseDto> getSeries(Pageable pageable, String search);
+    Page<SeriesResponseDto> getSeries(Pageable pageable, String status, Long unitId, String seriesFor);
 
     void deleteSeries(Long id);
 }

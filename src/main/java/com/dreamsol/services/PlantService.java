@@ -12,7 +12,7 @@ public interface PlantService {
 
     PlantResponseDto getPlantById(Long id);
 
-    Page<PlantResponseDto> getPlants(Pageable pageable, String search);
+    Page<PlantResponseDto> getPlants(Pageable pageable, String status, Long unitId);
 
     void deletePlant(Long id);
 }

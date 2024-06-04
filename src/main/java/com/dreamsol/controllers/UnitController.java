@@ -44,8 +44,8 @@ public class UnitController {
     @GetMapping("/get-all-units")
     public ResponseEntity<Page<UnitResponseDto>> getAllUnits(
             @PageableDefault(size = 10, sort = "unitName", page = 0) Pageable pageable,
-            @RequestParam(required = false) String search) {
-        Page<UnitResponseDto> unitResponseDtos = unitService.getUnits(pageable, search);
+            @RequestParam(required = false) String status) {
+        Page<UnitResponseDto> unitResponseDtos = unitService.getUnits(pageable, status);
         return ResponseEntity.ok(unitResponseDtos);
     }
 
