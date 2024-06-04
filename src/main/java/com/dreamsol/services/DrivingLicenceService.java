@@ -30,7 +30,7 @@ public interface DrivingLicenceService {
 
     ResponseEntity<?> downloadDriverDataAsExcel();
 
-    ResponseEntity<?> downloadExcelSample();
+    ResponseEntity<?> downloadExcelSample() throws IOException;
 
     ResponseEntity<?> validateExcelData(MultipartFile file);
 }

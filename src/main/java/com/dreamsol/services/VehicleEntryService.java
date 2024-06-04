@@ -5,6 +5,8 @@ import com.dreamsol.dtos.responseDtos.VehicleEntryResDto;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 
+import java.io.IOException;
+
 
 public interface VehicleEntryService {
 
@@ -30,5 +32,5 @@ public interface VehicleEntryService {
 
     ResponseEntity<?> downloadEntryDataAsExcel();
 
-    ResponseEntity<?> downloadExcelSample();
+    ResponseEntity<?> downloadExcelSample() throws IOException;
 }

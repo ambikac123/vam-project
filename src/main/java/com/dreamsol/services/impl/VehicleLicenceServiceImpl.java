@@ -219,7 +219,7 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
     }
 
     @Override
-    public ResponseEntity<?> downloadExcelSample() {
+    public ResponseEntity<?> downloadExcelSample() throws IOException {
         String fileName = "vehicle_excel_sample.xlsx";
         String sheetName=fileName.substring(0,fileName.indexOf('.'));
         Resource resource = excelUtility.downloadExcelSample(VehicleLicenceReqDto.class,sheetName);

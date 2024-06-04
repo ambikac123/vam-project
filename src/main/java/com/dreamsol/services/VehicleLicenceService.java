@@ -36,5 +36,5 @@ public interface VehicleLicenceService {
 
     ResponseEntity<?> downloadVehicleDataAsExcel();
 
-    ResponseEntity<?> downloadExcelSample();
+    ResponseEntity<?> downloadExcelSample() throws IOException;
 }

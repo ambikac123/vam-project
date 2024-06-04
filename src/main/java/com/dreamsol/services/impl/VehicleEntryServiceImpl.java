@@ -24,6 +24,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -175,7 +176,7 @@ public class VehicleEntryServiceImpl implements VehicleEntryService {
     }
 
     @Override
-    public ResponseEntity<?> downloadExcelSample() {
+    public ResponseEntity<?> downloadExcelSample() throws IOException {
         String fileName = "entry_excel_sample.xlsx";
         String sheetName=fileName.substring(0,fileName.indexOf('.'));
         Resource resource = excelUtility.downloadExcelSample(VehicleEntryReqDto.class,sheetName);

@@ -70,8 +70,7 @@ public class DrivingLicenceController {
     }
 
     @GetMapping(value = "/download-excel-sample",produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<?> downloadExcelSample()
-    {
+    public ResponseEntity<?> downloadExcelSample() throws IOException {
         return drivingLicenceService.downloadExcelSample();
     }
 

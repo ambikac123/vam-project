@@ -14,7 +14,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.io.IOException;
-import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
@@ -74,8 +73,7 @@ public class VehicleLicenceController {
     }
 
     @GetMapping(value = "/download-excel-sample",produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<?> downloadExcelSample()
-    {
+    public ResponseEntity<?> downloadExcelSample() throws IOException {
         return vehicleLicenceService.downloadExcelSample();
     }
 

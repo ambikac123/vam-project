@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
@@ -62,8 +63,7 @@ public class VehicleEntryController {
     }
 
     @GetMapping(value = "/download-excel-sample",produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<?> downloadExcelSample()
-    {
+    public ResponseEntity<?> downloadExcelSample() throws IOException {
         return vehicleEntryService.downloadExcelSample();
     }
 }

@@ -166,7 +166,7 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
     }
 
     @Override
-    public ResponseEntity<?> downloadExcelSample() {
+    public ResponseEntity<?> downloadExcelSample() throws IOException {
         String fileName = "driver_excel_sample.xlsx";
         String sheetName = fileName.substring(0, fileName.indexOf('.'));
         Resource resource = excelUtility.downloadExcelSample(DrivingLicenceReqDto.class, sheetName);
