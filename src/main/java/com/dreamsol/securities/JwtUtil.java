@@ -7,8 +7,9 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -22,8 +23,6 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class JwtUtil
 {
-    private final UserDetailsService userDetailsService;
-
     @Value("${jwt.expiration}")
     private Long jwtExpirationInMs;
     private static final String SECRET_KEY = "fhsdgfhgdhfggfsgdfghdgfhdsgfhgsdhfgshdgfsgfshfhskjjgkhlkhhskhhjdnvjdjghdghdjbdhadhjhhgeueyueyuienvxnvbjfbfh";
@@ -81,5 +80,14 @@ public class JwtUtil
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+    public String getCurrentLoginUser()
+    {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
+            return ((UserDetails) authentication.getPrincipal()).getUsername();
+        }else {
+            return null;
+        }
     }
 }

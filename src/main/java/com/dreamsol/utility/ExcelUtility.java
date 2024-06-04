@@ -40,8 +40,14 @@ import java.util.Set;
 @Component
 public class ExcelUtility
 {
+<<<<<<< Updated upstream
     private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     private static final Validator validator = factory.getValidator();
+=======
+    private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+    private final Validator validator = factory.getValidator();
+
+>>>>>>> Stashed changes
     // Checks whether the given file is an Excel file or not
     public boolean isExcelFile(MultipartFile file) {
         String contentType = file.getContentType();
@@ -124,17 +130,21 @@ public class ExcelUtility
         validateDataResponse.setValidDataList(validDataList);
         validateDataResponse.setInvalidDataList(invalidDataList);
         validateDataResponse.setTotalData(dataList.size());
-        validateDataResponse.setTotalValidData(validDataList.size());
-        validateDataResponse.setTotalInvalidData(invalidDataList.size());
         validateDataResponse.setMessage("Process completed successfully!");
         return validateDataResponse;
     }
     private String isValidData(Object data)
     {
+<<<<<<< Updated upstream
         Set<ConstraintViolation<Object>> violations = validator.validate(data);
         System.out.println(violations);
         StringBuilder message = new StringBuilder();
         for(ConstraintViolation<Object> violation : violations)
+=======
+
+        Set<ConstraintViolation<Object>> violations = validator.validate(validatedData.getData());
+        if(violations.isEmpty())
+>>>>>>> Stashed changes
         {
             message.append(violation.getMessage()).append(", ");
         }
@@ -274,7 +284,6 @@ public class ExcelUtility
                 cell.setCellStyle(style1);
                 colIndex++;
             }
-
             // Create data rows
             int rowIndex = 1;
             Class<?> mainEntity = list.get(0).getClass();
@@ -285,7 +294,6 @@ public class ExcelUtility
                 cellIndex = fieldsFromClass(row, mainEntity, item,cellIndex);
                 fieldsFromClass(row, mainEntity.getSuperclass(),item,cellIndex);
             }
-
             workbook.write(byteArrayOutputStream);
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
             return new InputStreamResource(byteArrayInputStream);

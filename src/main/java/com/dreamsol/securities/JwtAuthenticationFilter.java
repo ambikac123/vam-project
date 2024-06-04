@@ -48,11 +48,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter
         if(!publicUrls.contains(request.getRequestURI()))
         {
             String requestToken = request.getHeader("Authorization");
-            String username = null;
-            String actualToken = null;
+            String username;
+            String actualToken;
             if(requestToken!=null && requestToken.startsWith("Bearer"))
             {
-
                 actualToken = requestToken.substring(7);
                 try{
                     username = jwtUtil.getUsernameFromToken(actualToken);

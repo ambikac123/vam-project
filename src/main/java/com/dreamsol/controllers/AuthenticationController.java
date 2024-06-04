@@ -5,25 +5,38 @@ import com.dreamsol.dtos.requestDtos.UserRequestDto;
 import com.dreamsol.services.AuthRequestService;
 import com.dreamsol.services.CommonService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
-import java.util.Collections;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api")
+<<<<<<< Updated upstream
 //@CrossOrigin(origins = "http://192.168.1.8:8080/**")
 @RequiredArgsConstructor
+=======
+>>>>>>> Stashed changes
 @SecurityRequirement(name = "bearerAuth")
 public class AuthenticationController {
     private final AuthRequestService authRequestService;
+<<<<<<< Updated upstream
     private final CommonService commonService;
 
+=======
+
+    private final CommonService<UserRequestDto,Long> commonService;
+    @Autowired
+    public AuthenticationController(@Qualifier("userService") CommonService<UserRequestDto,Long> commonService, AuthRequestService authRequestService) {
+        this.commonService = commonService;
+        this.authRequestService = authRequestService;
+    }
+>>>>>>> Stashed changes
     @PostMapping("/authenticate-user")
     public ResponseEntity<?> login(@Valid @RequestBody AuthRequestDto authRequestDto) {
         return authRequestService.getToken(authRequestDto.getUsername(), authRequestDto.getPassword());
@@ -34,6 +47,11 @@ public class AuthenticationController {
         return commonService.create(userRequestDto);
     }
 
+    @GetMapping("/regenerate-token")
+    public ResponseEntity<?> regenerateToken(@RequestParam String refreshToken)
+    {
+        return authRequestService.createTokenByRefreshToken(refreshToken);
+    }
     @PutMapping("/update-user/{id}")
     public ResponseEntity<?> updateUser(@Valid @RequestBody UserRequestDto userRequestDto, @PathVariable Long id) {
         return commonService.update(userRequestDto, id);
@@ -65,13 +83,25 @@ public class AuthenticationController {
     }
 
     @PostMapping(value = "/upload-excel-data", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+<<<<<<< Updated upstream
     public ResponseEntity<?> uploadExcelData(@RequestParam("file") MultipartFile file) {
         return commonService.validateExcelData(file);
+=======
+    public ResponseEntity<?> uploadExcelData(@RequestParam("file") MultipartFile file)
+    {
+        return commonService.uploadExcelFile(file,UserRequestDto.class);
+>>>>>>> Stashed changes
     }
 
     @PostMapping("/save-bulk-data")
+<<<<<<< Updated upstream
     public ResponseEntity<?> saveBulkData(@RequestBody @Valid List<UserRequestDto> userList) {
         System.out.println(Collections.singletonList(userList));
         return commonService.saveBulkData(Collections.singletonList(userList));
+=======
+    public ResponseEntity<?> saveBulkData(@RequestBody @Valid List<UserRequestDto> userList)
+    {
+        return commonService.saveBulkData(userList);
+>>>>>>> Stashed changes
     }
 }

@@ -54,11 +54,17 @@ public class UserRequestDto
 
     private LocalDate dob;
 
-    private boolean status;
-/*
-    @Valid
-    private DepartmentRequestDto department;*/
-
     @NotEmpty
     private String departmentName;
+
+    @NotEmpty
+    private String departmentCode;
+
+    @NotEmpty
+    private String userTypeName;
+
+    @NotEmpty
+    private String userTypeCode;
+    private boolean status;
+
 }

@@ -33,4 +33,7 @@ public class User extends CommonAutoIdEntity
 
     @OneToOne(fetch = FetchType.EAGER)
     private Department department;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    private UserType userType;
 }

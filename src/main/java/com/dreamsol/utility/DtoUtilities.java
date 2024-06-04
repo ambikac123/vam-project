@@ -4,10 +4,12 @@ package com.dreamsol.utility;
 import com.dreamsol.dtos.requestDtos.DrivingLicenceReqDto;
 import com.dreamsol.dtos.requestDtos.SeriesRequestDto;
 import com.dreamsol.dtos.requestDtos.UserRequestDto;
+import com.dreamsol.dtos.requestDtos.UserTypeRequestDto;
 import com.dreamsol.dtos.requestDtos.VehicleLicenceReqDto;
 import com.dreamsol.dtos.responseDtos.DrivingLicenceResDto;
 import com.dreamsol.dtos.responseDtos.SeriesResponseDto;
 import com.dreamsol.dtos.responseDtos.UserResponseDto;
+import com.dreamsol.dtos.responseDtos.UserTypeResponseDto;
 import com.dreamsol.dtos.responseDtos.VehicleLicenceResDto;
 import com.dreamsol.entites.DrivingLicence;
 import com.dreamsol.dtos.requestDtos.ContactRequestDto;
@@ -27,6 +29,7 @@ import com.dreamsol.entites.Purpose;
 import com.dreamsol.entites.Series;
 import com.dreamsol.entites.Unit;
 import com.dreamsol.entites.User;
+import com.dreamsol.entites.UserType;
 import com.dreamsol.entites.VehicleLicence;
 import com.dreamsol.dtos.requestDtos.*;
 import com.dreamsol.dtos.responseDtos.*;
@@ -55,10 +58,17 @@ public class DtoUtilities {
     public UserResponseDto userToUserResponseDto(User user) {
         UserResponseDto userResponseDto = new UserResponseDto();
         BeanUtils.copyProperties(user, userResponseDto);
-        if (user.getDepartment() != null) {
-            userResponseDto.setDepartment(departmentToDepartmentResponseDto(user.getDepartment()));
-        }
         return userResponseDto;
+    }
+    public UserType userTypeRequestDtoToUserType(UserTypeRequestDto userTypeRequestDto){
+        UserType userType = new UserType();
+        BeanUtils.copyProperties(userTypeRequestDto,userType);
+        return userType;
+    }
+    public UserTypeResponseDto userTypeToUserTypeResponseDto(UserType userType){
+        UserTypeResponseDto userTypeResponseDto = new UserTypeResponseDto();
+        BeanUtils.copyProperties(userType,userTypeResponseDto);
+        return userTypeResponseDto;
     }
 
     public DrivingLicence licenceDtoToLicence(DrivingLicenceReqDto drivingLicenceReqDto) {
