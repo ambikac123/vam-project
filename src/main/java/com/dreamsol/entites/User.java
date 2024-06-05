@@ -30,10 +30,4 @@ public class User extends CommonAutoIdEntity
 
     @Column(nullable = false)
     private String password;
-
-    @OneToOne(fetch = FetchType.EAGER)
-    private Department department;
-
-    @OneToOne(fetch = FetchType.EAGER)
-    private UserType userType;
 }

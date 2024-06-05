@@ -11,7 +11,7 @@ import javax.validation.constraints.NotEmpty;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserTypeRequestDto
+public class UserTypeRequestDto extends CommonAutoIdEntityRequestDto
 {
     @NotEmpty
     private String userTypeName;
@@ -19,5 +19,4 @@ public class UserTypeRequestDto
     @NotEmpty
     private String userTypeCode;
 
-    private boolean status;
 }

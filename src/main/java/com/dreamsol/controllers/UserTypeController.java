@@ -4,6 +4,8 @@ import com.dreamsol.dtos.requestDtos.UserRequestDto;
 import com.dreamsol.dtos.requestDtos.UserTypeRequestDto;
 import com.dreamsol.services.CommonService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -43,8 +45,12 @@ public class UserTypeController
         return userTypeService.get(id);
     }
     @GetMapping("/get-all")
-    public ResponseEntity<?> getAllUserType(){
-        return userTypeService.getAll();
+    public ResponseEntity<?> getAllUserType(
+            @PageableDefault(size = 10, sort = "userTypeName", page = 0) Pageable pageable,
+            @RequestParam(required = false) String search
+    )
+    {
+        return userTypeService.getAll(pageable,search);
     }
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadExcelData() {

@@ -7,6 +7,8 @@ import com.dreamsol.services.CommonService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,7 +31,6 @@ import java.util.List;
 public class AuthenticationController
 {
     private final AuthRequestService authRequestService;
-
     private final CommonService<UserRequestDto,Long> commonService;
     @Autowired
     public AuthenticationController(@Qualifier("userService") CommonService<UserRequestDto,Long> commonService, AuthRequestService authRequestService) {
@@ -72,9 +73,12 @@ public class AuthenticationController
     }
 
     @GetMapping("/get-users")
-    public ResponseEntity<?> getAllUsers()
+    public ResponseEntity<?> getAllUsers(
+            @PageableDefault(size = 10, sort = "name", page = 0) Pageable pageable,
+            @RequestParam(required = false) String keyword
+    )
     {
-        return commonService.getAll();
+        return commonService.getAll(pageable,keyword);
     }
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadExcelData()

@@ -16,9 +16,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
-
-
-
 @MappedSuperclass
 @Getter
 @Setter
@@ -29,10 +26,9 @@ public class CommonAutoIdEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private boolean status;
-    
+    @Column(length = 50, unique = true,nullable = false)
     private Long unitId;
-    
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -44,4 +40,6 @@ public class CommonAutoIdEntity {
 
     @Column(length = 50)
     private String updatedBy;
+
+    private boolean status;
 }

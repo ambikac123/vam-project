@@ -11,18 +11,16 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-import java.time.LocalDate;
 
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserRequestDto
+public class UserRequestDto extends CommonAutoIdEntityRequestDto
 {
 
     @NotBlank(message = "name must be filled")
@@ -51,20 +49,5 @@ public class UserRequestDto
     )
     @Schema(description = "password of user", example = " ")
     private String password;
-
-    private LocalDate dob;
-
-    @NotEmpty
-    private String departmentName;
-
-    @NotEmpty
-    private String departmentCode;
-
-    @NotEmpty
-    private String userTypeName;
-
-    @NotEmpty
-    private String userTypeCode;
-    private boolean status;
 
 }
