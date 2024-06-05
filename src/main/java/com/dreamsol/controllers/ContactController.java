@@ -1,10 +1,13 @@
 package com.dreamsol.controllers;
 
+import java.io.IOException;
+
 import javax.validation.Valid;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,5 +59,15 @@ public class ContactController {
     public ResponseEntity<Void> deleteContact(@PathVariable Long id) {
         contactService.deleteContact(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<?> downloadExcelData() {
+        return contactService.downloadContactDataAsExcel();
+    }
+
+    @GetMapping(value = "/download-excel-sample", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<?> downloadExcelSample() throws IOException {
+        return contactService.downloadContactExcelSample();
     }
 }

@@ -9,14 +9,24 @@ import com.dreamsol.repositories.DepartmentRepository;
 import com.dreamsol.repositories.UnitRepository;
 import com.dreamsol.services.DepartmentService;
 import com.dreamsol.utility.DtoUtilities;
+import com.dreamsol.utility.ExcelUtility;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +35,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     private final DepartmentRepository departmentRepository;
 
     private final UnitRepository unitRepository;
+    private final ExcelUtility excelUtility;
 
     @Override
     public DepartmentResponseDto createDepartment(DepartmentRequestDto departmentRequestDto) {
@@ -111,4 +122,41 @@ public class DepartmentServiceImpl implements DepartmentService {
         department.setUpdatedAt(LocalDateTime.now());
         departmentRepository.save(department);
     }
+
+    @Override
+    public ResponseEntity<?> downloadDepartmentDataAsExcel() {
+        try {
+            List<Department> departmentList = departmentRepository.findAll();
+            if (departmentList.isEmpty())
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No departments available!");
+
+            List<DepartmentResponseDto> departmentResDtoList = departmentList.stream()
+                    .map(DtoUtilities::departmentToDepartmentResponseDto)
+                    .collect(Collectors.toList());
+
+            String fileName = "department_excel_data.xlsx";
+            String sheetName = fileName.substring(0, fileName.indexOf('.'));
+            Resource resource = excelUtility.downloadDataAsExcel(departmentResDtoList, sheetName);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
+                    .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                    .body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error! " + e);
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> downloadDepartmentExcelSample() throws IOException {
+        String fileName = "department_excel_sample.xlsx";
+        String sheetName = fileName.substring(0, fileName.indexOf('.'));
+        Resource resource = excelUtility.downloadExcelSample(DepartmentRequestDto.class, sheetName);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
+                .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                .body(resource);
+    }
+
 }

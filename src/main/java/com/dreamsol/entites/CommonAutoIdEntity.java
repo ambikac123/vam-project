@@ -16,9 +16,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
-
-
-
 @MappedSuperclass
 @Getter
 @Setter
@@ -30,15 +27,9 @@ public class CommonAutoIdEntity {
     private Long id;
 
     private boolean status;
-<<<<<<< Updated upstream
-    
-    private Long unitId;
-    
-=======
 
     private Long unitId;
 
->>>>>>> Stashed changes
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -50,4 +41,5 @@ public class CommonAutoIdEntity {
 
     @Column(length = 50)
     private String updatedBy;
+
 }

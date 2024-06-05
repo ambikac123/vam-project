@@ -1,6 +1,5 @@
 package com.dreamsol.dtos.requestDtos;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;

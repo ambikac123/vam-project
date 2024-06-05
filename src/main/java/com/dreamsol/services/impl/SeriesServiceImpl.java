@@ -7,22 +7,31 @@ import com.dreamsol.repositories.SeriesRepository;
 import com.dreamsol.services.SeriesService;
 import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.utility.DtoUtilities;
+import com.dreamsol.utility.ExcelUtility;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class SeriesServiceImpl implements SeriesService {
 
     private final SeriesRepository seriesRepository;
+    private final ExcelUtility excelUtility;
     private int num;
 
     @Override
@@ -104,5 +113,42 @@ public class SeriesServiceImpl implements SeriesService {
             series.setUpdatedAt(LocalDateTime.now());
             seriesRepository.save(series);
         }
+    }
+
+    @Override
+    public ResponseEntity<?> downloadSeriesDataAsExcel() {
+        try {
+            List<Series> seriesList = seriesRepository.findAll();
+            if (seriesList.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No series available!");
+            }
+
+            List<SeriesResponseDto> seriesResDtoList = seriesList.stream()
+                    .map(DtoUtilities::seriesToSeriesResponseDto)
+                    .collect(Collectors.toList());
+
+            String fileName = "series_excel_data.xlsx";
+            String sheetName = fileName.substring(0, fileName.indexOf('.'));
+            Resource resource = excelUtility.downloadDataAsExcel(seriesResDtoList, sheetName);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
+                    .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                    .body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error! " + e);
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> downloadSeriesExcelSample() throws IOException {
+        String fileName = "series_excel_sample.xlsx";
+        String sheetName = fileName.substring(0, fileName.indexOf('.'));
+        Resource resource = excelUtility.downloadExcelSample(SeriesRequestDto.class, sheetName);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
+                .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                .body(resource);
     }
 }

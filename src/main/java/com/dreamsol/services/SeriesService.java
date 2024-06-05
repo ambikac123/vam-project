@@ -4,6 +4,7 @@ import com.dreamsol.dtos.requestDtos.SeriesRequestDto;
 import com.dreamsol.dtos.responseDtos.SeriesResponseDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 
 public interface SeriesService {
     SeriesResponseDto createSeries(SeriesRequestDto seriesRequestDto);
@@ -15,4 +16,8 @@ public interface SeriesService {
     Page<SeriesResponseDto> getSeries(Pageable pageable, String status, Long unitId, String seriesFor);
 
     void deleteSeries(Long id);
+
+    ResponseEntity<?> downloadSeriesDataAsExcel();
+
+    ResponseEntity<?> downloadSeriesExcelSample() throws java.io.IOException;
 }

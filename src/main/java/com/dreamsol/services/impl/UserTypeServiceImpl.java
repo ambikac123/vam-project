@@ -16,6 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,6 +25,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -86,17 +90,62 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
 
     @Override
     public ResponseEntity<?> delete(Long id) {
-        return null;
+        try{
+            UserType userType = userTypeRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("usertype", "id", id));
+            userType.setStatus(false);
+            userTypeRepository.save(userType);
+            logger.info("usertype with id:"+id+" deleted successfully!");
+            return ResponseEntity.status(HttpStatus.OK).body("usertype with id:"+id+" deleted successfully!");
+        }catch(Exception e){
+            logger.error("Error occurred while deleting usertype: ",e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while deleting usertype: "+e.getMessage());
+        }
     }
 
     @Override
     public ResponseEntity<?> get(Long id) {
-        return null;
+        try{
+            UserType userType = userTypeRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("usertype", "id", id));
+            logger.info("usertype with id: "+id+" found!");
+            return ResponseEntity.status(HttpStatus.FOUND).body(userType);
+        }catch(Exception e){
+            logger.error("Error occurred while searching usertype with id: "+id+" ,",e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while searching usertype with id: "+id+" ,"+e.getMessage());
+        }
     }
 
     @Override
-    public ResponseEntity<?> getAll() {
-        return null;
+    public ResponseEntity<?> getAll(Pageable pageable, String search) {
+        Page<UserType> userTypePage = null;
+        if(search == null) {
+            userTypePage = userTypeRepository.findAll(pageable);
+        }else{
+            long unitId = 0L;
+            try{
+                unitId = Long.parseLong(search);
+            }catch(Exception e)
+            {
+                // parsing failed continue
+            }
+            LocalDateTime localDateTime = null;
+            try{
+                localDateTime = LocalDateTime.parse(search, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            }catch (Exception e){
+                // parsing failed continue
+            }
+
+            boolean status = false;
+            try{
+                status = Boolean.parseBoolean(search);
+            }catch (Exception e){
+                // parsing failed continue
+            }
+
+            userTypePage = userTypeRepository.findByUserTypeNameContainingIgnoreCaseOrUserTypeCodeContainingIgnoreCaseOrCreatedByContainingIgnoreCaseOrUpdatedByContainingIgnoreCaseOrCreatedAtOrUpdatedAtOrUnitIdOrStatus(
+                search, search, search, search, localDateTime, localDateTime, unitId, status, pageable);
+        }
+        Page<UserTypeResponseDto> userTypeResponseDtos = userTypePage.map((dtoUtilities::userTypeToUserTypeResponseDto));
+        return ResponseEntity.status(HttpStatus.OK).body(userTypeResponseDtos);
     }
 
     @Override

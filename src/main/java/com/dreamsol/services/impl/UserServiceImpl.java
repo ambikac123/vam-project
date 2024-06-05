@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -120,7 +121,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
         return user;
     }
     @Override
-    public ResponseEntity<?> getAll() {
+    public ResponseEntity<?> getAll(Pageable pageable, String keyword) {
         try {
             List<User> userList = userRepository.findAll();
             System.out.println(userList);
@@ -214,7 +215,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
         {
             ValidatedData validatedData = (ValidatedData) validList.get(i);
             UserRequestDto userRequestDto = (UserRequestDto) validatedData.getData();
-            boolean flag = isExistInDB(userRequestDto.getDepartmentCode());
+            /*boolean flag = isExistInDB(userRequestDto.getDepartmentCode());
             if(!flag){
                 ValidatedData invalidData = new ValidatedData();
                 invalidData.setData(userRequestDto);
@@ -222,7 +223,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
                 invalidList.add(invalidData);
                 validList.remove(validatedData);
                 continue;
-            }
+            }*/
             userRequestDtoList.add(userRequestDto);
             i++;
         }

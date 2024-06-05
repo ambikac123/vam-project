@@ -1,11 +1,14 @@
 package com.dreamsol.controllers;
 
+import java.io.IOException;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,5 +56,15 @@ public class UnitController {
     public ResponseEntity<Void> deleteUnit(@PathVariable Long id) {
         unitService.deleteUnit(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<?> downloadExcelData() {
+        return unitService.downloadDataAsExcel();
+    }
+
+    @GetMapping(value = "/download-excel-sample", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<?> downloadExcelSample() throws IOException {
+        return unitService.downloadExcelSample();
     }
 }
