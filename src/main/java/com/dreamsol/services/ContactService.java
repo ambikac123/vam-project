@@ -4,6 +4,7 @@ import com.dreamsol.dtos.requestDtos.ContactRequestDto;
 import com.dreamsol.dtos.responseDtos.ContactResponseDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 
 public interface ContactService {
     ContactResponseDto createContact(ContactRequestDto contactRequestDto);
@@ -15,4 +16,8 @@ public interface ContactService {
     Page<ContactResponseDto> getContacts(Pageable pageable, String status, Long unitId, String departmentName);
 
     void deleteContact(Long id);
+
+    ResponseEntity<?> downloadContactDataAsExcel();
+
+    ResponseEntity<?> downloadContactExcelSample() throws java.io.IOException;
 }

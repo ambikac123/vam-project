@@ -9,15 +9,24 @@ import com.dreamsol.repositories.ContactRepository;
 import com.dreamsol.repositories.DepartmentRepository;
 import com.dreamsol.services.ContactService;
 import com.dreamsol.utility.DtoUtilities;
+import com.dreamsol.utility.ExcelUtility;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +35,8 @@ public class ContactServiceImpl implements ContactService {
     private final ContactRepository contactRepository;
 
     private final DepartmentRepository departmentRepository;
+
+    private final ExcelUtility excelUtility;
 
     @Override
     public ContactResponseDto createContact(ContactRequestDto contactRequestDto) {
@@ -116,5 +127,42 @@ public class ContactServiceImpl implements ContactService {
         contact.setStatus(false);
         contact.setUpdatedAt(LocalDateTime.now());
         contactRepository.save(contact);
+    }
+
+    @Override
+    public ResponseEntity<?> downloadContactDataAsExcel() {
+        try {
+            List<Contact> contactList = contactRepository.findAll();
+            if (contactList.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No contacts available!");
+            }
+
+            List<ContactResponseDto> contactResDtoList = contactList.stream()
+                    .map(DtoUtilities::contactToContactResponseDto)
+                    .collect(Collectors.toList());
+
+            String fileName = "contact_excel_data.xlsx";
+            String sheetName = fileName.substring(0, fileName.indexOf('.'));
+            Resource resource = excelUtility.downloadDataAsExcel(contactResDtoList, sheetName);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
+                    .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                    .body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error! " + e);
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> downloadContactExcelSample() throws IOException {
+        String fileName = "contact_excel_sample.xlsx";
+        String sheetName = fileName.substring(0, fileName.indexOf('.'));
+        Resource resource = excelUtility.downloadExcelSample(ContactRequestDto.class, sheetName);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
+                .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                .body(resource);
     }
 }

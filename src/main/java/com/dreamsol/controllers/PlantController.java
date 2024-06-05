@@ -9,8 +9,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 import javax.validation.Valid;
 
@@ -53,5 +56,15 @@ public class PlantController {
     public ResponseEntity<Void> deletePlant(@PathVariable Long id) {
         plantService.deletePlant(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<?> downloadExcelData() {
+        return plantService.downloadPlantDataAsExcel();
+    }
+
+    @GetMapping(value = "/download-excel-sample", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<?> downloadExcelSample() throws IOException {
+        return plantService.downloadPlantExcelSample();
     }
 }

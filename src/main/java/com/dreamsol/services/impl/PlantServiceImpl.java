@@ -7,21 +7,31 @@ import com.dreamsol.repositories.PlantRepository;
 import com.dreamsol.services.PlantService;
 import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.utility.DtoUtilities;
+import com.dreamsol.utility.ExcelUtility;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PlantServiceImpl implements PlantService {
 
     private final PlantRepository plantRepository;
+    private final ExcelUtility excelUtility;
 
     @Override
     public PlantResponseDto createPlant(PlantRequestDto plantRequestDto) {
@@ -75,5 +85,42 @@ public class PlantServiceImpl implements PlantService {
         plant.setStatus(false);
         plant.setUpdatedAt(LocalDateTime.now());
         plantRepository.save(plant);
+    }
+
+    @Override
+    public ResponseEntity<?> downloadPlantDataAsExcel() {
+        try {
+            List<Plant> plantList = plantRepository.findAll();
+            if (plantList.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No plants available!");
+            }
+
+            List<PlantResponseDto> plantResDtoList = plantList.stream()
+                    .map(DtoUtilities::plantToPlantResponseDto)
+                    .collect(Collectors.toList());
+
+            String fileName = "plant_excel_data.xlsx";
+            String sheetName = fileName.substring(0, fileName.indexOf('.'));
+            Resource resource = excelUtility.downloadDataAsExcel(plantResDtoList, sheetName);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
+                    .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                    .body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error! " + e);
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> downloadPlantExcelSample() throws IOException {
+        String fileName = "plant_excel_sample.xlsx";
+        String sheetName = fileName.substring(0, fileName.indexOf('.'));
+        Resource resource = excelUtility.downloadExcelSample(PlantRequestDto.class, sheetName);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
+                .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                .body(resource);
     }
 }

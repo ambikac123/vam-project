@@ -5,12 +5,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.dreamsol.dtos.requestDtos.SeriesRequestDto;
 import com.dreamsol.dtos.responseDtos.SeriesResponseDto;
 import com.dreamsol.services.SeriesService;
+
+import java.io.IOException;
 
 import javax.validation.Valid;
 
@@ -54,5 +57,15 @@ public class SeriesController {
     public ResponseEntity<Void> deleteSeries(@PathVariable Long id) {
         seriesService.deleteSeries(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<?> downloadExcelData() {
+        return seriesService.downloadSeriesDataAsExcel();
+    }
+
+    @GetMapping(value = "/download-excel-sample", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<?> downloadExcelSample() throws IOException {
+        return seriesService.downloadSeriesExcelSample();
     }
 }
