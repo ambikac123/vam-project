@@ -180,7 +180,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while downloading excel format");
         }
     }
-    @Override
+
     public ResponseEntity<?> uploadExcelFile(MultipartFile file,Class<?> currentClass)
     {
         try{
@@ -230,6 +230,57 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
         validateDataResponse.setValidDataList(userRequestDtoList);
         return validateDataResponse;
     }
+
+//    public ResponseEntity<?> uploadExcelFile(MultipartFile file,Class<?> currentClass)
+//    {
+//        try{
+//            if(excelUtility.isExcelFile(file))
+//            {
+//                ExcelValidateDataResponseDto validateDataResponse = excelUtility.validateExcelData(file,currentClass);
+//                validateDataResponse = validateDataFromDB(validateDataResponse);
+//                validateDataResponse.setTotalValidData(validateDataResponse.getValidDataList().size());
+//                validateDataResponse.setTotalInvalidData(validateDataResponse.getInvalidDataList().size());
+//                if(validateDataResponse.getTotalData()==0){
+//                    logger.info("No data available in excel sheet!");
+//                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No data available in excel sheet!");
+//                }
+//                logger.info("Excel data validated successfully!");
+//                return ResponseEntity.status(HttpStatus.OK).body(validateDataResponse);
+//            }else {
+//                logger.info("Incorrect uploaded file type!");
+//                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect uploaded file type! supported [.xlsx or xls] type");
+//            }
+//        }catch(Exception e)
+//        {
+//            logger.error("Error occurred while validating excel data",e);
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while validating excel data: "+e.getMessage());
+//        }
+//    }
+//    public ExcelValidateDataResponseDto validateDataFromDB(ExcelValidateDataResponseDto validateDataResponse){
+//
+//        List<?> validList = validateDataResponse.getValidDataList();
+//        List<ValidatedData> invalidList = validateDataResponse.getInvalidDataList();
+//        List<UserRequestDto> userRequestDtoList = new ArrayList<>();
+//        for(int i=0;i<validList.size();)
+//        {
+//            ValidatedData validatedData = (ValidatedData) validList.get(i);
+//            UserRequestDto userRequestDto = (UserRequestDto) validatedData.getData();
+//            boolean flag = isExistInDB(userRequestDto.getDepartmentCode());
+//            if(!flag){
+//                ValidatedData invalidData = new ValidatedData();
+//                invalidData.setData(userRequestDto);
+//                invalidData.setMessage("department doesn't exist");
+//                invalidList.add(invalidData);
+//                validList.remove(validatedData);
+//                continue;
+//            }
+//            userRequestDtoList.add(userRequestDto);
+//            i++;
+//        }
+//        validateDataResponse.setValidDataList(userRequestDtoList);
+//        return validateDataResponse;
+//    }
+
     public boolean isExistInDB(Object keyword){
         String departmentCode = (String) keyword;
         Optional<Department> department = departmentRepository.findByDepartmentCode(departmentCode);

@@ -261,8 +261,7 @@ public class DtoUtilities {
         return seriesResponseDto;
     }
 
-    public VehicleEntry vehicleEntryDtoToVehicleEntry(VehicleEntryReqDto vehicleEntryReqDto,
-            DrivingLicence drivingLicence, VehicleLicence vehicleLicence, Plant plant, Purpose purpose) {
+    public VehicleEntry vehicleEntryDtoToVehicleEntry(VehicleEntryReqDto vehicleEntryReqDto, DrivingLicence drivingLicence, VehicleLicence vehicleLicence, Plant plant, Purpose purpose) {
         VehicleEntry vehicleEntry = new VehicleEntry();
         BeanUtils.copyProperties(vehicleEntryReqDto, vehicleEntry);
         vehicleEntry.setDrivingLicence(drivingLicence);

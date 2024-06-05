@@ -60,7 +60,7 @@ public class UserTypeController
     public ResponseEntity<?> downloadExcelSample() {
         return userTypeService.downloadExcelSample();
     }
-    @PostMapping(value = "/upload-excel-data", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+   @PostMapping(value = "/upload-excel-data", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadExcelData(@RequestParam("file") MultipartFile file)
     {
         return userTypeService.uploadExcelFile(file,UserTypeRequestDto.class);
