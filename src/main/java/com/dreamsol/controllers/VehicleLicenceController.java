@@ -55,10 +55,11 @@ public class VehicleLicenceController {
     @GetMapping("/get-all")
     public ResponseEntity<Page<VehicleLicenceResDto>> fetchAll(
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long unitId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy) {
-        return vehicleLicenceService.fetchAllVehicles(status, page, size, sortBy);
+        return vehicleLicenceService.fetchAllVehicles(status,unitId, page, size, sortBy);
     }
 
     @GetMapping(path = "/download/{fileName}")

@@ -155,8 +155,10 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
         return ResponseEntity.ok(dtoUtilities.vehicleLicenceToVehicleLicenceDto(vehicleLicence));
     }
 
+
     public ResponseEntity<Page<VehicleLicenceResDto>> fetchAllVehicles(
             String status,
+            Long unitId,
             int page,
             int size,
             String sortBy) {
@@ -164,14 +166,18 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
 
         Page<VehicleLicence> vehicleLicences;
-        boolean bool=false;
+
         if (status != null) {
             try {
-                bool = Boolean.parseBoolean(status);
+                boolean bool = Boolean.parseBoolean(status);
+                if (bool && unitId != null) {
+                    vehicleLicences = vehicleLicenceRepo.findByStatusAndUnitId(bool, unitId, pageable);
+                } else {
+                    vehicleLicences = vehicleLicenceRepo.findByStatus(bool, pageable);
+                }
             } catch (Exception e) {
                 vehicleLicences = vehicleLicenceRepo.findAll(pageable);
             }
-            vehicleLicences = vehicleLicenceRepo.findByStatus(bool, pageable);
         } else {
             vehicleLicences = vehicleLicenceRepo.findAll(pageable);
         }

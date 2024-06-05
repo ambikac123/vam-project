@@ -28,6 +28,7 @@ public interface VehicleLicenceService {
 
     ResponseEntity<Page<VehicleLicenceResDto>> fetchAllVehicles(
             String status,
+            Long unitId,
             int page,
             int size,
             String sortBy);

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
@@ -34,6 +35,10 @@ public class CommonAutoIdEntityRequestDto {
     @Size(min = 2, max = 50, message = "Enter a Valid Field value")
     private String updatedBy;
 
+<<<<<<< Updated upstream
     @Pattern(regexp = "^[0-9])", message = "Only Numbers are allowed")
+=======
+    @Pattern(regexp = "^[0-9]", message = "Only Numbers are allowed")
+>>>>>>> Stashed changes
     private Long unitId;
 }

@@ -30,9 +30,15 @@ public class CommonAutoIdEntity {
     private Long id;
 
     private boolean status;
+<<<<<<< Updated upstream
     
     private Long unitId;
     
+=======
+
+    private Long unitId;
+
+>>>>>>> Stashed changes
     @CreationTimestamp
     private LocalDateTime createdAt;
 

@@ -22,6 +22,7 @@ public interface DrivingLicenceService {
 
     ResponseEntity<Page<DrivingLicenceResDto>> fetchAllDrivers(
             String status,
+            Long unitId,
             int page,
             int size,
             String sortBy);

@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class DrivingLicenceServiceImpl implements DrivingLicenceService {
+
     private final DrivingLicenceRepo drivingLicenceRepo;
 
     private final DtoUtilities dtoUtilities;
@@ -105,9 +106,9 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
         return ResponseEntity.ok(dtoUtilities.licenceToLicenceDto(drivingLicence));
     }
 
-
     public ResponseEntity<Page<DrivingLicenceResDto>> fetchAllDrivers(
             String status,
+            Long unitId,
             int page,
             int size,
             String sortBy) {
@@ -115,14 +116,18 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
 
         Page<DrivingLicence> drivingLicences;
-        boolean bool=false;
+
         if (status != null) {
             try {
-                bool = Boolean.parseBoolean(status);
+                boolean bool = Boolean.parseBoolean(status);
+                if (bool && unitId != null) {
+                    drivingLicences = drivingLicenceRepo.findByStatusAndUnitId(bool, unitId, pageable);
+                } else {
+                    drivingLicences = drivingLicenceRepo.findByStatus(bool, pageable);
+                }
             } catch (Exception e) {
                 drivingLicences = drivingLicenceRepo.findAll(pageable);
             }
-            drivingLicences = drivingLicenceRepo.findByStatus(bool, pageable);
         } else {
             drivingLicences = drivingLicenceRepo.findAll(pageable);
         }
@@ -131,7 +136,6 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
 
         return ResponseEntity.ok(drivingLicenceResDtoPage);
     }
-
 
     @Override
     public ResponseEntity<Resource> getFile(String fileName, String uploadDir) throws IOException {

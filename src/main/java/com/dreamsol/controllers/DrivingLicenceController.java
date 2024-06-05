@@ -51,11 +51,12 @@ public class DrivingLicenceController {
     @GetMapping("/get-all")
     public ResponseEntity<Page<DrivingLicenceResDto>> fetchAll(
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long unitId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy) {
 
-        return drivingLicenceService.fetchAllDrivers(status, page, size, sortBy);
+        return drivingLicenceService.fetchAllDrivers(status,unitId, page, size, sortBy);
     }
 
     @GetMapping(path = "/download/{fileName}")
