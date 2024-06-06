@@ -26,8 +26,6 @@ public class CommonAutoIdEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private boolean status;
-
     private Long unitId;
 
     @CreationTimestamp
@@ -42,4 +40,5 @@ public class CommonAutoIdEntity {
     @Column(length = 50)
     private String updatedBy;
 
+    private boolean status;
 }

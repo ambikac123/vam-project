@@ -27,4 +27,5 @@ public interface ContactRepository extends JpaRepository<Contact, Long> {
 
     Page<Contact> findByUnitIdAndDepartment(Long unitId, Department department, Pageable pageable);
 
+    Optional<Contact> findByEmployeeIdAndStatusTrue(String employeeId);
 }

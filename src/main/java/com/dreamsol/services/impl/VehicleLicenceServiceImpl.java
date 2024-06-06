@@ -1,22 +1,18 @@
 package com.dreamsol.services.impl;
 
+
 import com.dreamsol.dtos.requestDtos.VehicleLicenceReqDto;
 import com.dreamsol.dtos.responseDtos.ApiResponse;
-import com.dreamsol.dtos.responseDtos.ExcelValidateDataResponseDto;
-import com.dreamsol.dtos.responseDtos.ValidatedData;
 import com.dreamsol.dtos.responseDtos.VehicleLicenceResDto;
 import com.dreamsol.entites.VehicleLicence;
 import com.dreamsol.entites.VehicleLicenceAttachment;
 import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.repositories.VehicleLicenceAttachmentRepo;
 import com.dreamsol.repositories.VehicleLicenceRepo;
-import com.dreamsol.securities.JwtUtil;
 import com.dreamsol.services.VehicleLicenceService;
 import com.dreamsol.utility.DtoUtilities;
 import com.dreamsol.utility.ExcelUtility;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -34,9 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -53,20 +47,15 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
 
     private final ExcelUtility excelUtility;
 
-    private final JwtUtil jwtUtil;
-
-    private static final Logger logger = LoggerFactory.getLogger(DrivingLicenceServiceImpl.class);
-
     @Override
-    public ResponseEntity<?> addLicence(VehicleLicenceReqDto vehicleLicenceReqDto, MultipartFile pucFile, MultipartFile insuranceFile, MultipartFile registrationFile, String path) {
+    public ResponseEntity<?> addLicence(VehicleLicenceReqDto vehicleLicenceReqDto,
+                                        MultipartFile pucFile,
+                                        MultipartFile insuranceFile,
+                                        MultipartFile registrationFile,
+                                        String path) {
 
         if (vehicleLicenceRepo.existsByVehicleNumber(vehicleLicenceReqDto.getVehicleNumber())) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse("Vehicle number already exists.", false));
-        }
-        String username = jwtUtil.getCurrentLoginUser();
-        if (username == null) {
-            logger.info("Unauthenticated user!");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthenticated user!");
         }
         try {
             VehicleLicence vehicleLicence = dtoUtilities.vehicleLicenceDtoToVehicleLicence(vehicleLicenceReqDto);
@@ -85,8 +74,8 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
                 VehicleLicenceAttachment registrationAttachment = uploadFile(registrationFile, path);
                 vehicleLicence.setRegistrationAttachment(registrationAttachment);
             }
-            vehicleLicence.setCreatedBy(username);
-            VehicleLicence savedVehicle = vehicleLicenceRepo.save(vehicleLicence);
+
+            VehicleLicence savedVehicle= vehicleLicenceRepo.save(vehicleLicence);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(dtoUtilities.vehicleLicenceToVehicleLicenceDto(savedVehicle));
         } catch (Exception e) {
@@ -97,7 +86,8 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
 
     @Override
     public ResponseEntity<?> deleteLicence(Long licenceId) {
-        VehicleLicence vehicleLicence = vehicleLicenceRepo.findById(licenceId).orElseThrow(() -> new ResourceNotFoundException("Vehicle Licence", "Id", licenceId));
+        VehicleLicence vehicleLicence = vehicleLicenceRepo.findById(licenceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Vehicle Licence", "Id", licenceId));
 
         if (!vehicleLicence.isStatus()) {
             throw new ResourceNotFoundException("Vehicle Licence", "Id", licenceId);
@@ -111,14 +101,11 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
     }
 
     @Override
-    public ResponseEntity<?> updateLicence(VehicleLicenceReqDto vehicleLicenceReqDto, Long licenceId, MultipartFile pucFile, MultipartFile insuranceFile, MultipartFile registrationFile, String path) {
-        VehicleLicence vehicleLicence = vehicleLicenceRepo.findById(licenceId).orElseThrow(() -> new ResourceNotFoundException("Vehicle Licence", "Id", licenceId));
-
-        String username = jwtUtil.getCurrentLoginUser();
-        if (username == null) {
-            logger.info("Unauthenticated user!");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthenticated user!");
-        }
+    public ResponseEntity<?> updateLicence(VehicleLicenceReqDto vehicleLicenceReqDto, Long licenceId,
+                                           MultipartFile pucFile, MultipartFile insuranceFile, MultipartFile registrationFile,
+                                           String path) {
+        VehicleLicence vehicleLicence = vehicleLicenceRepo.findById(licenceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Vehicle Licence", "Id", licenceId));
 
         BeanUtils.copyProperties(vehicleLicenceReqDto, vehicleLicence, "id", "vehicleNumber");
 
@@ -152,8 +139,8 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
                     vehicleLicence.setRegistrationAttachment(registrationAttachment);
                 }
             }
-            vehicleLicence.setUpdatedBy(username);
-            VehicleLicence updatedVehicle = vehicleLicenceRepo.save(vehicleLicence);
+
+            VehicleLicence updatedVehicle=vehicleLicenceRepo.save(vehicleLicence);
 
             return ResponseEntity.ok(dtoUtilities.vehicleLicenceToVehicleLicenceDto(updatedVehicle));
         } catch (Exception e) {
@@ -163,28 +150,28 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
 
     @Override
     public ResponseEntity<?> fetchById(Long licenceId) {
-        VehicleLicence vehicleLicence = vehicleLicenceRepo.findById(licenceId).orElseThrow(() -> new ResourceNotFoundException("Vehicle Licence", "Id", licenceId));
+        VehicleLicence vehicleLicence = vehicleLicenceRepo.findById(licenceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Vehicle Licence", "Id", licenceId));
         return ResponseEntity.ok(dtoUtilities.vehicleLicenceToVehicleLicenceDto(vehicleLicence));
     }
 
-
-    public ResponseEntity<Page<VehicleLicenceResDto>> fetchAllVehicles(String status, Long unitId, int page, int size, String sortBy) {
+    public ResponseEntity<Page<VehicleLicenceResDto>> fetchAllVehicles(
+            String status,
+            int page,
+            int size,
+            String sortBy) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
 
         Page<VehicleLicence> vehicleLicences;
-
+        boolean bool=false;
         if (status != null) {
             try {
-                boolean bool = Boolean.parseBoolean(status);
-                if (bool && unitId != null) {
-                    vehicleLicences = vehicleLicenceRepo.findByStatusAndUnitId(bool, unitId, pageable);
-                } else {
-                    vehicleLicences = vehicleLicenceRepo.findByStatus(bool, pageable);
-                }
+                bool = Boolean.parseBoolean(status);
             } catch (Exception e) {
                 vehicleLicences = vehicleLicenceRepo.findAll(pageable);
             }
+            vehicleLicences = vehicleLicenceRepo.findByStatus(bool, pageable);
         } else {
             vehicleLicences = vehicleLicenceRepo.findAll(pageable);
         }
@@ -197,11 +184,15 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
 
     public ResponseEntity<Resource> getFile(String fileName, String uploadDir) {
         try {
-            VehicleLicenceAttachment vehicleLicenceAttachment = vehicleLicenceAttachmentRepo.findByGeneratedFileName(fileName).orElseThrow(ResourceNotFoundException::new);
+            VehicleLicenceAttachment vehicleLicenceAttachment = vehicleLicenceAttachmentRepo.findByGeneratedFileName(fileName)
+                    .orElseThrow(ResourceNotFoundException::new);
 
             Resource resource = new ByteArrayResource(fileService.getFile(uploadDir, vehicleLicenceAttachment.getGeneratedFileName()));
 
-            return ResponseEntity.ok().contentType(MediaType.parseMediaType(vehicleLicenceAttachment.getFileType())).header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + vehicleLicenceAttachment.getOriginalFileName() + "\"").body(resource);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(vehicleLicenceAttachment.getFileType()))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + vehicleLicenceAttachment.getOriginalFileName() + "\"")
+                    .body(resource);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -213,11 +204,15 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
             List<VehicleLicence> vehicleLicenceList = vehicleLicenceRepo.findAll();
             if (vehicleLicenceList.isEmpty())
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No users available!");
-            List<VehicleLicenceResDto> vehicleLicenceResDtoList = vehicleLicenceList.stream().map(dtoUtilities::vehicleLicenceToVehicleLicenceDto).collect(Collectors.toList());
+            List<VehicleLicenceResDto> vehicleLicenceResDtoList = vehicleLicenceList.stream().map(dtoUtilities::vehicleLicenceToVehicleLicenceDto)
+                    .collect(Collectors.toList());
             String fileName = "vehicle_excel_data.xlsx";
-            String sheetName = fileName.substring(0, fileName.indexOf('.'));
+            String sheetName=fileName.substring(0,fileName.indexOf('.'));
             Resource resource = excelUtility.downloadDataAsExcel(vehicleLicenceResDtoList, sheetName);
-            return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName).contentType(MediaType.parseMediaType("application/vnd.ms-excel")).body(resource);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
+                    .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                    .body(resource);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error!" + e);
         }
@@ -226,103 +221,14 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
     @Override
     public ResponseEntity<?> downloadExcelSample() throws IOException {
         String fileName = "vehicle_excel_sample.xlsx";
-        String sheetName = fileName.substring(0, fileName.indexOf('.'));
-        Resource resource = excelUtility.downloadExcelSample(VehicleLicenceReqDto.class, sheetName);
-        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName).contentType(MediaType.parseMediaType("application/vnd.ms-excel")).body(resource);
+        String sheetName=fileName.substring(0,fileName.indexOf('.'));
+        Resource resource = excelUtility.downloadExcelSample(VehicleLicenceReqDto.class,sheetName);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment;filename="+fileName)
+                .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                .body(resource);
     }
 
-    @Override
-    public ResponseEntity<?> validateExcelData(MultipartFile file) {
-        try {
-            if (excelUtility.isExcelFile(file)) {
-                ExcelValidateDataResponseDto validateDataResponse = excelUtility.validateExcelData(file, VehicleLicenceReqDto.class);
-                return ResponseEntity.status(HttpStatus.OK).body(validateDataResponse);
-            } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect uploaded file type!");
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
-    }
-
-    @Override
-    public ResponseEntity<?> saveBulkData(List<VehicleLicenceReqDto> userList) {
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<?> uploadExcelFile(MultipartFile file, Class<?> currentClass) {
-        try {
-            if (excelUtility.isExcelFile(file)) {
-                ExcelValidateDataResponseDto validateDataResponse = excelUtility.validateExcelData(file, currentClass);
-                validateDataResponse = validateDataFromDB(validateDataResponse);
-                validateDataResponse.setTotalValidData(validateDataResponse.getValidDataList().size());
-                validateDataResponse.setTotalInvalidData(validateDataResponse.getInvalidDataList().size());
-
-                if (validateDataResponse.getTotalData() == 0) {
-                    logger.info("No data available in excel sheet!");
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No data available in excel sheet!");
-                }
-
-                logger.info("Excel data validated successfully!");
-                return ResponseEntity.status(HttpStatus.OK).body(validateDataResponse);
-            } else {
-                logger.info("Incorrect uploaded file type!");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect uploaded file type! Supported [.xlsx or .xls] type");
-            }
-        } catch (Exception e) {
-            logger.error("Error occurred while validating excel data", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while validating excel data: " + e.getMessage());
-        }
-    }
-
-    @Override
-    public ExcelValidateDataResponseDto validateDataFromDB(ExcelValidateDataResponseDto validateDataResponse) {
-        List<?> validList = validateDataResponse.getValidDataList();
-        List<ValidatedData> invalidList = validateDataResponse.getInvalidDataList();
-        List<VehicleLicenceReqDto> vehicleLicenceReqDtoList = new ArrayList<>();
-
-        for (int i = 0; i < validList.size(); ) {
-            ValidatedData validatedData = (ValidatedData) validList.get(i);
-
-            if (!(validatedData.getData() instanceof VehicleLicenceReqDto)) {
-                ValidatedData invalidData = new ValidatedData();
-                invalidData.setData(validatedData.getData());
-                invalidData.setMessage("Invalid data type, expected VehicleLicenceReqDto!");
-                invalidList.add(invalidData);
-                validList.remove(validatedData);
-                continue;
-            }
-
-            VehicleLicenceReqDto vehicleLicenceReqDto = (VehicleLicenceReqDto) validatedData.getData();
-            boolean flag = isExistInDB(vehicleLicenceReqDto.getVehicleNumber());
-
-            if (flag) {
-                ValidatedData invalidData = new ValidatedData();
-                invalidData.setData(vehicleLicenceReqDto);
-                invalidData.setMessage("Vehicle already exists!");
-                invalidList.add(invalidData);
-                validList.remove(validatedData);
-                continue;
-            }
-
-            vehicleLicenceReqDtoList.add(vehicleLicenceReqDto);
-            i++;
-        }
-
-        validateDataResponse.setValidDataList(vehicleLicenceReqDtoList);
-        return validateDataResponse;
-    }
-
-    @Override
-    public boolean isExistInDB(Object keyword) {
-        if (!(keyword instanceof String)) {
-            throw new IllegalArgumentException("Expected a String keyword for vehicle number check");
-        }
-        String vehicleNumber = (String) keyword;
-        Optional<VehicleLicence> vehicleLicence = vehicleLicenceRepo.findByVehicleNumber(vehicleNumber);
-        return vehicleLicence.isPresent();
-    }
 
     private VehicleLicenceAttachment uploadFile(MultipartFile file, String path) {
         try {

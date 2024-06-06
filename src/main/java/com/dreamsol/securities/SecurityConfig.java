@@ -1,7 +1,6 @@
 package com.dreamsol.securities;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.catalina.filters.CorsFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,8 +12,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -32,7 +29,9 @@ public class SecurityConfig
             "/v2/api-docs/swagger-config",
             "/v2/api-docs",
             "/api/authenticate-user",
-            "/api/register-user"
+            "/api/register-user",
+            "/api/regenerate-token",
+            "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/index.html"
     };
 
     @Bean

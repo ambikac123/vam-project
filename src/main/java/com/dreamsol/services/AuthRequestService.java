@@ -108,4 +108,14 @@ public class AuthRequestService
     {
         return refreshToken.getExpiry() > System.currentTimeMillis();
     }
+
+    public ResponseEntity<?> getUserDetailsFromToken(String token) {
+        String username;
+        if(token.startsWith("Bearer"))
+            username = token.substring(7);
+        username = jwtUtil.getUsernameFromToken(token);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        return ResponseEntity.status(HttpStatus.OK).body(jwtUtil.getUserDetails(userDetails));
+    }
+
 }

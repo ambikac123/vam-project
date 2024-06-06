@@ -14,6 +14,4 @@ public interface VehicleLicenceRepo extends JpaRepository<VehicleLicence, Long> 
     Optional<VehicleLicence> findByVehicleNumber(String vehicleNumber);
 
     Page<VehicleLicence> findByStatus(boolean b, Pageable pageable);
-
-    Page<VehicleLicence> findByStatusAndUnitId(boolean bool, Long unitId, Pageable pageable);
 }

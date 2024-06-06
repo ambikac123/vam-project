@@ -44,22 +44,20 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
     @Override
     public ResponseEntity<?> create(UserTypeRequestDto userTypeRequestDto) {
         try {
-            String username = jwtUtil.getCurrentLoginUser();
-            if(username == null) {
-               logger.info("Unauthenticated user!");
-               return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthenticated user!");
-            }
-            String userTypeName = userTypeRequestDto.getUserTypeName();
-            String userTypeCode = userTypeRequestDto.getUserTypeCode();
-            Optional<UserType> userTypeOptional = userTypeRepository.findByUserTypeNameOrUserTypeCodeAndStatusTrue(userTypeName,userTypeCode);
+
+            Optional<UserType> userTypeOptional = userTypeRepository.findByUserTypeNameOrUserTypeCodeAndStatusTrue(userTypeRequestDto.getUserTypeName(),userTypeRequestDto.getUserTypeCode());
             if(userTypeOptional.isPresent()){
-                logger.info("user type already exist!");
-                return ResponseEntity.status(HttpStatus.FOUND).body("user type already exist!");
+                userTypeOptional.get().setStatus(userTypeRequestDto.isStatus());
+                userTypeRepository.save(userTypeOptional.get());
+                logger.info("user type already exist! [usertype reactivated]");
+                return ResponseEntity.status(HttpStatus.FOUND).body("user type already exist! [usertype reactivated]");
             }
+
             UserType userType = dtoUtilities.userTypeRequestDtoToUserType(userTypeRequestDto);
-            userType.setCreatedBy(username);
-            userType.setUpdatedBy(username);
+            userType.setCreatedBy(jwtUtil.getCurrentLoginUser());
+            userType.setUpdatedBy(jwtUtil.getCurrentLoginUser());
             userTypeRepository.save(userType);
+
             logger.info("New user type created successfully!");
             return ResponseEntity.status(HttpStatus.CREATED).body("New user type created successfully!");
         }catch (Exception e){
@@ -71,14 +69,10 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
     @Override
     public ResponseEntity<?> update(UserTypeRequestDto userTypeRequestDto, Long id) {
         try {
-            String username = jwtUtil.getCurrentLoginUser();
-            if(username == null) {
-                logger.info("Unauthenticated user!");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthenticated user!");
-            }
+
             UserType userType = userTypeRepository.findByIdAndStatusTrue(id).orElseThrow(() -> new ResourceNotFoundException("usertype", "id", id));
             BeanUtils.copyProperties(userTypeRequestDto, userType);
-            userType.setUpdatedBy(username);
+            userType.setUpdatedBy(jwtUtil.getCurrentLoginUser());
             userTypeRepository.save(userType);
             logger.info("user type updated successfully!");
             return ResponseEntity.status(HttpStatus.OK).body("user type updated successfully!");
@@ -87,7 +81,6 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while updating user type: "+e.getMessage());
         }
     }
-
     @Override
     public ResponseEntity<?> delete(Long id) {
         try{
@@ -106,8 +99,13 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
     public ResponseEntity<?> get(Long id) {
         try{
             UserType userType = userTypeRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("usertype", "id", id));
-            logger.info("usertype with id: "+id+" found!");
-            return ResponseEntity.status(HttpStatus.FOUND).body(userType);
+            if(userType.isStatus()) {
+                logger.info("usertype with id: " + id + " found!");
+                return ResponseEntity.status(HttpStatus.FOUND).body(userType);
+            }else{
+                logger.info("usertype with id: "+id+" not found!");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("usertype with id: "+id+" not found!");
+            }
         }catch(Exception e){
             logger.error("Error occurred while searching usertype with id: "+id+" ,",e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while searching usertype with id: "+id+" ,"+e.getMessage());
@@ -116,30 +114,27 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
 
     @Override
     public ResponseEntity<?> getAll(Pageable pageable, String search) {
-        Page<UserType> userTypePage = null;
-        if(search == null) {
+
+        Page<UserType> userTypePage;
+        if(search == null || search.isEmpty()) {
             userTypePage = userTypeRepository.findAll(pageable);
-        }else{
+        }
+        else
+        {
             long unitId = 0L;
             try{
                 unitId = Long.parseLong(search);
-            }catch(Exception e)
-            {
-                // parsing failed continue
-            }
+            }catch(Exception e) {/*parsing failed continue*/}
+
             LocalDateTime localDateTime = null;
             try{
                 localDateTime = LocalDateTime.parse(search, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            }catch (Exception e){
-                // parsing failed continue
-            }
+            }catch (Exception e){/*parsing failed continue*/}
 
             boolean status = false;
             try{
                 status = Boolean.parseBoolean(search);
-            }catch (Exception e){
-                // parsing failed continue
-            }
+            }catch (Exception e){/*parsing failed continue*/}
 
             userTypePage = userTypeRepository.findByUserTypeNameContainingIgnoreCaseOrUserTypeCodeContainingIgnoreCaseOrCreatedByContainingIgnoreCaseOrUpdatedByContainingIgnoreCaseOrCreatedAtOrUpdatedAtOrUnitIdOrStatus(
                 search, search, search, search, localDateTime, localDateTime, unitId, status, pageable);
@@ -225,7 +220,7 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
         {
             ValidatedData validatedData = (ValidatedData) validList.get(i);
             UserTypeRequestDto userTypeRequestDto = (UserTypeRequestDto) validatedData.getData();
-            boolean flag = isExistInDB(userTypeRequestDto.getUserTypeCode());
+            boolean flag = isExistInDB(userTypeRequestDto);
             if(flag){
                 ValidatedData invalidData = new ValidatedData();
                 invalidData.setData(userTypeRequestDto);
@@ -243,8 +238,8 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
 
     @Override
     public boolean isExistInDB(Object keyword) {
-        String userTypeCode = (String)keyword;
-        Optional<UserType> userTypeOptional = userTypeRepository.findByUserTypeCode(userTypeCode);
+        UserTypeRequestDto userTypeRequestDto = (UserTypeRequestDto)keyword;
+        Optional<UserType> userTypeOptional = userTypeRepository.findByUserTypeNameOrUserTypeCode(userTypeRequestDto.getUserTypeName(),userTypeRequestDto.getUserTypeCode());
         return userTypeOptional.isPresent();
     }
 
@@ -271,5 +266,10 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
             logger.error("Error occurred while saving bulk data, ",e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while saving bulk data: "+e.getMessage());
         }
+    }
+
+    // usertype own methods
+    public Optional<UserType> getUserType(String userTypeName){
+        return userTypeRepository.findByUserTypeNameAndStatusTrue(userTypeName);
     }
 }

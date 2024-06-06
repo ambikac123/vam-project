@@ -165,4 +165,9 @@ public class ContactServiceImpl implements ContactService {
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                 .body(resource);
     }
+
+    // Extra methods
+    public Optional<Contact> getContact(String employeeId){
+        return contactRepository.findByEmployeeIdAndStatusTrue(employeeId);
+    }
 }

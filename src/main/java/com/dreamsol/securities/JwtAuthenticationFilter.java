@@ -8,7 +8,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
-import java.util.List;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
@@ -23,30 +22,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter
 {
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
-    private final String[] PUBLIC_URLS = {
-            "/swagger-ui/**",
-            "/swagger-ui/index.html",
-            "/v2/api-docs/**",
-            "/swagger-resources/**",
-            "/webjars/**",
-            "/swagger-ui/swagger-ui.css",
-            "/swagger-ui/index.css",
-            "/swagger-ui/swagger-ui-bundle.js",
-            "/swagger-ui/swagger-initializer.js",
-            "/swagger-ui/swagger-ui-standalone-preset.js",
-            "/v2/api-docs/swagger-config",
-            "/swagger-ui/favicon-32x32.png",
-            "/v2/api-docs",
-            "/api/authenticate-user",
-            "/api/register-user"
-    };
-    List<String> publicUrls = List.of(PUBLIC_URLS);
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException
     {
-        if(!publicUrls.contains(request.getRequestURI()))
-        {
             String requestToken = request.getHeader("Authorization");
             String username;
             String actualToken;
@@ -72,10 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter
                         response.sendError(403,"Invalid token!");
                     }
                 }
-            }else{
-                response.sendError(403,"Token is in incorrect format. missing prefix 'Bearer'");
             }
-        }
         filterChain.doFilter(request,response);
     }
 }

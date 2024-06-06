@@ -36,6 +36,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -160,9 +161,14 @@ public class ExcelUtility
 
     // To map excel cells to object fields
     private void mapCellToField(Class<?> currentClass, Object currentObject, Row row, int cellIndex) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        Field[] fields = currentClass.getDeclaredFields();
+        Field[] childClassFields = currentClass.getDeclaredFields();
+        Field[] parentClassFields = currentClass.getSuperclass().getDeclaredFields();
+        List<Field> fields = new ArrayList<>();
+        Collections.addAll(fields,childClassFields);
+        Collections.addAll(fields,parentClassFields);
         for(Field field : fields)
         {
+            System.out.println(field.getName());    // Added
             field.setAccessible(true);
             if(field.getType().isPrimitive() || !field.getType().getName().startsWith("com.dreamsol"))
             {

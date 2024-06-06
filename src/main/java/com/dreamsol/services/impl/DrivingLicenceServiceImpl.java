@@ -9,13 +9,10 @@ import com.dreamsol.entites.DrivingLicenceAttachment;
 import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.repositories.DrivingLicenceRepo;
 import com.dreamsol.repositories.DrivingLicenceAttachmentRepo;
-import com.dreamsol.securities.JwtUtil;
 import com.dreamsol.services.DrivingLicenceService;
 import com.dreamsol.utility.DtoUtilities;
 import com.dreamsol.utility.ExcelUtility;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -40,7 +37,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class DrivingLicenceServiceImpl implements DrivingLicenceService {
-
     private final DrivingLicenceRepo drivingLicenceRepo;
 
     private final DtoUtilities dtoUtilities;
@@ -51,20 +47,10 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
 
     private final ExcelUtility excelUtility;
 
-    private final JwtUtil jwtUtil;
-
-    private static final Logger logger = LoggerFactory.getLogger(DrivingLicenceServiceImpl.class);
-
-
     @Override
     public ResponseEntity<?> addLicence(DrivingLicenceReqDto drivingLicenceReqDto, MultipartFile file, String path) {
         Optional<DrivingLicence> existingLicence = drivingLicenceRepo.findByLicence(drivingLicenceReqDto.getLicence());
         Optional<DrivingLicence> existingMobile = drivingLicenceRepo.findByDriverMobile(drivingLicenceReqDto.getDriverMobile());
-        String username = jwtUtil.getCurrentLoginUser();
-        if(username == null) {
-            logger.info("Unauthenticated user!");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthenticated user!");
-        }
 
         if (existingLicence.isPresent()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("Licence already exists!", false));
@@ -72,7 +58,6 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("Mobile number already exists!", false));
         } else {
             DrivingLicence drivingLicence = dtoUtilities.licenceDtoToLicence(drivingLicenceReqDto);
-            drivingLicence.setCreatedBy(username);
             drivingLicence.setFile(uploadFile(file, path));
             DrivingLicence savedDriving = drivingLicenceRepo.save(drivingLicence);
             return ResponseEntity.status(HttpStatus.CREATED).body(dtoUtilities.licenceToLicenceDto(savedDriving));
@@ -99,12 +84,6 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
         DrivingLicence drivingLicence = drivingLicenceRepo.findById(licenceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Driving Licence", "Id", licenceId));
 
-        String username = jwtUtil.getCurrentLoginUser();
-        if(username == null) {
-            logger.info("Unauthenticated user!");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthenticated user!");
-        }
-
         BeanUtils.copyProperties(drivingLicenceReqDto, drivingLicence, "id", "licence");
         DrivingLicenceAttachment existingAttachment = drivingLicence.getFile();
 
@@ -113,7 +92,6 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
         } else {
             DrivingLicenceAttachment newAttachment = uploadFile(file, path);
             drivingLicence.setFile(newAttachment);
-            drivingLicence.setUpdatedBy(username);
         }
         DrivingLicence updatedDriving = drivingLicenceRepo.save(drivingLicence);
 
@@ -127,9 +105,9 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
         return ResponseEntity.ok(dtoUtilities.licenceToLicenceDto(drivingLicence));
     }
 
+
     public ResponseEntity<Page<DrivingLicenceResDto>> fetchAllDrivers(
             String status,
-            Long unitId,
             int page,
             int size,
             String sortBy) {
@@ -137,18 +115,14 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
 
         Page<DrivingLicence> drivingLicences;
-
+        boolean bool=false;
         if (status != null) {
             try {
-                boolean bool = Boolean.parseBoolean(status);
-                if (bool && unitId != null) {
-                    drivingLicences = drivingLicenceRepo.findByStatusAndUnitId(bool, unitId, pageable);
-                } else {
-                    drivingLicences = drivingLicenceRepo.findByStatus(bool, pageable);
-                }
+                bool = Boolean.parseBoolean(status);
             } catch (Exception e) {
                 drivingLicences = drivingLicenceRepo.findAll(pageable);
             }
+            drivingLicences = drivingLicenceRepo.findByStatus(bool, pageable);
         } else {
             drivingLicences = drivingLicenceRepo.findAll(pageable);
         }
@@ -157,6 +131,7 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
 
         return ResponseEntity.ok(drivingLicenceResDtoPage);
     }
+
 
     @Override
     public ResponseEntity<Resource> getFile(String fileName, String uploadDir) throws IOException {

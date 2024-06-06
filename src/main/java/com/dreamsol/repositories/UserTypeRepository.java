@@ -13,7 +13,9 @@ public interface UserTypeRepository extends JpaRepository<UserType,Long> {
 
     Optional<UserType> findByIdAndStatusTrue(Long id);
 
-    Optional<UserType> findByUserTypeCode(String userTypeCode);
-
     Page<UserType> findByUserTypeNameContainingIgnoreCaseOrUserTypeCodeContainingIgnoreCaseOrCreatedByContainingIgnoreCaseOrUpdatedByContainingIgnoreCaseOrCreatedAtOrUpdatedAtOrUnitIdOrStatus(String search, String search1, String search2, String search3, LocalDateTime localDateTime, LocalDateTime localDateTime1, long unitId, boolean status, Pageable pageable);
+
+    Optional<UserType> findByUserTypeNameOrUserTypeCode(String userTypeName, String userTypeCode);
+
+    Optional<UserType> findByUserTypeNameAndStatusTrue(String userTypeName);
 }

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
 
 public interface DrivingLicenceService {
 
@@ -21,7 +22,6 @@ public interface DrivingLicenceService {
 
     ResponseEntity<Page<DrivingLicenceResDto>> fetchAllDrivers(
             String status,
-            Long unitId,
             int page,
             int size,
             String sortBy);

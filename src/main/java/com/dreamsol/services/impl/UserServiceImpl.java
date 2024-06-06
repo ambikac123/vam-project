@@ -4,9 +4,10 @@ import com.dreamsol.dtos.requestDtos.UserRequestDto;
 import com.dreamsol.dtos.responseDtos.ExcelValidateDataResponseDto;
 import com.dreamsol.dtos.responseDtos.UserResponseDto;
 import com.dreamsol.dtos.responseDtos.ValidatedData;
-import com.dreamsol.entites.Department;
+import com.dreamsol.entites.Contact;
 import com.dreamsol.entites.User;
-import com.dreamsol.repositories.DepartmentRepository;
+import com.dreamsol.entites.UserType;
+import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.repositories.UserRepository;
 import com.dreamsol.securities.JwtUtil;
 import com.dreamsol.services.CommonService;
@@ -37,23 +38,40 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
     private final DtoUtilities dtoUtilities;
     private final ExcelUtility excelUtility;
     private final UserRepository userRepository;
-    private final DepartmentRepository departmentRepository;
+    private final UserTypeServiceImpl userTypeService;
+    private final ContactServiceImpl contactService;
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Override
     public ResponseEntity<?> create(UserRequestDto userRequestDto)
     {
         try {
-
-            User user = userRepository.findByEmailOrMobile(userRequestDto.getEmail(), userRequestDto.getMobile());
-            if (user != null) {
-                logger.error("user already exist!");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user already exist!");
+            Optional<User> userOptional = userRepository.findByEmailOrMobile(userRequestDto.getEmail(), userRequestDto.getMobile());
+            if (userOptional.isPresent()) {
+                userOptional.get().setStatus(userRequestDto.isStatus());
+                logger.info("user already exist! [user reactivated]");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user already exist! [user reactivated]");
             }
-            user = dtoUtilities.userRequstDtoToUser(userRequestDto);
-            user.setCreatedBy(userRequestDto.getName());
-            user.setUpdatedBy(userRequestDto.getName());
+
+            Optional<Contact> contactOptional = contactService.getContact(userRequestDto.getEmployeeId());
+            if(contactOptional.isEmpty()){
+                logger.info("employee id doesn't exist!");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("employee id doesn't exist!");
+            }
+
+            Optional<UserType> userTypeOptional = userTypeService.getUserType(userRequestDto.getUserTypeName());
+            if(userTypeOptional.isEmpty()){
+                logger.info("usertype doesn't exist!");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("usertype doesn't exist!");
+            }
+
+            User user = dtoUtilities.userRequstDtoToUser(userRequestDto);
+            user.setCreatedBy(jwtUtil.getCurrentLoginUser());
+            user.setUpdatedBy(jwtUtil.getCurrentLoginUser());
+            user.setContact(contactOptional.get());
+            user.setUserType(userTypeOptional.get());
             userRepository.save(user);
+            System.out.println(user);
             logger.info("New user created successfully!");
             return ResponseEntity.status(HttpStatus.CREATED).body("New user created successfully!");
         } catch (Exception e) {
@@ -65,7 +83,6 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
     @Override
     public ResponseEntity<?> update(UserRequestDto userRequestDto, Long id) {
         try {
-
             User user = userRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("user not found with id: " + id));
             if (!user.isStatus()) {
@@ -74,7 +91,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
             }
             user = dtoUtilities.userRequstDtoToUser(userRequestDto);
             user.setId(id);
-            user.setUpdatedBy(userRequestDto.getName());
+            user.setUpdatedBy(jwtUtil.getCurrentLoginUser());
             userRepository.save(user);
             logger.info("User updated successfully!");
             return ResponseEntity.status(HttpStatus.OK).body("User updated successfully!");
@@ -88,7 +105,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
     public ResponseEntity<?> delete(Long id) {
         try {
             User user = userRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("user not found with id: " + id));
+                    .orElseThrow(() -> new ResourceNotFoundException("user","id",id));
             user.setStatus(false);
             userRepository.save(user);
             logger.info("user with id: "+id+" deleted successfully!");
@@ -115,11 +132,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while fetching user with id: "+id+", "+e.getMessage());
         }
     }
-    public Object get(String email){
-        User user = userRepository.findByEmail(email);
-        System.out.println(user);
-        return user;
-    }
+
     @Override
     public ResponseEntity<?> getAll(Pageable pageable, String keyword) {
         try {
@@ -169,7 +182,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
             String fileName = "user_excel_sample.xlsx";
             String sheetName = fileName.substring(0, fileName.indexOf('.'));
             Resource resource = excelUtility.downloadExcelSample(UserRequestDto.class, sheetName);
-            logger.info("Excel format download successfully!");
+            logger.info("Excel format downloaded successfully!");
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
                     .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
@@ -180,7 +193,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while downloading excel format");
         }
     }
-
+    @Override
     public ResponseEntity<?> uploadExcelFile(MultipartFile file,Class<?> currentClass)
     {
         try{
@@ -215,7 +228,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
         {
             ValidatedData validatedData = (ValidatedData) validList.get(i);
             UserRequestDto userRequestDto = (UserRequestDto) validatedData.getData();
-            /*boolean flag = isExistInDB(userRequestDto.getDepartmentCode());
+            boolean flag = isExistInDB(userRequestDto);
             if(!flag){
                 ValidatedData invalidData = new ValidatedData();
                 invalidData.setData(userRequestDto);
@@ -223,77 +236,22 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
                 invalidList.add(invalidData);
                 validList.remove(validatedData);
                 continue;
-            }*/
+            }
             userRequestDtoList.add(userRequestDto);
             i++;
         }
         validateDataResponse.setValidDataList(userRequestDtoList);
         return validateDataResponse;
     }
-
-//    public ResponseEntity<?> uploadExcelFile(MultipartFile file,Class<?> currentClass)
-//    {
-//        try{
-//            if(excelUtility.isExcelFile(file))
-//            {
-//                ExcelValidateDataResponseDto validateDataResponse = excelUtility.validateExcelData(file,currentClass);
-//                validateDataResponse = validateDataFromDB(validateDataResponse);
-//                validateDataResponse.setTotalValidData(validateDataResponse.getValidDataList().size());
-//                validateDataResponse.setTotalInvalidData(validateDataResponse.getInvalidDataList().size());
-//                if(validateDataResponse.getTotalData()==0){
-//                    logger.info("No data available in excel sheet!");
-//                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No data available in excel sheet!");
-//                }
-//                logger.info("Excel data validated successfully!");
-//                return ResponseEntity.status(HttpStatus.OK).body(validateDataResponse);
-//            }else {
-//                logger.info("Incorrect uploaded file type!");
-//                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect uploaded file type! supported [.xlsx or xls] type");
-//            }
-//        }catch(Exception e)
-//        {
-//            logger.error("Error occurred while validating excel data",e);
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while validating excel data: "+e.getMessage());
-//        }
-//    }
-//    public ExcelValidateDataResponseDto validateDataFromDB(ExcelValidateDataResponseDto validateDataResponse){
-//
-//        List<?> validList = validateDataResponse.getValidDataList();
-//        List<ValidatedData> invalidList = validateDataResponse.getInvalidDataList();
-//        List<UserRequestDto> userRequestDtoList = new ArrayList<>();
-//        for(int i=0;i<validList.size();)
-//        {
-//            ValidatedData validatedData = (ValidatedData) validList.get(i);
-//            UserRequestDto userRequestDto = (UserRequestDto) validatedData.getData();
-//            boolean flag = isExistInDB(userRequestDto.getDepartmentCode());
-//            if(!flag){
-//                ValidatedData invalidData = new ValidatedData();
-//                invalidData.setData(userRequestDto);
-//                invalidData.setMessage("department doesn't exist");
-//                invalidList.add(invalidData);
-//                validList.remove(validatedData);
-//                continue;
-//            }
-//            userRequestDtoList.add(userRequestDto);
-//            i++;
-//        }
-//        validateDataResponse.setValidDataList(userRequestDtoList);
-//        return validateDataResponse;
-//    }
-
     public boolean isExistInDB(Object keyword){
-        String departmentCode = (String) keyword;
-        Optional<Department> department = departmentRepository.findByDepartmentCode(departmentCode);
-        return department.isPresent();
+        UserRequestDto userRequestDto = (UserRequestDto)keyword;
+        Optional<User> userOptional = userRepository.findByEmailOrMobile(userRequestDto.getEmail(),userRequestDto.getMobile());
+        return userOptional.isPresent();
     }
     @Override
     public ResponseEntity<?> saveBulkData(List<UserRequestDto> userRequestDtoList) {
         try{
             String username = jwtUtil.getCurrentLoginUser();
-            if(username == null) {
-                logger.info("Unauthenticated user!");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthenticated user!");
-            }
             List<User> userList = userRequestDtoList.stream()
                     .map((userRequestDto -> {
                         User user = dtoUtilities.userRequstDtoToUser(userRequestDto);

@@ -36,6 +36,9 @@ public class JwtUtil
         claims.put("Name",user.getName());
         claims.put("Email",user.getEmail());
         claims.put("Mobile No.",user.getMobile());
+        claims.put("Status",user.isStatus());
+        claims.put("Created At",user.getCreatedAt());
+        claims.put("Updated At",user.getUpdatedAt());
         /*claims.put("Roles", List.of(user.getRoles().stream().map(Role::getRoleType).toArray()));
         claims.put("Permissions",List.of(user.getPermissions().stream().map(Permission::getPermissionType).toArray()));*/
         String subject = userDetails.getUsername();
@@ -87,7 +90,27 @@ public class JwtUtil
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
             return ((UserDetails) authentication.getPrincipal()).getUsername();
         }else {
-            return null;
+            return "NA";
         }
+    }
+    public TokenPayload getUserDetails(UserDetails userDetails)
+    {
+            UserDetailsImpl userDetailsImpl = (UserDetailsImpl) userDetails;
+            User user = userDetailsImpl.getUser();
+            return TokenPayload.builder()
+                    .userid(user.getId())
+                    .unitId(user.getUnitId())
+                    .employeeId(user.getContact().getEmployeeId())
+                    .name(user.getName())
+                    .username(user.getEmail())
+                    .mobile(user.getMobile())
+                    .email(user.getEmail())
+                    .department(user.getContact().getDepartment().getDepartmentName())
+                    .createdBy(user.getCreatedBy())
+                    .updatedBy(user.getUpdatedBy())
+                    .createdAt(user.getCreatedAt())
+                    .updatedAt(user.getUpdatedAt())
+                    .status(user.isStatus())
+                    .build();
     }
 }
