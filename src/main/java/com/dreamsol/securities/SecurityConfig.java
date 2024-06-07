@@ -31,11 +31,7 @@ public class SecurityConfig
             "/api/authenticate-user",
             "/api/register-user",
             "/api/regenerate-token",
-<<<<<<< Updated upstream
             "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/index.html"
-=======
-            "/api/**"
->>>>>>> Stashed changes
     };
 
     @Bean
