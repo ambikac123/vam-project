@@ -3,20 +3,19 @@ package com.dreamsol.services;
 import com.dreamsol.dtos.requestDtos.DepartmentRequestDto;
 import com.dreamsol.dtos.responseDtos.DepartmentResponseDto;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
 public interface DepartmentService {
-    DepartmentResponseDto createDepartment(DepartmentRequestDto departmentRequestDto);
+    ResponseEntity<DepartmentResponseDto> createDepartment(DepartmentRequestDto departmentRequestDto);
 
-    DepartmentResponseDto updateDepartment(Long id, DepartmentRequestDto departmentRequestDto);
+    ResponseEntity<DepartmentResponseDto> updateDepartment(Long id, DepartmentRequestDto departmentRequestDto);
 
-    DepartmentResponseDto getDepartmentById(Long id);
+    ResponseEntity<DepartmentResponseDto> getDepartmentById(Long id);
 
-    Page<DepartmentResponseDto> getDepartments(Pageable pageable, String status, Long unitId, String departmentName);
+    ResponseEntity<?> getDepartments(int pageSize, int page, String sortBy, String SortDirection, String status,
+            Long unitId);
 
-    void deleteDepartment(Long id);
+    ResponseEntity<?> deleteDepartment(Long id);
 
     ResponseEntity<?> downloadDepartmentDataAsExcel();
 

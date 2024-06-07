@@ -30,6 +30,7 @@ import com.dreamsol.entites.Unit;
 import com.dreamsol.entites.User;
 import com.dreamsol.entites.UserType;
 import com.dreamsol.entites.VehicleLicence;
+import com.dreamsol.securities.JwtUtil;
 import com.dreamsol.dtos.requestDtos.*;
 import com.dreamsol.dtos.responseDtos.*;
 import com.dreamsol.entites.*;
@@ -46,6 +47,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RequiredArgsConstructor
 public class DtoUtilities {
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil util;
 
     public User userRequstDtoToUser(UserRequestDto userRequestDto) {
         User user = new User();
@@ -132,9 +134,10 @@ public class DtoUtilities {
         Plant plant = new Plant();
 
         BeanUtils.copyProperties(plantRequestDto, plant);
+        // plant.setCreatedBy(util.getCurrentLoginUser());
+        // plant.setUpdatedBy(util.getCurrentLoginUser());
         plant.setCreatedAt(LocalDateTime.now());
         plant.setUpdatedAt(LocalDateTime.now());
-
         return plant;
     }
 

@@ -4,9 +4,6 @@ import java.io.IOException;
 
 import javax.validation.Valid;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,32 +24,30 @@ public class ContactController {
     @PostMapping("/create-contact")
     public ResponseEntity<ContactResponseDto> createContact(
             @Valid @RequestBody ContactRequestDto contactRequestDto) {
-        ContactResponseDto contactResponseDto = contactService.createContact(contactRequestDto);
-        return ResponseEntity.ok(contactResponseDto);
+        return contactService.createContact(contactRequestDto);
     }
 
     @PutMapping("/update-contact/{id}")
     public ResponseEntity<ContactResponseDto> updateContact(@PathVariable Long id,
             @Valid @RequestBody ContactRequestDto contactRequestDto) {
-        ContactResponseDto contactResponseDto = contactService.updateContact(id, contactRequestDto);
-        return ResponseEntity.ok(contactResponseDto);
+        return contactService.updateContact(id, contactRequestDto);
     }
 
     @GetMapping("/get-contact/{id}")
     public ResponseEntity<ContactResponseDto> getContactById(@PathVariable Long id) {
-        ContactResponseDto contactResponseDto = contactService.getContactById(id);
-        return ResponseEntity.ok(contactResponseDto);
+        return contactService.getContactById(id);
     }
 
     @GetMapping("/get-all-contacts")
-    public ResponseEntity<Page<ContactResponseDto>> getAllContacts(
-            @PageableDefault(size = 10, sort = "contactName", page = 0) Pageable pageable,
+    public ResponseEntity<?> getAllContacts(
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(required = false, defaultValue = "ASC") String sortDirection,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long unitId,
-            @RequestParam(required = false) String departmentName) {
-        Page<ContactResponseDto> contactResponseDtos = contactService.getContacts(pageable, status, unitId,
-                departmentName);
-        return ResponseEntity.ok(contactResponseDtos);
+            @RequestParam(required = false) Integer departmentId) {
+        return contactService.getContacts(pageSize, page, sortBy, sortDirection, status, unitId, departmentId);
     }
 
     @DeleteMapping("/delete-contact/{id}")

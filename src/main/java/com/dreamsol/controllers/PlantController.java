@@ -6,9 +6,6 @@ import com.dreamsol.services.PlantService;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,36 +23,37 @@ public class PlantController {
 
     @PostMapping("/create-plant")
     public ResponseEntity<PlantResponseDto> createPlant(@Valid @RequestBody PlantRequestDto plantRequestDto) {
-        PlantResponseDto plantResponseDto = plantService.createPlant(plantRequestDto);
-        return ResponseEntity.ok(plantResponseDto);
+        return  plantService.createPlant(plantRequestDto);
     }
 
     @PutMapping("update-plant/{id}")
     public ResponseEntity<PlantResponseDto> updatePlant(@PathVariable Long id,
             @Valid @RequestBody PlantRequestDto plantRequestDto) {
-        PlantResponseDto plantResponseDto = plantService.updatePlant(id, plantRequestDto);
-        return ResponseEntity.ok(plantResponseDto);
+       return plantService.updatePlant(id, plantRequestDto);
     }
 
     @GetMapping("get-plant/{id}")
     public ResponseEntity<PlantResponseDto> getPlantById(@PathVariable Long id) {
-        PlantResponseDto plantResponseDto = plantService.getPlantById(id);
-        return ResponseEntity.ok(plantResponseDto);
+        return plantService.getPlantById(id);
     }
 
     @GetMapping("get-all-plants")
-    public ResponseEntity<Page<PlantResponseDto>> getAllPlants(
-            @PageableDefault(size = 10, sort = "plantName", page = 0) Pageable pageable,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) Long unitId) {
-        Page<PlantResponseDto> plantResponseDtos = plantService.getPlants(pageable, status, unitId);
-        return ResponseEntity.ok(plantResponseDtos);
-    }
+    public ResponseEntity<?> getAllDepartments(
+        @RequestParam(defaultValue = "10") int pageSize,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "id") String sortBy,
+        @RequestParam(required = false, defaultValue = "ASC") String sortDirection,
+        @RequestParam(required = false) String status,
+        @RequestParam(required = false) Long unitId,
+        @RequestParam(required = false)String plantName) {
+    return plantService.getPlants(plantName,pageSize, page, sortBy, sortDirection, status, unitId);
+}
+
 
     @DeleteMapping("delete-plant/{id}")
-    public ResponseEntity<Void> deletePlant(@PathVariable Long id) {
-        plantService.deletePlant(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> deletePlant(@PathVariable Long id) {
+        return plantService.deletePlant(id);
+       
     }
 
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)

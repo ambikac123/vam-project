@@ -12,12 +12,14 @@ import com.dreamsol.utility.ExcelUtility;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,52 +34,55 @@ public class PurposeServiceImpl implements PurposeService {
     private final ExcelUtility excelUtility;
 
     @Override
-    public PurposeResponseDto createPurpose(PurposeRequestDto purposeRequestDto) {
+    public ResponseEntity<PurposeResponseDto> createPurpose(PurposeRequestDto purposeRequestDto) {
         Purpose purpose = DtoUtilities.purposeRequestDtoToPurpose(purposeRequestDto);
         Purpose savedPurpose = purposeRepository.save(purpose);
-        return DtoUtilities.purposeToPurposeResponseDto(savedPurpose);
+        return ResponseEntity.ok().body(DtoUtilities.purposeToPurposeResponseDto(savedPurpose));
     }
 
     @Override
-    public PurposeResponseDto updatePurpose(Long id, PurposeRequestDto purposeRequestDto) {
+    public ResponseEntity<PurposeResponseDto> updatePurpose(Long id, PurposeRequestDto purposeRequestDto) {
         Purpose existingPurpose = purposeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Purpose", "Id", id));
         Purpose updatedPurpose = DtoUtilities.purposeRequestDtoToPurpose(existingPurpose, purposeRequestDto);
         updatedPurpose = purposeRepository.save(updatedPurpose);
-        return DtoUtilities.purposeToPurposeResponseDto(updatedPurpose);
+        return ResponseEntity.ok().body(DtoUtilities.purposeToPurposeResponseDto(updatedPurpose));
     }
 
     @Override
-    public PurposeResponseDto getPurposeById(Long id) {
+    public ResponseEntity<PurposeResponseDto> getPurposeById(Long id) {
         Purpose purpose = purposeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Purpose", "Id", id));
-        return DtoUtilities.purposeToPurposeResponseDto(purpose);
+        return ResponseEntity.ok().body(DtoUtilities.purposeToPurposeResponseDto(purpose));
     }
 
     @Override
-    public Page<PurposeResponseDto> getPurposes(Pageable pageable, String status, Long unitId, String purposeFor) {
-        boolean bool = false;
-        if (status != null) {
-            try {
-                bool = Boolean.parseBoolean(status);
-            } catch (Exception e) {
-                return purposeRepository.findByPurposeForAndUnitId(pageable, purposeFor, unitId)
-                        .map(DtoUtilities::purposeToPurposeResponseDto);
-            }
-            return purposeRepository.findByPurposeForAndUnitIdAndStatus(pageable, purposeFor, unitId, bool)
-                    .map(DtoUtilities::purposeToPurposeResponseDto);
+    public ResponseEntity<?> getPurposes(String purposeFor, int pageSize, int page, String sortBy, String sortDirection,
+            String status,
+            Long unitId) {
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("Asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(direction, sortBy));
+        Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
+
+        Page<Purpose> purposePage = purposeRepository.findByStatusAndUnitIdAndPurposeName(statusBoolean, unitId,
+                purposeFor, pageRequest);
+
+        Page<PurposeResponseDto> purposeResponseDtos = purposePage.map(DtoUtilities::purposeToPurposeResponseDto);
+        return ResponseEntity.ok(purposeResponseDtos);
+    }
+
+    @Override
+    public ResponseEntity<?> deletePurpose(Long id) {
+        Purpose purpose = purposeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Purpose", "Id", id));
+        if (purpose.isStatus()) {
+            purpose.setStatus(false);
+            purpose.setUpdatedAt(LocalDateTime.now());
+            purposeRepository.save(purpose);
+            return ResponseEntity.ok().body("Purpose has been deleted");
+        } else {
+            throw new ResourceNotFoundException("Purpose", "Id", id);
         }
-
-        return purposeRepository.findAll(pageable).map(DtoUtilities::purposeToPurposeResponseDto);
-
-    }
-
-    @Override
-    public void deletePurpose(Long id) {
-        Purpose purpose = purposeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Purpose", "Id", id));
-        purpose.setStatus(false);
-        purposeRepository.save(purpose);
     }
 
     @Override

@@ -5,9 +5,6 @@ import java.io.IOException;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,37 +26,35 @@ public class PurposeController {
     @PostMapping("/create-purpose")
     public ResponseEntity<PurposeResponseDto> createPurpose(
             @Valid @RequestBody PurposeRequestDto purposeRequestDto) {
-        PurposeResponseDto purposeResponseDto = purposeService.createPurpose(purposeRequestDto);
-        return ResponseEntity.ok(purposeResponseDto);
+        return purposeService.createPurpose(purposeRequestDto);
     }
 
     @PutMapping("/update-purpose/{id}")
     public ResponseEntity<PurposeResponseDto> updatePurpose(@PathVariable Long id,
             @Valid @RequestBody PurposeRequestDto purposeRequestDto) {
-        PurposeResponseDto purposeResponseDto = purposeService.updatePurpose(id, purposeRequestDto);
-        return ResponseEntity.ok(purposeResponseDto);
+        return purposeService.updatePurpose(id, purposeRequestDto);
     }
 
     @GetMapping("/get-purpose/{id}")
     public ResponseEntity<PurposeResponseDto> getPurposeById(@PathVariable Long id) {
-        PurposeResponseDto purposeResponseDto = purposeService.getPurposeById(id);
-        return ResponseEntity.ok(purposeResponseDto);
+        return purposeService.getPurposeById(id);
     }
 
     @GetMapping("/get-all-purposes")
-    public ResponseEntity<Page<PurposeResponseDto>> getAllPurposes(
-            @PageableDefault(size = 10, sort = "purposeFor", page = 0) Pageable pageable,
+    public ResponseEntity<?> getAllPurposes(
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(required = false, defaultValue = "ASC") String sortDirection,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long unitId,
             @RequestParam(required = false) String purposeFor) {
-        Page<PurposeResponseDto> purposeResponseDtos = purposeService.getPurposes(pageable, status, unitId, purposeFor);
-        return ResponseEntity.ok(purposeResponseDtos);
+        return purposeService.getPurposes(purposeFor, pageSize, page, sortBy, sortDirection, status, unitId);
     }
 
     @DeleteMapping("/delete-purpose/{id}")
-    public ResponseEntity<Void> deletePurpose(@PathVariable Long id) {
-        purposeService.deletePurpose(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> deletePurpose(@PathVariable Long id) {
+        return purposeService.deletePurpose(id);
     }
 
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)

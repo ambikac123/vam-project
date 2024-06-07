@@ -1,17 +1,26 @@
 package com.dreamsol.repositories;
 
 import com.dreamsol.entites.Contact;
-import com.dreamsol.entites.Department;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
 public interface ContactRepository extends JpaRepository<Contact, Long> {
+    @Query("SELECT c FROM Contact c JOIN Department d WHERE " +
+            "(:status IS NULL OR c.status = :status) AND " +
+            "(:unitId IS NULL OR c.department.unitId = :unitId) AND " +
+            "(:departmentId IS NULL OR d.id = :departmentId)")
+    Page<Contact> findByFilters(@Param("status") Boolean status,
+            @Param("unitId") Long unitId,
+            @Param("departmentId") Integer departmentId,
+            Pageable pageable);
+
     boolean existsByEmail(String email);
 
     boolean existsByMobileNumber(long mobileNumber);
@@ -22,10 +31,5 @@ public interface ContactRepository extends JpaRepository<Contact, Long> {
 
     Page<Contact> findAll(Pageable pageable);
 
-    Page<Contact> findByStatusAndUnitIdAndDepartment(boolean bool, Long unitId, Department department,
-            Pageable pageable);
-
-    Page<Contact> findByUnitIdAndDepartment(Long unitId, Department department, Pageable pageable);
-
-    Optional<Contact> findByEmployeeIdAndStatusTrue(String employeeId);
+    Optional<Contact> findByEmployeeIdIgnoreCase(String employeeId);
 }
