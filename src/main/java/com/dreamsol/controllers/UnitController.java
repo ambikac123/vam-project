@@ -18,12 +18,13 @@ import com.dreamsol.services.UnitService;
 
 @RestController
 @RequestMapping("/api/units")
-
+//@CrossOrigin(origins = "http://192.168.1.8:3000")
 public class UnitController {
 
     @Autowired
     private UnitService unitService;
 
+   // @CrossOrigin(origins = "http://192.168.1.8:3000")
     @PostMapping("/create-unit")
     public ResponseEntity<UnitResponseDto> createUnit(
             @Valid @RequestBody UnitRequestDto unitRequestDto) {
@@ -44,6 +45,7 @@ public class UnitController {
         return ResponseEntity.ok(unitResponseDto);
     }
 
+   // @CrossOrigin(origins = "http://192.168.1.8:3000")
     @GetMapping("/get-all-units")
     public ResponseEntity<Page<UnitResponseDto>> getAllUnits(
             @PageableDefault(size = 10, sort = "unitName", page = 0) Pageable pageable,
