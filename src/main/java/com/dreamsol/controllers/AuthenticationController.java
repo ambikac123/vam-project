@@ -14,16 +14,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api")
 @SecurityRequirement(name = "bearerAuth")
+@CrossOrigin(origins = "http://192.168.1.8:3000")
 public class AuthenticationController
 {
     private final AuthRequestService authRequestService;
+
     private final CommonService<UserRequestDto,Long> commonService;
+
     @Autowired
     public AuthenticationController(@Qualifier("userService") CommonService<UserRequestDto,Long> commonService, AuthRequestService authRequestService) {
         this.commonService = commonService;

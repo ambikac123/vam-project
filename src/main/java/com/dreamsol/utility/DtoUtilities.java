@@ -190,7 +190,7 @@ public class DtoUtilities {
     }
 
     public static Department departmentRequestDtoToDepartment(Department department,
-            DepartmentRequestDto departmentRequestDto) {
+                                                              DepartmentRequestDto departmentRequestDto) {
         BeanUtils.copyProperties(departmentRequestDto, department);
         department.setUpdatedAt(LocalDateTime.now());
         return department;
@@ -267,7 +267,7 @@ public class DtoUtilities {
     }
 
     public VehicleEntry vehicleEntryDtoToVehicleEntry(VehicleEntryReqDto vehicleEntryReqDto,
-            DrivingLicence drivingLicence, VehicleLicence vehicleLicence, Plant plant, Purpose purpose) {
+                                                      DrivingLicence drivingLicence, VehicleLicence vehicleLicence, Plant plant, Purpose purpose) {
         VehicleEntry vehicleEntry = new VehicleEntry();
         BeanUtils.copyProperties(vehicleEntryReqDto, vehicleEntry);
         vehicleEntry.setDrivingLicence(drivingLicence);

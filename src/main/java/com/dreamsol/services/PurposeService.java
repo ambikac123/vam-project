@@ -2,20 +2,19 @@ package com.dreamsol.services;
 
 import com.dreamsol.dtos.requestDtos.PurposeRequestDto;
 import com.dreamsol.dtos.responseDtos.PurposeResponseDto;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
 public interface PurposeService {
-    PurposeResponseDto createPurpose(PurposeRequestDto purposeRequestDto);
+    ResponseEntity<PurposeResponseDto> createPurpose(PurposeRequestDto purposeRequestDto);
 
-    PurposeResponseDto updatePurpose(Long id, PurposeRequestDto purposeRequestDto);
+    ResponseEntity<PurposeResponseDto> updatePurpose(Long id, PurposeRequestDto purposeRequestDto);
 
-    PurposeResponseDto getPurposeById(Long id);
+    ResponseEntity<PurposeResponseDto> getPurposeById(Long id);
 
-    Page<PurposeResponseDto> getPurposes(Pageable pageable, String status, Long unitId, String purposeFor);
+    ResponseEntity<?> getPurposes(String purposeFor, int pageSize, int page, String sortBy, String SortDirection,
+            String status, Long unitId);
 
-    void deletePurpose(Long id);
+    ResponseEntity<?> deletePurpose(Long id);
 
     ResponseEntity<?> downloadPurposeDataAsExcel();
 

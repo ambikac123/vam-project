@@ -5,9 +5,6 @@ import java.io.IOException;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,44 +15,48 @@ import com.dreamsol.services.UnitService;
 
 @RestController
 @RequestMapping("/api/units")
-
+// @CrossOrigin(origins = "http://192.168.1.8:3000")
 public class UnitController {
 
     @Autowired
     private UnitService unitService;
 
+    // @CrossOrigin(origins = "http://192.168.1.8:3000")
     @PostMapping("/create-unit")
     public ResponseEntity<UnitResponseDto> createUnit(
             @Valid @RequestBody UnitRequestDto unitRequestDto) {
-        UnitResponseDto unitResponseDto = unitService.createUnit(unitRequestDto);
-        return ResponseEntity.ok(unitResponseDto);
+        return unitService.createUnit(unitRequestDto);
+
     }
 
     @PutMapping("/update-unit/{id}")
     public ResponseEntity<UnitResponseDto> updateUnit(@PathVariable Long id,
             @Valid @RequestBody UnitRequestDto unitRequestDto) {
-        UnitResponseDto unitResponseDto = unitService.updateUnit(id, unitRequestDto);
-        return ResponseEntity.ok(unitResponseDto);
+        return unitService.updateUnit(id, unitRequestDto);
+
     }
 
     @GetMapping("/get-unit/{id}")
     public ResponseEntity<UnitResponseDto> getUnitById(@PathVariable Long id) {
-        UnitResponseDto unitResponseDto = unitService.getUnitById(id);
-        return ResponseEntity.ok(unitResponseDto);
+        return unitService.getUnitById(id);
+
     }
 
+    // @CrossOrigin(origins = "http://192.168.1.8:3000")
     @GetMapping("/get-all-units")
-    public ResponseEntity<Page<UnitResponseDto>> getAllUnits(
-            @PageableDefault(size = 10, sort = "unitName", page = 0) Pageable pageable,
+    public ResponseEntity<?> getAllUnits(
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(required = false, defaultValue = "ASC") String sortDirection,
             @RequestParam(required = false) String status) {
-        Page<UnitResponseDto> unitResponseDtos = unitService.getUnits(pageable, status);
-        return ResponseEntity.ok(unitResponseDtos);
+        return unitService.getUnits(pageSize, page, sortBy, sortDirection, status);
     }
 
     @DeleteMapping("/delete-unit/{id}")
-    public ResponseEntity<Void> deleteUnit(@PathVariable Long id) {
-        unitService.deleteUnit(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> deleteUnit(@PathVariable Long id) {
+        return unitService.deleteUnit(id);
+
     }
 
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)

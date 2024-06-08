@@ -8,10 +8,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PlantRepository extends JpaRepository<Plant, Long>, JpaSpecificationExecutor<Plant> {
+
+    @Query("SELECT p FROM Plant p WHERE " +
+            "(:status IS NULL OR p.status = :status) AND " +
+            "(:unitId IS NULL OR p.unitId = :unitId) AND " +
+            "(:plantName IS NULL OR p.plantName = :plantName)")
+    Page<Plant> findByStatusAndUnitIdAndPlantName(@Param("status") Boolean status,
+            @Param("unitId") Long unitId, @Param("plantName") String plantName,
+            Pageable pageable);
 
     Page<Plant> findByStatusAndUnitId(Pageable pageable, boolean status, Long unitId);
 
