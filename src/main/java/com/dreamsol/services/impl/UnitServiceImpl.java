@@ -1,6 +1,7 @@
 package com.dreamsol.services.impl;
 
 import com.dreamsol.dtos.requestDtos.UnitRequestDto;
+import com.dreamsol.dtos.responseDtos.DropDownDto;
 import com.dreamsol.dtos.responseDtos.UnitResponseDto;
 import com.dreamsol.entites.Unit;
 import com.dreamsol.exceptions.ResourceNotFoundException;
@@ -13,7 +14,8 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -34,7 +36,7 @@ public class UnitServiceImpl implements UnitService {
     private final ExcelUtility excelUtility;
 
     @Override
-    public UnitResponseDto createUnit(UnitRequestDto unitRequestDto) {
+    public ResponseEntity<UnitResponseDto> createUnit(UnitRequestDto unitRequestDto) {
         Unit unit = DtoUtilities.unitRequestDtoToUnit(unitRequestDto);
         Optional<Unit> dbUnit = unitRepository.findByUnitNameIgnoreCaseOrUnitIp(unit.getUnitName(),
                 unit.getUnitIp());
@@ -43,53 +45,51 @@ public class UnitServiceImpl implements UnitService {
                     + unitRequestDto.getUnitName() + " ,UnitIp: " + unitRequestDto.getUnitIp());
         } else {
             Unit savedUnit = unitRepository.save(unit);
-            return DtoUtilities.unitToUnitResponseDto(savedUnit);
+            return ResponseEntity.ok().body(DtoUtilities.unitToUnitResponseDto(savedUnit));
         }
     }
 
     @Override
-    public UnitResponseDto updateUnit(Long id, UnitRequestDto unitRequestDto) {
+    public ResponseEntity<UnitResponseDto> updateUnit(Long id, UnitRequestDto unitRequestDto) {
         Unit unit = unitRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Unit", "Id", id));
         Unit updatedUnit = DtoUtilities.unitRequestDtoToUnit(unit, unitRequestDto);
         updatedUnit = unitRepository.save(updatedUnit);
-        return DtoUtilities.unitToUnitResponseDto(updatedUnit);
+        return ResponseEntity.ok().body(DtoUtilities.unitToUnitResponseDto(updatedUnit));
     }
 
     @Override
-    public UnitResponseDto getUnitById(Long id) {
+    public ResponseEntity<UnitResponseDto> getUnitById(Long id) {
         Unit unit = unitRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Unit", "Id", id));
-        return DtoUtilities.unitToUnitResponseDto(unit);
+        return ResponseEntity.ok().body(DtoUtilities.unitToUnitResponseDto(unit));
     }
 
     @Override
-    public Page<UnitResponseDto> getUnits(Pageable pageable, String status) {
-        boolean bool = false;
-        if (status != null) {
-            try {
-                bool = Boolean.parseBoolean(status);
-            } catch (Exception e) {
-                return unitRepository
-                        .findAll(pageable)
-                        .map(DtoUtilities::unitToUnitResponseDto);
-            }
-            return unitRepository
-                    .findByStatus(pageable, bool)
-                    .map(DtoUtilities::unitToUnitResponseDto);
+    public ResponseEntity<Page<UnitResponseDto>> getUnits(int pageSize, int page, String sortBy, String sortDirection,
+            String status) {
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(direction, sortBy));
+
+        Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
+        Page<Unit> unitsPage = unitRepository.findByStatus(statusBoolean, pageRequest);
+
+        Page<UnitResponseDto> unitResponseDtos = unitsPage.map(DtoUtilities::unitToUnitResponseDto);
+        return ResponseEntity.ok(unitResponseDtos);
+    }
+
+    @Override
+    public ResponseEntity<?> deleteUnit(Long id) {
+        Unit unit = unitRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Unit", "Id", id));
+        if (unit.isStatus()) {
+            unit.setStatus(false);
+            unit.setUpdatedAt(LocalDateTime.now());
+            unitRepository.save(unit);
+            return ResponseEntity.ok("Unit Deleted Successfully");
+        } else {
+            throw new ResourceNotFoundException("Unit", "Id", id);
         }
-        return unitRepository
-                .findAll(pageable)
-                .map(DtoUtilities::unitToUnitResponseDto);
-    }
-
-    @Override
-    public void deleteUnit(Long id) {
-        Unit unit = unitRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Unit", "Id", id));
-        unit.setStatus(false);
-        unit.setUpdatedAt(LocalDateTime.now());
-        unitRepository.save(unit);
     }
 
     @Override
@@ -121,5 +121,17 @@ public class UnitServiceImpl implements UnitService {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                 .body(resource);
+    }
+
+    public ResponseEntity<?> getDropDown() {
+        List<Unit> units = unitRepository.findAll();
+        return ResponseEntity.ok(units.stream().map(unit -> this.unitToDropDownRes(unit)).collect(Collectors.toList()));
+    }
+
+    private DropDownDto unitToDropDownRes(Unit unit) {
+        DropDownDto dto = new DropDownDto();
+        dto.setId(unit.getId());
+        dto.setName(unit.getUnitName());
+        return dto;
     }
 }

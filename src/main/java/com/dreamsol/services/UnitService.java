@@ -5,23 +5,23 @@ import com.dreamsol.dtos.responseDtos.UnitResponseDto;
 
 import io.jsonwebtoken.io.IOException;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
 public interface UnitService {
-    UnitResponseDto createUnit(UnitRequestDto unitRequestDto);
+    ResponseEntity<UnitResponseDto> createUnit(UnitRequestDto unitRequestDto);
 
-    UnitResponseDto updateUnit(Long id, UnitRequestDto unitRequestDto);
+    ResponseEntity<UnitResponseDto> updateUnit(Long id, UnitRequestDto unitRequestDto);
 
-    UnitResponseDto getUnitById(Long id);
+    ResponseEntity<UnitResponseDto> getUnitById(Long id);
 
-    Page<UnitResponseDto> getUnits(Pageable pageable, String status);
+    ResponseEntity<?> getUnits(int pageSize, int page, String sortBy, String SortDirection, String status);
 
-    void deleteUnit(Long id);
+    ResponseEntity<?> deleteUnit(Long id);
 
     ResponseEntity<?> downloadDataAsExcel();
 
     ResponseEntity<?> downloadExcelSample() throws IOException, java.io.IOException;
+
+    ResponseEntity<?> getDropDown();
 
 }

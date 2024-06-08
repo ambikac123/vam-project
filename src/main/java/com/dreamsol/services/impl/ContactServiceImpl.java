@@ -15,7 +15,8 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -39,7 +40,7 @@ public class ContactServiceImpl implements ContactService {
     private final ExcelUtility excelUtility;
 
     @Override
-    public ContactResponseDto createContact(ContactRequestDto contactRequestDto) {
+    public ResponseEntity<ContactResponseDto> createContact(ContactRequestDto contactRequestDto) {
         if (contactRepository.existsByEmail(contactRequestDto.getEmail())) {
             throw new RuntimeException("Contact email already exists");
         }
@@ -61,11 +62,11 @@ public class ContactServiceImpl implements ContactService {
         contact.setDepartment(department);
 
         Contact savedContact = contactRepository.save(contact);
-        return DtoUtilities.contactToContactResponseDto(savedContact);
+        return ResponseEntity.ok().body(DtoUtilities.contactToContactResponseDto(savedContact));
     }
 
     @Override
-    public ContactResponseDto updateContact(Long id, ContactRequestDto contactRequestDto) {
+    public ResponseEntity<ContactResponseDto> updateContact(Long id, ContactRequestDto contactRequestDto) {
         // Find the existing contact
         Contact existingContact = contactRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Contact", "Id", id));
@@ -83,7 +84,7 @@ public class ContactServiceImpl implements ContactService {
 
         // Check if the department exists
         Department department = departmentRepository
-                .findByDepartmentCode(contactRequestDto.getDepartment().getDepartmentCode())
+                .findByDepartmentCodeIgnoreCase(contactRequestDto.getDepartment().getDepartmentCode())
                 .orElseThrow(() -> new RuntimeException("Choose a valid department"));
 
         // Update contact fields
@@ -92,41 +93,42 @@ public class ContactServiceImpl implements ContactService {
 
         // Save the updated contact
         updatedContact = contactRepository.save(updatedContact);
-        return DtoUtilities.contactToContactResponseDto(updatedContact);
+        return ResponseEntity.ok().body(DtoUtilities.contactToContactResponseDto(updatedContact));
     }
 
     @Override
-    public ContactResponseDto getContactById(Long id) {
+    public ResponseEntity<ContactResponseDto> getContactById(Long id) {
         Contact contact = contactRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Contact", "Id", id));
-        return DtoUtilities.contactToContactResponseDto(contact);
+        return ResponseEntity.ok().body(DtoUtilities.contactToContactResponseDto(contact));
     }
 
     @Override
-    public Page<ContactResponseDto> getContacts(Pageable pageable, String status, Long unitId, String departmentName) {
-        boolean bool = false;
-        Optional<Department> department = departmentRepository.findByDepartmentNameIgnoreCase(departmentName);
-        if (status != null) {
-            try {
-                bool = Boolean.parseBoolean(status);
-            } catch (Exception e) {
-                return contactRepository.findByUnitIdAndDepartment(unitId, department.get(), pageable)
-                        .map(DtoUtilities::contactToContactResponseDto);
-            }
-            return contactRepository.findByStatusAndUnitIdAndDepartment(bool, unitId, department.get(), pageable)
-                    .map(DtoUtilities::contactToContactResponseDto);
+    public ResponseEntity<?> getContacts(int pageSize, int page, String sortBy, String sortDirection, String status,
+            Long unitId, Integer departmentId) {
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(direction, sortBy));
+
+        Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
+        Page<Contact> contactsPage = contactRepository.findByFilters(statusBoolean, unitId, departmentId,
+                pageRequest);
+
+        Page<ContactResponseDto> contactResponseDtos = contactsPage.map(DtoUtilities::contactToContactResponseDto);
+        return ResponseEntity.ok(contactResponseDtos);
+    }
+
+    @Override
+    public ResponseEntity<?> deleteContact(Long id) {
+        Contact contact = contactRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Contact", "Id", id));
+        if (contact.isStatus()) {
+            contact.setStatus(false);
+            contact.setUpdatedAt(LocalDateTime.now());
+            contactRepository.save(contact);
+            return ResponseEntity.ok().body("Contact has been deleted");
+        } else {
+            throw new ResourceNotFoundException("Contact", "Id", id);
         }
-
-        return contactRepository.findAll(pageable).map(DtoUtilities::contactToContactResponseDto);
-    }
-
-    @Override
-    public void deleteContact(Long id) {
-        Contact contact = contactRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Contact", "Id", id));
-        contact.setStatus(false);
-        contact.setUpdatedAt(LocalDateTime.now());
-        contactRepository.save(contact);
     }
 
     @Override
@@ -166,8 +168,7 @@ public class ContactServiceImpl implements ContactService {
                 .body(resource);
     }
 
-    // Extra methods
-    public Optional<Contact> getContact(String employeeId){
-        return contactRepository.findByEmployeeIdAndStatusTrue(employeeId);
+    public Optional<Contact> getContact(String employeeId) {
+        return contactRepository.findByEmployeeIdIgnoreCase(employeeId);
     }
 }

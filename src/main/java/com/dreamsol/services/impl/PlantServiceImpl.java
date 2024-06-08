@@ -13,7 +13,8 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -34,7 +35,7 @@ public class PlantServiceImpl implements PlantService {
     private final ExcelUtility excelUtility;
 
     @Override
-    public PlantResponseDto createPlant(PlantRequestDto plantRequestDto) {
+    public ResponseEntity<PlantResponseDto> createPlant(PlantRequestDto plantRequestDto) {
         Plant plant = DtoUtilities.plantRequestDtoToPlant(plantRequestDto);
 
         Optional<Plant> dbPlant = plantRepository.findByPlantNameIgnoreCase(plantRequestDto.getPlantName());
@@ -43,48 +44,51 @@ public class PlantServiceImpl implements PlantService {
         }
 
         Plant savedPlant = plantRepository.save(plant);
-        return DtoUtilities.plantToPlantResponseDto(savedPlant);
+        return ResponseEntity.ok(DtoUtilities.plantToPlantResponseDto(savedPlant));
     }
 
     @Override
-    public PlantResponseDto updatePlant(Long id, PlantRequestDto plantRequestDto) {
+    public ResponseEntity<PlantResponseDto> updatePlant(Long id, PlantRequestDto plantRequestDto) {
         Plant plant = plantRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Plant", "Id", id));
         Plant updatedPlant = DtoUtilities.plantRequestDtoToPlant(plant, plantRequestDto);
         updatedPlant = plantRepository.save(updatedPlant);
-        return DtoUtilities.plantToPlantResponseDto(updatedPlant);
+        return ResponseEntity.ok(DtoUtilities.plantToPlantResponseDto(updatedPlant));
     }
 
     @Override
-    public PlantResponseDto getPlantById(Long id) {
+    public ResponseEntity<PlantResponseDto> getPlantById(Long id) {
         Plant plant = plantRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Plant", "Id", id));
-        return DtoUtilities.plantToPlantResponseDto(plant);
+        return ResponseEntity.ok(DtoUtilities.plantToPlantResponseDto(plant));
     }
 
     @Override
-    public Page<PlantResponseDto> getPlants(Pageable pageable, String status, Long unitId) {
+    public ResponseEntity<?> getPlants(String plantName, int pageSize, int page, String sortBy, String sortDirection,
+            String status,
+            Long unitId) {
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("Asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(direction, sortBy));
+        Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
 
-        boolean bool = false;
-        if (status != null) {
-            try {
-                bool = Boolean.parseBoolean(status);
-            } catch (Exception e) {
-                return plantRepository.findByUnitId(pageable, unitId)
-                        .map(DtoUtilities::plantToPlantResponseDto);
-            }
-            return plantRepository.findByStatusAndUnitId(pageable, bool, unitId)
-                    .map(DtoUtilities::plantToPlantResponseDto);
+        Page<Plant> plantsPage = plantRepository.findByStatusAndUnitIdAndPlantName(statusBoolean, unitId,
+                plantName, pageRequest);
+
+        Page<PlantResponseDto> plantResponseDtos = plantsPage.map(DtoUtilities::plantToPlantResponseDto);
+        return ResponseEntity.ok(plantResponseDtos);
+
+    }
+
+    @Override
+    public ResponseEntity<?> deletePlant(Long id) {
+        Plant plant = plantRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Plant", "Id", id));
+
+        if (plant.isStatus()) {
+            plant.setStatus(false);
+            plant.setUpdatedAt(LocalDateTime.now());
+            plantRepository.save(plant);
+            return ResponseEntity.ok().body("Plant has been deleted");
+        } else {
+            throw new ResourceNotFoundException("Plant", "Id", id);
         }
-
-        return plantRepository.findAll(pageable)
-                .map(DtoUtilities::plantToPlantResponseDto);
-    }
-
-    @Override
-    public void deletePlant(Long id) {
-        Plant plant = plantRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Plant", "Id", id));
-        plant.setStatus(false);
-        plant.setUpdatedAt(LocalDateTime.now());
-        plantRepository.save(plant);
     }
 
     @Override

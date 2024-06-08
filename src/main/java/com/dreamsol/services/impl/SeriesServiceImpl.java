@@ -13,7 +13,8 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -35,7 +36,7 @@ public class SeriesServiceImpl implements SeriesService {
     private int num;
 
     @Override
-    public SeriesResponseDto createSeries(SeriesRequestDto seriesRequestDto) {
+    public ResponseEntity<SeriesResponseDto> createSeries(SeriesRequestDto seriesRequestDto) {
         num = 0;
         Series series = DtoUtilities.seriesRequestDtoToSeries(seriesRequestDto);
         Optional<List<Series>> dbSeries = seriesRepository
@@ -47,16 +48,16 @@ public class SeriesServiceImpl implements SeriesService {
             series.setNumberSeries(num + 1);
             series.setPrefix(series.getSeriesFor().substring(0, 3).toUpperCase());
             Series savedSeries = seriesRepository.save(series);
-            return DtoUtilities.seriesToSeriesResponseDto(savedSeries);
+            return ResponseEntity.ok().body(DtoUtilities.seriesToSeriesResponseDto(savedSeries));
         } else {
             series.setPrefix(series.getSeriesFor().substring(0, 3).toUpperCase());
             Series savedSeries = seriesRepository.save(series);
-            return DtoUtilities.seriesToSeriesResponseDto(savedSeries);
+            return ResponseEntity.ok().body(DtoUtilities.seriesToSeriesResponseDto(savedSeries));
         }
     }
 
     @Override
-    public SeriesResponseDto updateSeries(Long id, SeriesRequestDto seriesRequestDto) {
+    public ResponseEntity<SeriesResponseDto> updateSeries(Long id, SeriesRequestDto seriesRequestDto) {
         num = 0;
         Series series = seriesRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Series", "Id", id));
@@ -68,42 +69,38 @@ public class SeriesServiceImpl implements SeriesService {
                     .forEach(numSeries -> num = numSeries.getNumberSeries() > num ? numSeries.getNumberSeries() : num);
             series.setNumberSeries(num + 1);
             Series savedSeries = seriesRepository.save(series);
-            return DtoUtilities.seriesToSeriesResponseDto(savedSeries);
+            return ResponseEntity.ok().body(DtoUtilities.seriesToSeriesResponseDto(savedSeries));
         } else {
             series.setPrefix(series.getSeriesFor().substring(0, 3).toUpperCase());
             Series savedSeries = seriesRepository.save(series);
-            return DtoUtilities.seriesToSeriesResponseDto(savedSeries);
+            return ResponseEntity.ok().body(DtoUtilities.seriesToSeriesResponseDto(savedSeries));
         }
     }
 
     @Override
-    public SeriesResponseDto getSeriesById(Long id) {
+    public ResponseEntity<SeriesResponseDto> getSeriesById(Long id) {
         Series series = seriesRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Series", "Id", id));
-        return DtoUtilities.seriesToSeriesResponseDto(series);
+        return ResponseEntity.ok().body(DtoUtilities.seriesToSeriesResponseDto(series));
     }
 
     @Override
-    public Page<SeriesResponseDto> getSeries(Pageable pageable, String status, Long unitId, String seriesFor) {
+    public ResponseEntity<?> getSeries(String purposeFor, int pageSize, int page, String sortBy, String sortDirection,
+            String status,
+            Long unitId) {
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("Asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(direction, sortBy));
+        Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
 
-        boolean bool = false;
-        if (status != null) {
-            try {
-                bool = Boolean.parseBoolean(status);
-            } catch (Exception e) {
-                return seriesRepository.findBySeriesForAndUnitId(pageable, seriesFor, unitId)
-                        .map(DtoUtilities::seriesToSeriesResponseDto);
-            }
-            return seriesRepository.findBySeriesForAndUnitIdAndStatus(pageable, seriesFor, unitId, bool)
-                    .map(DtoUtilities::seriesToSeriesResponseDto);
-        }
+        Page<Series> seriesPage = seriesRepository.findByStatusAndUnitIdAndseriesName(statusBoolean, unitId,
+                purposeFor, pageRequest);
 
-        return seriesRepository.findAll(pageable).map(DtoUtilities::seriesToSeriesResponseDto);
-
+        Page<SeriesResponseDto> seriesResponseDtos = seriesPage.map(DtoUtilities::seriesToSeriesResponseDto);
+        return ResponseEntity.ok(seriesResponseDtos);
     }
 
     @Override
-    public void deleteSeries(Long id) {
+    public ResponseEntity<?> deleteSeries(Long id) {
         Series series = seriesRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Series", "Id", id));
         if (!series.isStatus()) {
@@ -112,6 +109,7 @@ public class SeriesServiceImpl implements SeriesService {
             series.setStatus(false);
             series.setUpdatedAt(LocalDateTime.now());
             seriesRepository.save(series);
+            return ResponseEntity.ok().body("Series Deleted Successfully");
         }
     }
 

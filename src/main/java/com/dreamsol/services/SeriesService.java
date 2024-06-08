@@ -2,20 +2,19 @@ package com.dreamsol.services;
 
 import com.dreamsol.dtos.requestDtos.SeriesRequestDto;
 import com.dreamsol.dtos.responseDtos.SeriesResponseDto;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
 public interface SeriesService {
-    SeriesResponseDto createSeries(SeriesRequestDto seriesRequestDto);
+    ResponseEntity<SeriesResponseDto> createSeries(SeriesRequestDto seriesRequestDto);
 
-    SeriesResponseDto updateSeries(Long id, SeriesRequestDto seriesRequestDto);
+    ResponseEntity<SeriesResponseDto> updateSeries(Long id, SeriesRequestDto seriesRequestDto);
 
-    SeriesResponseDto getSeriesById(Long id);
+    ResponseEntity<SeriesResponseDto> getSeriesById(Long id);
 
-    Page<SeriesResponseDto> getSeries(Pageable pageable, String status, Long unitId, String seriesFor);
+    ResponseEntity<?> getSeries(String purposeFor, int pageSize, int page, String sortBy, String SortDirection,
+            String status, Long unitIdr);
 
-    void deleteSeries(Long id);
+    ResponseEntity<?> deleteSeries(Long id);
 
     ResponseEntity<?> downloadSeriesDataAsExcel();
 
