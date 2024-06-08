@@ -239,8 +239,7 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
     @Override
     public boolean isExistInDB(Object keyword) {
         UserTypeRequestDto userTypeRequestDto = (UserTypeRequestDto)keyword;
-        Optional<UserType> userTypeOptional = userTypeRepository.findByUserTypeNameOrUserTypeCode(userTypeRequestDto.getUserTypeName(),userTypeRequestDto.getUserTypeCode());
-        return userTypeOptional.isPresent();
+        Optional<UserType> userTypeOptional = userTypeRepository.findByUserTypeNameOrUserTypeCode(userTypeRequestDto.getUserTypeName(),userTypeRequestDto.getUserTypeCode());return userTypeOptional.isPresent();
     }
 
     @Override

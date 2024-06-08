@@ -141,19 +141,36 @@ public class VehicleEntryServiceImpl implements VehicleEntryService {
        return ResponseEntity.ok(dtoUtilities.vehicleEntryToDto(vehicleEntry));
     }
 
-//    public ResponseEntity<Page<VehicleEntryResDto>> fetchAllEntries(
-//            int page,
-//            int size,
-//            String sortBy) {
-//
-//        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
-//
-//
-//        Page<VehicleEntry> vehicleEntries = vehicleEntryRepository.findAll( pageable);
-//        Page<VehicleEntryResDto> vehicleEntryResDtoPage = vehicleEntries.map(dtoUtilities::vehicleEntryToDto);
-//
-//        return ResponseEntity.ok(vehicleEntryResDtoPage);
-//    }
+
+
+    @Override
+    public ResponseEntity<Page<VehicleEntryResDto>> fetchAllEntries(
+            String status,
+            Long unitId,
+            Long plantId,
+            Long purposeId,
+            int page,
+            int size,
+            String sortBy,
+            String sortDirection) {
+
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Boolean statusBoolean = (status != null) ? Boolean.parseBoolean(status) : null;
+
+        Page<VehicleEntry> vehicleEntries = vehicleEntryRepository.findByParameters(
+                statusBoolean,
+                unitId,
+                plantId,
+                purposeId,
+                pageable);
+
+        Page<VehicleEntryResDto> vehicleEntryResDtoPage = vehicleEntries.map(dtoUtilities::vehicleEntryToDto);
+
+        return ResponseEntity.ok(vehicleEntryResDtoPage);
+    }
 
     @Override
     public ResponseEntity<?> downloadEntryDataAsExcel() {

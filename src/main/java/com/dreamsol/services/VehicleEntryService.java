@@ -18,17 +18,15 @@ public interface VehicleEntryService {
 
     ResponseEntity<?> fetchById(Long entryId);
 
-//    ResponseEntity<Page<VehicleEntryResDto>> fetchAllEntries(
-//            String locationFrom,
-//            String tripId,
-//            String invoiceNo,
-//            String materialDescription,
-//            Long quantity,
-//            Long numberOfBill,
-//            String destinationTo,
-//            int page,
-//            int size,
-//            String sortBy);
+    ResponseEntity<Page<VehicleEntryResDto>> fetchAllEntries(
+            String status,
+            Long unitId,
+            Long plantId,
+            Long purposeId,
+            int page,
+            int size,
+            String sortBy,
+            String sortDirection);
 
     ResponseEntity<?> downloadEntryDataAsExcel();
 

@@ -1,8 +1,10 @@
 package com.dreamsol.controllers;
 
 import com.dreamsol.dtos.requestDtos.VehicleEntryReqDto;
+import com.dreamsol.dtos.responseDtos.VehicleEntryResDto;
 import com.dreamsol.services.VehicleEntryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,20 +41,18 @@ public class VehicleEntryController {
         return vehicleEntryService.fetchById(entryId);
     }
 
-//    @GetMapping("/get-all")
-//    public ResponseEntity<Page<VehicleEntryResDto>> fetchAll(
-//            @RequestParam(required = false) String locationFrom,
-//            @RequestParam(required = false) String tripId,
-//            @RequestParam(required = false) String invoiceNo,
-//            @RequestParam(required = false) String materialDescription,
-//            @RequestParam(required = false) Long quantity,
-//            @RequestParam(required = false) Long numberOfBill,
-//            @RequestParam(required = false) String destinationTo,
-//            @RequestParam(defaultValue = "0") int page,
-//            @RequestParam(defaultValue = "10") int size,
-//            @RequestParam(defaultValue = "id") String sortBy) {
-//        return vehicleEntryService.fetchAllEntries(locationFrom, tripId, invoiceNo, materialDescription, quantity, numberOfBill, destinationTo, page, size, sortBy);
-//    }
+    @GetMapping("/get-all")
+    public ResponseEntity<Page<VehicleEntryResDto>> fetchAll(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long unitId,
+            @RequestParam(required = false) Long plantId,
+            @RequestParam(required = false) Long purposeId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDirection) {
+        return vehicleEntryService.fetchAllEntries(status,unitId,plantId,purposeId, page, size, sortBy,sortDirection);
+    }
 
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadExcelData()
