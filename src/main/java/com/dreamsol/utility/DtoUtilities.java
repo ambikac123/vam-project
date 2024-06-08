@@ -51,7 +51,7 @@ public class DtoUtilities {
 
     public User userRequstDtoToUser(UserRequestDto userRequestDto) {
         User user = new User();
-        BeanUtils.copyProperties(userRequestDto, user);
+        BeanUtils.copyProperties(userRequestDto, user); 
         user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
         return user;
     }
@@ -161,7 +161,7 @@ public class DtoUtilities {
         BeanUtils.copyProperties(unitRequestDto, unit);
         unit.setCreatedAt(LocalDateTime.now());
         unit.setUpdatedAt(LocalDateTime.now());
-
+    //    unit.setUnitId(unit.getId());
         return unit;
     }
 

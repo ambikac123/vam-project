@@ -1,6 +1,7 @@
 package com.dreamsol.services.impl;
 
 import com.dreamsol.dtos.requestDtos.UnitRequestDto;
+import com.dreamsol.dtos.responseDtos.DropDownDto;
 import com.dreamsol.dtos.responseDtos.UnitResponseDto;
 import com.dreamsol.entites.Unit;
 import com.dreamsol.exceptions.ResourceNotFoundException;
@@ -120,5 +121,17 @@ public class UnitServiceImpl implements UnitService {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                 .body(resource);
+    }
+
+    public ResponseEntity<?> getDropDown() {
+        List<Unit> units = unitRepository.findAll();
+        return ResponseEntity.ok(units.stream().map(unit -> this.unitToDropDownRes(unit)).collect(Collectors.toList()));
+    }
+
+    private DropDownDto unitToDropDownRes(Unit unit) {
+        DropDownDto dto = new DropDownDto();
+        dto.setId(unit.getId());
+        dto.setName(unit.getUnitName());
+        return dto;
     }
 }
