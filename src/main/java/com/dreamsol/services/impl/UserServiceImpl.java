@@ -16,8 +16,8 @@ import com.dreamsol.utility.ExcelUtility;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.core.io.Resource;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -46,17 +46,21 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
     public ResponseEntity<?> create(UserRequestDto userRequestDto)
     {
         try {
-            Optional<User> userOptional = userRepository.findByEmailOrMobile(userRequestDto.getEmail(), userRequestDto.getMobile());
-            if (userOptional.isPresent()) {
-                userOptional.get().setStatus(userRequestDto.isStatus());
-                logger.info("user already exist! [user reactivated]");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user already exist! [user reactivated]");
-            }
 
             Optional<Contact> contactOptional = contactService.getContact(userRequestDto.getEmployeeId());
             if(contactOptional.isEmpty()){
                 logger.info("employee id doesn't exist!");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("employee id doesn't exist!");
+            }
+            if(userRepository.findByContactEquals(contactOptional.get())){
+                logger.info("Given contact is already a user!");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Given contact is already a user!");
+            }
+            Optional<User> userOptional = userRepository.findByEmailOrMobile(userRequestDto.getEmail(), userRequestDto.getMobile());
+            if (userOptional.isPresent()) {
+                userOptional.get().setStatus(userRequestDto.isStatus());
+                logger.info("user already exist! [user reactivated]");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user already exist! [user reactivated]");
             }
 
             Optional<UserType> userTypeOptional = userTypeService.getUserType(userRequestDto.getUserTypeName());
@@ -66,8 +70,6 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
             }
 
             User user = dtoUtilities.userRequstDtoToUser(userRequestDto);
-            user.setCreatedBy(jwtUtil.getCurrentLoginUser());
-            user.setUpdatedBy(jwtUtil.getCurrentLoginUser());
             user.setContact(contactOptional.get());
             user.setUserType(userTypeOptional.get());
             userRepository.save(user);
@@ -83,14 +85,24 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
     @Override
     public ResponseEntity<?> update(UserRequestDto userRequestDto, Long id) {
         try {
-            User user = userRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("user not found with id: " + id));
-            if (!user.isStatus()) {
-                logger.info("user not found with id: "+id);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("user not found with id: " + id);
+            User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("user not found with id: " + id));
+            Optional<Contact> contactOptional = contactService.getContact(userRequestDto.getEmployeeId());
+            if(contactOptional.isEmpty()){
+                logger.info("employee id doesn't exist!");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("employee id doesn't exist!");
             }
-            user = dtoUtilities.userRequstDtoToUser(userRequestDto);
-            user.setId(id);
+            if(userRepository.findByContactEquals(contactOptional.get()) && contactOptional.get() != user.getContact()){
+                logger.info("Given contact is already a user!");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Given contact is already a user!");
+            }
+            Optional<UserType> userTypeOptional = userTypeService.getUserType(userRequestDto.getUserTypeName());
+            if(userTypeOptional.isEmpty()){
+                logger.info("usertype doesn't exist!");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("usertype doesn't exist!");
+            }
+            BeanUtils.copyProperties(userRequestDto,user);
+            user.setUserType(userTypeOptional.get());
+            user.setCreatedBy(jwtUtil.getCurrentLoginUser());
             user.setUpdatedBy(jwtUtil.getCurrentLoginUser());
             userRepository.save(user);
             logger.info("User updated successfully!");
@@ -134,7 +146,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
     }
 
     @Override
-    public ResponseEntity<?> getAll(Pageable pageable, String keyword) {
+    public ResponseEntity<?> getAll(Integer pageNumber,Integer pageSize,String sortBy,String sortDir,Long unitId,Boolean status,String search) {
         try {
             List<User> userList = userRepository.findAll();
             System.out.println(userList);

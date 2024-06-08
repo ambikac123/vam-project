@@ -49,11 +49,16 @@ public class UserTypeController
     }
     @GetMapping("/get-all")
     public ResponseEntity<?> getAllUserType(
-            @PageableDefault(size = 10, sort = "userTypeName", page = 0) Pageable pageable,
-            @RequestParam(required = false) String search
+            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) Integer pageNumber,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize,
+            @RequestParam(value = "sortBy", defaultValue = "userTypeName", required = false) String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
+            @RequestParam(value = "unitId", defaultValue = "1", required = false) Long unitId,
+            @RequestParam(value = "status", required = false) Boolean status,
+            @RequestParam(value = "search", required = false) String search
     )
     {
-        return userTypeService.getAll(pageable,search);
+        return userTypeService.getAll(pageNumber,pageSize,sortBy,sortDir,unitId,status,search);
     }
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadExcelData() {

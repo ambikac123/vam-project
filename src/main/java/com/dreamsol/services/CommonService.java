@@ -1,7 +1,6 @@
 package com.dreamsol.services;
 
 import com.dreamsol.dtos.responseDtos.ExcelValidateDataResponseDto;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,7 +12,7 @@ public interface CommonService<T,ID>
     ResponseEntity<?> update(T data, ID id);
     ResponseEntity<?> delete(ID id);
     ResponseEntity<?> get(ID id);
-    ResponseEntity<?> getAll(Pageable pageable,String keyword);
+    ResponseEntity<?> getAll(Integer pageNUmber,Integer pageSize,String sortBy,String sortDir,Long unitId,Boolean status,String search);
     ResponseEntity<?> downloadDataAsExcel();
     ResponseEntity<?> downloadExcelSample();
     ResponseEntity<?> uploadExcelFile(MultipartFile file,Class<?> currentClass);

@@ -56,7 +56,7 @@ public class UserController
             @RequestParam(required = false) String keyword
     )
     {
-        return userService.getAll(pageable,keyword);
+        return null;
     }
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadExcelData()

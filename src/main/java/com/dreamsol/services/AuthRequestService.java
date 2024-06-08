@@ -110,12 +110,16 @@ public class AuthRequestService
     }
 
     public ResponseEntity<?> getUserDetailsFromToken(String token) {
-        String username;
-        if(token.startsWith("Bearer"))
-            username = token.substring(7);
-        username = jwtUtil.getUsernameFromToken(token);
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        return ResponseEntity.status(HttpStatus.OK).body(jwtUtil.getUserDetails(userDetails));
+        try {
+            String username;
+            if (token.startsWith("Bearer"))
+                username = token.substring(7);
+            username = jwtUtil.getUsernameFromToken(token);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            return ResponseEntity.status(HttpStatus.OK).body(jwtUtil.getUserDetails(userDetails));
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while fetching user details from token");
+        }
     }
 
 }

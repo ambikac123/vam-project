@@ -8,7 +8,6 @@ import lombok.ToString;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
@@ -32,9 +31,9 @@ public class User extends CommonAutoIdEntity
     @Column(nullable = false)
     private String password;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     private UserType userType;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne
     private Contact contact;
 }

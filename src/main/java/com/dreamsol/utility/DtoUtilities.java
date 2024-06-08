@@ -33,6 +33,7 @@ import com.dreamsol.entites.VehicleLicence;
 import com.dreamsol.dtos.requestDtos.*;
 import com.dreamsol.dtos.responseDtos.*;
 import com.dreamsol.entites.*;
+import com.dreamsol.securities.JwtUtil;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
@@ -46,10 +47,12 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RequiredArgsConstructor
 public class DtoUtilities {
     private final PasswordEncoder passwordEncoder;
-
+    private final JwtUtil jwtUtil;
     public User userRequstDtoToUser(UserRequestDto userRequestDto) {
         User user = new User();
         BeanUtils.copyProperties(userRequestDto, user);
+        user.setCreatedBy(jwtUtil.getCurrentLoginUser());
+        user.setUpdatedBy(jwtUtil.getCurrentLoginUser());
         user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
         return user;
     }
@@ -63,6 +66,8 @@ public class DtoUtilities {
     public UserType userTypeRequestDtoToUserType(UserTypeRequestDto userTypeRequestDto) {
         UserType userType = new UserType();
         BeanUtils.copyProperties(userTypeRequestDto, userType);
+        userType.setCreatedBy(jwtUtil.getCurrentLoginUser());
+        userType.setUpdatedBy(jwtUtil.getCurrentLoginUser());
         return userType;
     }
 

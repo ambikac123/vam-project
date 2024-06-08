@@ -168,6 +168,6 @@ public class ContactServiceImpl implements ContactService {
 
     // Extra methods
     public Optional<Contact> getContact(String employeeId){
-        return contactRepository.findByEmployeeIdAndStatusTrue(employeeId);
+        return contactRepository.findByEmployeeId(employeeId);
     }
 }
