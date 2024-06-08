@@ -2,6 +2,7 @@ package com.dreamsol.services.impl;
 
 import com.dreamsol.dtos.requestDtos.DepartmentRequestDto;
 import com.dreamsol.dtos.responseDtos.DepartmentResponseDto;
+import com.dreamsol.dtos.responseDtos.DropDownDto;
 import com.dreamsol.entites.Department;
 import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.repositories.DepartmentRepository;
@@ -151,6 +152,18 @@ public class DepartmentServiceImpl implements DepartmentService {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                 .body(resource);
+    }
+
+    public ResponseEntity<?> getDropDown() {
+        List<Department> departments = departmentRepository.findAll();
+        return ResponseEntity.ok(departments.stream().map(this::departmentToDropDownRes).collect(Collectors.toList()));
+    }
+
+    private DropDownDto departmentToDropDownRes(Department department) {
+        DropDownDto dto = new DropDownDto();
+        dto.setId(department.getId());
+        dto.setName(department.getDepartmentName());
+        return dto;
     }
 
 }

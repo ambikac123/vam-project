@@ -1,6 +1,7 @@
 package com.dreamsol.services.impl;
 
 import com.dreamsol.dtos.requestDtos.PurposeRequestDto;
+import com.dreamsol.dtos.responseDtos.DropDownDto;
 import com.dreamsol.dtos.responseDtos.PurposeResponseDto;
 import com.dreamsol.entites.Purpose;
 import com.dreamsol.exceptions.ResourceNotFoundException;
@@ -120,5 +121,17 @@ public class PurposeServiceImpl implements PurposeService {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                 .body(resource);
+    }
+
+    public ResponseEntity<?> getDropDown() {
+        List<Purpose> purposes = purposeRepository.findAll();
+        return ResponseEntity.ok(purposes.stream().map(this::purposeToDropDownRes).collect(Collectors.toList()));
+    }
+
+    private DropDownDto purposeToDropDownRes(Purpose purpose) {
+        DropDownDto dto = new DropDownDto();
+        dto.setId(purpose.getId());
+        dto.setName(purpose.getPurposeFor());
+        return dto;
     }
 }

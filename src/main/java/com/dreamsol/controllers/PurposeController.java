@@ -66,4 +66,9 @@ public class PurposeController {
     public ResponseEntity<?> downloadExcelSample() throws IOException {
         return purposeService.downloadPurposeExcelSample();
     }
+
+    @GetMapping("/drop-down")
+    public ResponseEntity<?> getPurposeDropDown() {
+        return purposeService.getDropDown();
+    }
 }

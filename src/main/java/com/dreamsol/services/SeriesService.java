@@ -19,4 +19,7 @@ public interface SeriesService {
     ResponseEntity<?> downloadSeriesDataAsExcel();
 
     ResponseEntity<?> downloadSeriesExcelSample() throws java.io.IOException;
+
+    ResponseEntity<?> getDropDown();
+
 }

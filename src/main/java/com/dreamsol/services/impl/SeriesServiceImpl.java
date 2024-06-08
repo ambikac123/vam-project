@@ -1,6 +1,7 @@
 package com.dreamsol.services.impl;
 
 import com.dreamsol.dtos.requestDtos.SeriesRequestDto;
+import com.dreamsol.dtos.responseDtos.DropDownDto;
 import com.dreamsol.dtos.responseDtos.SeriesResponseDto;
 import com.dreamsol.entites.Series;
 import com.dreamsol.repositories.SeriesRepository;
@@ -148,5 +149,17 @@ public class SeriesServiceImpl implements SeriesService {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                 .body(resource);
+    }
+
+    public ResponseEntity<?> getDropDown() {
+        List<Series> series = seriesRepository.findAll();
+        return ResponseEntity.ok(series.stream().map(this::seriesToDropDownRes).collect(Collectors.toList()));
+    }
+
+    private DropDownDto seriesToDropDownRes(Series series) {
+        DropDownDto dto = new DropDownDto();
+        dto.setId(series.getId());
+        dto.setName(series.getSeriesFor());
+        return dto;
     }
 }

@@ -51,7 +51,7 @@ public class DtoUtilities {
 
     public User userRequstDtoToUser(UserRequestDto userRequestDto) {
         User user = new User();
-        BeanUtils.copyProperties(userRequestDto, user); 
+        BeanUtils.copyProperties(userRequestDto, user);
         user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
         return user;
     }
@@ -161,7 +161,7 @@ public class DtoUtilities {
         BeanUtils.copyProperties(unitRequestDto, unit);
         unit.setCreatedAt(LocalDateTime.now());
         unit.setUpdatedAt(LocalDateTime.now());
-    //    unit.setUnitId(unit.getId());
+        // unit.setUnitId(unit.getId());
         return unit;
     }
 
@@ -203,7 +203,6 @@ public class DtoUtilities {
     public static Contact contactRequestDtoToContact(ContactRequestDto contactRequestDto) {
         Contact contact = new Contact();
         BeanUtils.copyProperties(contactRequestDto, contact);
-        contact.setDepartment(DtoUtilities.departmentRequestDtoToDepartment(contactRequestDto.getDepartment()));
         contact.setCreatedAt(LocalDateTime.now());
         contact.setUpdatedAt(LocalDateTime.now());
         return contact;
@@ -211,7 +210,6 @@ public class DtoUtilities {
 
     public static Contact contactRequestDtoToContact(Contact contact, ContactRequestDto contactRequestDto) {
         BeanUtils.copyProperties(contactRequestDto, contact);
-        contact.setDepartment(DtoUtilities.departmentRequestDtoToDepartment(contactRequestDto.getDepartment()));
         contact.setUpdatedAt(LocalDateTime.now());
         return contact;
     }

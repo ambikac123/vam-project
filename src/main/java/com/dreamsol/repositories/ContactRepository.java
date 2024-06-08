@@ -12,13 +12,14 @@ import java.util.Optional;
 
 @Repository
 public interface ContactRepository extends JpaRepository<Contact, Long> {
-    @Query("SELECT c FROM Contact c JOIN Department d WHERE " +
-            "(:status IS NULL OR c.status = :status) AND " +
-            "(:unitId IS NULL OR c.department.unitId = :unitId) AND " +
+    @Query("SELECT c FROM Contact c " +
+            "JOIN c.department d " +
+            "WHERE (:status IS NULL OR c.status = :status) AND " +
+            "(:unitId IS NULL OR c.unitId = :unitId) AND " +
             "(:departmentId IS NULL OR d.id = :departmentId)")
     Page<Contact> findByFilters(@Param("status") Boolean status,
             @Param("unitId") Long unitId,
-            @Param("departmentId") Integer departmentId,
+            @Param("departmentId") Long departmentId,
             Pageable pageable);
 
     boolean existsByEmail(String email);

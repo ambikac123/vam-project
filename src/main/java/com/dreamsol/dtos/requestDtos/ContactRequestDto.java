@@ -7,6 +7,9 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+
+import com.dreamsol.dtos.responseDtos.DropDownDto;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -43,5 +46,5 @@ public class ContactRequestDto extends CommonAutoIdEntityRequestDto {
     private String communicationName;
 
     @Valid
-    private DepartmentRequestDto department;
+    private DropDownDto department;
 }

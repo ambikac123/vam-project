@@ -46,7 +46,7 @@ public class ContactController {
             @RequestParam(required = false, defaultValue = "ASC") String sortDirection,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long unitId,
-            @RequestParam(required = false) Integer departmentId) {
+            @RequestParam(required = false) Long departmentId) {
         return contactService.getContacts(pageSize, page, sortBy, sortDirection, status, unitId, departmentId);
     }
 
@@ -64,5 +64,10 @@ public class ContactController {
     @GetMapping(value = "/download-excel-sample", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadExcelSample() throws IOException {
         return contactService.downloadContactExcelSample();
+    }
+
+    @GetMapping("/drop-down")
+    public ResponseEntity<?> getContactsDropDown() {
+        return contactService.getDropDown();
     }
 }

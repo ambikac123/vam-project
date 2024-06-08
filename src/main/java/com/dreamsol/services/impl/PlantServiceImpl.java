@@ -1,6 +1,7 @@
 package com.dreamsol.services.impl;
 
 import com.dreamsol.dtos.requestDtos.PlantRequestDto;
+import com.dreamsol.dtos.responseDtos.DropDownDto;
 import com.dreamsol.dtos.responseDtos.PlantResponseDto;
 import com.dreamsol.entites.Plant;
 import com.dreamsol.repositories.PlantRepository;
@@ -126,5 +127,17 @@ public class PlantServiceImpl implements PlantService {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                 .body(resource);
+    }
+
+    public ResponseEntity<?> getDropDown() {
+        List<Plant> plants = plantRepository.findAll();
+        return ResponseEntity.ok(plants.stream().map(this::plantToDropDownRes).collect(Collectors.toList()));
+    }
+
+    private DropDownDto plantToDropDownRes(Plant Plant) {
+        DropDownDto dto = new DropDownDto();
+        dto.setId(Plant.getId());
+        dto.setName(Plant.getPlantName());
+        return dto;
     }
 }

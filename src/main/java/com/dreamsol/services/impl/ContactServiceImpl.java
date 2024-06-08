@@ -2,6 +2,7 @@ package com.dreamsol.services.impl;
 
 import com.dreamsol.dtos.requestDtos.ContactRequestDto;
 import com.dreamsol.dtos.responseDtos.ContactResponseDto;
+import com.dreamsol.dtos.responseDtos.DropDownDto;
 import com.dreamsol.entites.Contact;
 import com.dreamsol.entites.Department;
 import com.dreamsol.exceptions.ResourceNotFoundException;
@@ -53,9 +54,8 @@ public class ContactServiceImpl implements ContactService {
 
         // Check if the department exists
         Department department = departmentRepository
-                .findByDepartmentNameIgnoreCaseAndDepartmentCodeIgnoreCase(
-                        contactRequestDto.getDepartment().getDepartmentName(),
-                        contactRequestDto.getDepartment().getDepartmentCode())
+                .findById(
+                        contactRequestDto.getDepartment().getId())
                 .orElseThrow(() -> new RuntimeException("Choose a valid department"));
 
         Contact contact = DtoUtilities.contactRequestDtoToContact(contactRequestDto);
@@ -84,7 +84,7 @@ public class ContactServiceImpl implements ContactService {
 
         // Check if the department exists
         Department department = departmentRepository
-                .findByDepartmentCodeIgnoreCase(contactRequestDto.getDepartment().getDepartmentCode())
+                .findById(contactRequestDto.getDepartment().getId())
                 .orElseThrow(() -> new RuntimeException("Choose a valid department"));
 
         // Update contact fields
@@ -105,7 +105,7 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public ResponseEntity<?> getContacts(int pageSize, int page, String sortBy, String sortDirection, String status,
-            Long unitId, Integer departmentId) {
+            Long unitId, Long departmentId) {
         Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(direction, sortBy));
 
@@ -166,6 +166,18 @@ public class ContactServiceImpl implements ContactService {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                 .body(resource);
+    }
+
+    public ResponseEntity<?> getDropDown() {
+        List<Contact> contacts = contactRepository.findAll();
+        return ResponseEntity.ok(contacts.stream().map(this::contactToDropDownRes).collect(Collectors.toList()));
+    }
+
+    private DropDownDto contactToDropDownRes(Contact contact) {
+        DropDownDto dto = new DropDownDto();
+        dto.setId(contact.getId());
+        dto.setName(contact.getContactName());
+        return dto;
     }
 
     public Optional<Contact> getContact(String employeeId) {

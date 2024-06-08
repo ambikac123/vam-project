@@ -12,11 +12,14 @@ public interface ContactService {
     ResponseEntity<ContactResponseDto> getContactById(Long id);
 
     ResponseEntity<?> getContacts(int pageSize, int page, String sortBy, String sortDirection, String status,
-            Long unitId, Integer departmentId);
+            Long unitId, Long departmentId);
 
     ResponseEntity<?> deleteContact(Long id);
 
     ResponseEntity<?> downloadContactDataAsExcel();
 
     ResponseEntity<?> downloadContactExcelSample() throws java.io.IOException;
+
+    ResponseEntity<?> getDropDown();
+
 }
