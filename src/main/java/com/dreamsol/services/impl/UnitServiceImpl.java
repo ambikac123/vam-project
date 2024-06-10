@@ -125,7 +125,7 @@ public class UnitServiceImpl implements UnitService {
 
     public ResponseEntity<?> getDropDown() {
         List<Unit> units = unitRepository.findAll();
-        return ResponseEntity.ok(units.stream().map(unit -> this.unitToDropDownRes(unit)).collect(Collectors.toList()));
+        return ResponseEntity.ok(units.stream().map(this::unitToDropDownRes).collect(Collectors.toList()));
     }
 
     private DropDownDto unitToDropDownRes(Unit unit) {

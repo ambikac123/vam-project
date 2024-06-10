@@ -90,4 +90,10 @@ public class DrivingLicenceController {
         return drivingLicenceService.saveBulkData(drivingLicenceReqDtoList);
     }
 
+
+    @GetMapping("/mobile/{driverMobile}")
+    public ResponseEntity<?> getDriverByMobile(@PathVariable Long driverMobile) {
+        return drivingLicenceService.findByDriverMobile(driverMobile);
+    }
+
 }

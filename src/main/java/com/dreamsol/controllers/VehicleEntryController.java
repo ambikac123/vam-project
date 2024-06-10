@@ -1,16 +1,22 @@
 package com.dreamsol.controllers;
 
 import com.dreamsol.dtos.requestDtos.VehicleEntryReqDto;
+import com.dreamsol.dtos.responseDtos.PurposeCountDto;
+import com.dreamsol.dtos.responseDtos.VehicleEntryCountDto;
 import com.dreamsol.dtos.responseDtos.VehicleEntryResDto;
 import com.dreamsol.services.VehicleEntryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,7 +24,6 @@ import java.io.IOException;
 public class VehicleEntryController {
 
     private final VehicleEntryService vehicleEntryService;
-
 
     @PostMapping("/add")
     public ResponseEntity<?> createEntry(@Valid @RequestBody VehicleEntryReqDto vehicleEntryReqDto) {
@@ -63,5 +68,23 @@ public class VehicleEntryController {
     @GetMapping(value = "/download-excel-sample",produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadExcelSample() throws IOException {
         return vehicleEntryService.downloadExcelSample();
+    }
+
+    @GetMapping("/purposes/count")
+    public ResponseEntity<List<PurposeCountDto>> fetchPurposeCountsByDateRange(
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate) {
+
+        return vehicleEntryService.fetchPurposeCountsByDateRange(fromDate.atStartOfDay(), toDate.atTime(LocalTime.MAX));
+    }
+
+    @GetMapping("/count")
+    public ResponseEntity<VehicleEntryCountDto> getEntryCounts() {
+       return vehicleEntryService.getEntryCounts();
+    }
+
+    @PostMapping("/entry/exit")
+    public ResponseEntity<?> exitEntry(@RequestParam Long entryId) {
+        return vehicleEntryService.exitEntry(entryId);
     }
 }

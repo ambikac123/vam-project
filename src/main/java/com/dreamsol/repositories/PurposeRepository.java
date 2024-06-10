@@ -1,5 +1,6 @@
 package com.dreamsol.repositories;
 
+import com.dreamsol.dtos.responseDtos.PurposeCountDto;
 import com.dreamsol.entites.Purpose;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -8,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -25,4 +28,8 @@ public interface PurposeRepository extends JpaRepository<Purpose, Long> {
     Page<Purpose> findByPurposeForAndUnitId(Pageable pageable, String purposeFor, Long unitId);
 
     Optional<Purpose> findByPurposeForContainingIgnoreCase(String purposeFor);
+
+    @Query("SELECT new com.dreamsol.dtos.responseDtos.PurposeCountDto(p.purposeFor, COUNT(p)) " +
+            "FROM Purpose p WHERE p.createdAt BETWEEN :fromDate AND :toDate GROUP BY p.purposeFor")
+    List<PurposeCountDto> findPurposeCountByCreatedAtBetween(LocalDateTime fromDate, LocalDateTime toDate);
 }

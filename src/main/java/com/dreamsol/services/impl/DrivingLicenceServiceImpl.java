@@ -267,6 +267,18 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
         }
     }
 
+    @Override
+    public ResponseEntity<?> findByDriverMobile(Long driverMobile) {
+        try {
+            DrivingLicence drivingLicence = drivingLicenceRepo.findByDriverMobile(driverMobile)
+                    .orElseThrow(() -> new RuntimeException("Driver not found with mobile number: " + driverMobile));
+            DrivingLicenceResDto response = dtoUtilities.licenceToLicenceDto(drivingLicence);
+            return ResponseEntity.ok(response);
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(ex.getMessage(), false));
+        }
+    }
+
     public ExcelValidateDataResponseDto validateDataFromDB(ExcelValidateDataResponseDto validateDataResponse) {
         List<?> validList = validateDataResponse.getValidDataList();
         List<ValidatedData> invalidList = validateDataResponse.getInvalidDataList();

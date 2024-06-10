@@ -38,4 +38,6 @@ public interface DrivingLicenceService {
     ResponseEntity<?> uploadExcelFile(MultipartFile file,Class<?> currentClass);
 
     ResponseEntity<?> saveBulkData(List<DrivingLicenceReqDto> drivingLicenceReqDtoList);
+
+    ResponseEntity<?> findByDriverMobile(Long driverMobile);
 }
