@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.List;
 
 public interface VehicleLicenceService {
 
@@ -28,13 +29,19 @@ public interface VehicleLicenceService {
 
     ResponseEntity<Page<VehicleLicenceResDto>> fetchAllVehicles(
             String status,
+            Long unitId,
             int page,
             int size,
-            String sortBy);
+            String sortBy,
+            String sortDirection);
 
     ResponseEntity<Resource> getFile(String fileName, String uploadDir) throws IOException;
 
     ResponseEntity<?> downloadVehicleDataAsExcel();
 
     ResponseEntity<?> downloadExcelSample() throws IOException;
+
+    ResponseEntity<?> uploadExcelFile(MultipartFile file,Class<?> currentClass);
+
+    ResponseEntity<?> saveBulkData(List<VehicleLicenceReqDto> vehicleLicenceReqDtoList);
 }

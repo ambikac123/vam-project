@@ -1,8 +1,6 @@
 package com.dreamsol.repositories;
 
-import com.dreamsol.entites.Contact;
 import com.dreamsol.entites.User;
-import com.dreamsol.entites.UserType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

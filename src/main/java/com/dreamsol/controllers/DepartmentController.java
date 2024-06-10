@@ -63,4 +63,9 @@ public class DepartmentController {
     public ResponseEntity<?> downloadExcelSample() throws IOException {
         return departmentService.downloadDepartmentExcelSample();
     }
+
+    @GetMapping("/drop-down")
+    public ResponseEntity<?> getDepartmentsDropDown() {
+        return departmentService.getDropDown();
+    }
 }

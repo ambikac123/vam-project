@@ -2,10 +2,12 @@ package com.dreamsol.services.impl;
 
 import com.dreamsol.dtos.requestDtos.DepartmentRequestDto;
 import com.dreamsol.dtos.responseDtos.DepartmentResponseDto;
+import com.dreamsol.dtos.responseDtos.DropDownDto;
 import com.dreamsol.entites.Department;
 import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.repositories.DepartmentRepository;
 import com.dreamsol.repositories.UnitRepository;
+import com.dreamsol.securities.JwtUtil;
 import com.dreamsol.services.DepartmentService;
 import com.dreamsol.utility.DtoUtilities;
 import com.dreamsol.utility.ExcelUtility;
@@ -35,6 +37,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     private final DepartmentRepository departmentRepository;
     private final UnitRepository unitRepository;
     private final ExcelUtility excelUtility;
+    private final JwtUtil jwtUtil;
 
     @Override
     public ResponseEntity<DepartmentResponseDto> createDepartment(DepartmentRequestDto departmentRequestDto) {
@@ -48,9 +51,12 @@ public class DepartmentServiceImpl implements DepartmentService {
         // Check if the unit exists
         unitRepository.findById(departmentRequestDto.getUnitId())
                 .orElseThrow(() -> new RuntimeException("Organization with this id does not exist"));
-
+        Department department = DtoUtilities.departmentRequestDtoToDepartment(departmentRequestDto);
+        department.setCreatedBy(jwtUtil.getCurrentLoginUser());
+        department.setUpdatedBy(jwtUtil.getCurrentLoginUser());
+        department.setStatus(true);
         Department savedDepartment = departmentRepository
-                .save(DtoUtilities.departmentRequestDtoToDepartment(departmentRequestDto));
+                .save(department);
         return ResponseEntity.ok().body(DtoUtilities.departmentToDepartmentResponseDto(savedDepartment));
 
     }
@@ -73,7 +79,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         // Update department fields
         Department updatedDepartment = DtoUtilities.departmentRequestDtoToDepartment(existingDepartment,
                 departmentRequestDto);
-
+        updatedDepartment.setUpdatedBy(jwtUtil.getCurrentLoginUser());
         // Save the updated department
         updatedDepartment = departmentRepository.save(updatedDepartment);
         return ResponseEntity.ok().body(DtoUtilities.departmentToDepartmentResponseDto(updatedDepartment));
@@ -94,6 +100,8 @@ public class DepartmentServiceImpl implements DepartmentService {
         if (department.isStatus()) {
             department.setStatus(false);
             department.setUpdatedAt(LocalDateTime.now());
+            department.setUpdatedBy(jwtUtil.getCurrentLoginUser());
+
             departmentRepository.save(department);
             return ResponseEntity.ok().body("Department has been deleted");
         } else {
@@ -151,6 +159,18 @@ public class DepartmentServiceImpl implements DepartmentService {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                 .body(resource);
+    }
+
+    public ResponseEntity<?> getDropDown() {
+        List<Department> departments = departmentRepository.findAll();
+        return ResponseEntity.ok(departments.stream().map(this::departmentToDropDownRes).collect(Collectors.toList()));
+    }
+
+    private DropDownDto departmentToDropDownRes(Department department) {
+        DropDownDto dto = new DropDownDto();
+        dto.setId(department.getId());
+        dto.setName(department.getDepartmentName());
+        return dto;
     }
 
 }

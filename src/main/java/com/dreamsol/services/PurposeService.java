@@ -19,4 +19,7 @@ public interface PurposeService {
     ResponseEntity<?> downloadPurposeDataAsExcel();
 
     ResponseEntity<?> downloadPurposeExcelSample() throws java.io.IOException;
+
+    ResponseEntity<?> getDropDown();
+
 }

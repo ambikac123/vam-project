@@ -23,13 +23,13 @@ public class PlantController {
 
     @PostMapping("/create-plant")
     public ResponseEntity<PlantResponseDto> createPlant(@Valid @RequestBody PlantRequestDto plantRequestDto) {
-        return  plantService.createPlant(plantRequestDto);
+        return plantService.createPlant(plantRequestDto);
     }
 
     @PutMapping("update-plant/{id}")
     public ResponseEntity<PlantResponseDto> updatePlant(@PathVariable Long id,
             @Valid @RequestBody PlantRequestDto plantRequestDto) {
-       return plantService.updatePlant(id, plantRequestDto);
+        return plantService.updatePlant(id, plantRequestDto);
     }
 
     @GetMapping("get-plant/{id}")
@@ -39,21 +39,20 @@ public class PlantController {
 
     @GetMapping("get-all-plants")
     public ResponseEntity<?> getAllDepartments(
-        @RequestParam(defaultValue = "10") int pageSize,
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "id") String sortBy,
-        @RequestParam(required = false, defaultValue = "ASC") String sortDirection,
-        @RequestParam(required = false) String status,
-        @RequestParam(required = false) Long unitId,
-        @RequestParam(required = false)String plantName) {
-    return plantService.getPlants(plantName,pageSize, page, sortBy, sortDirection, status, unitId);
-}
-
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(required = false, defaultValue = "ASC") String sortDirection,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long unitId,
+            @RequestParam(required = false) String plantName) {
+        return plantService.getPlants(plantName, pageSize, page, sortBy, sortDirection, status, unitId);
+    }
 
     @DeleteMapping("delete-plant/{id}")
     public ResponseEntity<?> deletePlant(@PathVariable Long id) {
         return plantService.deletePlant(id);
-       
+
     }
 
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
@@ -64,5 +63,10 @@ public class PlantController {
     @GetMapping(value = "/download-excel-sample", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadExcelSample() throws IOException {
         return plantService.downloadPlantExcelSample();
+    }
+
+    @GetMapping("/drop-down")
+    public ResponseEntity<?> getPlantDropDown() {
+        return plantService.getDropDown();
     }
 }

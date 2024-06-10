@@ -4,24 +4,21 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class User extends CommonAutoIdEntity
-{
+public class User extends CommonAutoIdEntity {
     @Column(length = 50, nullable = false)
     private String name;
 
-    @Column(length = 100, nullable = false,unique = true)
+    @Column(length = 100, nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false,unique = true)

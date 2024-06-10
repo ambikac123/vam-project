@@ -63,4 +63,9 @@ public class SeriesController {
     public ResponseEntity<?> downloadExcelSample() throws IOException {
         return seriesService.downloadSeriesExcelSample();
     }
+
+    @GetMapping("/drop-down")
+    public ResponseEntity<?> getSeriesDropDown() {
+        return seriesService.getDropDown();
+    }
 }

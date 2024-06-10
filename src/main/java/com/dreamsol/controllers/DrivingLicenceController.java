@@ -1,6 +1,8 @@
 package com.dreamsol.controllers;
 
 import com.dreamsol.dtos.requestDtos.DrivingLicenceReqDto;
+import com.dreamsol.dtos.requestDtos.UserTypeRequestDto;
+import com.dreamsol.dtos.requestDtos.VehicleLicenceReqDto;
 import com.dreamsol.dtos.responseDtos.DrivingLicenceResDto;
 import com.dreamsol.services.DrivingLicenceService;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.io.IOException;
-import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -37,7 +39,7 @@ public class DrivingLicenceController {
         return drivingLicenceService.deleteLicence(licenceId);
     }
 
-    @PutMapping("/update/{licenceId}")
+    @PutMapping(path = "/update/{licenceId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateLicence(@RequestPart DrivingLicenceReqDto drivingLicenceReqDto, @PathVariable Long licenceId,
                                            @RequestParam("file") MultipartFile file) {
         return drivingLicenceService.updateLicence(drivingLicenceReqDto, licenceId,file,uploadDir);
@@ -51,11 +53,13 @@ public class DrivingLicenceController {
     @GetMapping("/get-all")
     public ResponseEntity<Page<DrivingLicenceResDto>> fetchAll(
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long unitId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy) {
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDirection) {
 
-        return drivingLicenceService.fetchAllDrivers(status, page, size, sortBy);
+        return drivingLicenceService.fetchAllDrivers(status, unitId, page, size, sortBy, sortDirection);
     }
 
     @GetMapping(path = "/download/{fileName}")
@@ -77,6 +81,19 @@ public class DrivingLicenceController {
     @PostMapping(value = "/upload-excel-data", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadExcelData(@RequestParam("file") MultipartFile file)
     {
-        return drivingLicenceService.validateExcelData(file);
+        return drivingLicenceService.uploadExcelFile(file,DrivingLicenceReqDto.class);
     }
+
+    @PostMapping("/save-bulk-data")
+    public ResponseEntity<?> saveBulkData(@RequestBody @Valid List<DrivingLicenceReqDto> drivingLicenceReqDtoList)
+    {
+        return drivingLicenceService.saveBulkData(drivingLicenceReqDtoList);
+    }
+
+
+    @GetMapping("/mobile/{driverMobile}")
+    public ResponseEntity<?> getDriverByMobile(@PathVariable Long driverMobile) {
+        return drivingLicenceService.findByDriverMobile(driverMobile);
+    }
+
 }
