@@ -30,6 +30,7 @@ import com.dreamsol.entites.VehicleLicence;
 import com.dreamsol.dtos.requestDtos.*;
 import com.dreamsol.dtos.responseDtos.*;
 import com.dreamsol.entites.*;
+
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
@@ -129,8 +130,6 @@ public class DtoUtilities {
         Plant plant = new Plant();
 
         BeanUtils.copyProperties(plantRequestDto, plant);
-        // plant.setCreatedBy(util.getCurrentLoginUser());
-        // plant.setUpdatedBy(util.getCurrentLoginUser());
         plant.setCreatedAt(LocalDateTime.now());
         plant.setUpdatedAt(LocalDateTime.now());
         return plant;
@@ -257,5 +256,27 @@ public class DtoUtilities {
         vehicleEntryResDto.setPlantTo(savedVehicleEntry.getPlant().getPlantName());
         vehicleEntryResDto.setVisitPurpose(savedVehicleEntry.getPurpose().getPurposeFor());
         return vehicleEntryResDto;
+    }
+
+    public static Visitor visitorRequestDtoToVisitor(VisitorRequestDto visitorRequestDto) {
+        Visitor visitor = new Visitor();
+        BeanUtils.copyProperties(visitorRequestDto, visitor);
+        visitor.setCreatedAt(LocalDateTime.now());
+        visitor.setUpdatedAt(LocalDateTime.now());
+        return visitor;
+    }
+
+    public static Visitor visitorRequestDtoToVisitor(Visitor visitor, VisitorRequestDto visitorRequestDto) {
+        BeanUtils.copyProperties(visitorRequestDto, visitor);
+        visitor.setUpdatedAt(LocalDateTime.now());
+        return visitor;
+    }
+
+    public static VisitorResponseDto visitorToVisitorResponseDto(Visitor visitor) {
+        VisitorResponseDto visitorResponseDto = new VisitorResponseDto();
+        BeanUtils.copyProperties(visitor, visitorResponseDto);
+        visitorResponseDto.setDepartment(DtoUtilities.departmentToDepartmentResponseDto(visitor.getDepartment()));
+        visitorResponseDto.setPurpose(DtoUtilities.purposeToPurposeResponseDto(visitor.getPurpose()));
+        return visitorResponseDto;
     }
 }
