@@ -11,7 +11,8 @@ public interface PlantService {
 
     ResponseEntity<PlantResponseDto> getPlantById(Long id);
 
-    ResponseEntity<?> getPlants(String plantName,int pageSize, int page, String sortBy, String SortDirection, String status,
+    ResponseEntity<?> getPlants(String plantName, int pageSize, int page, String sortBy, String SortDirection,
+            String status,
             Long unitId);
 
     ResponseEntity<?> deletePlant(Long id);
@@ -19,4 +20,7 @@ public interface PlantService {
     ResponseEntity<?> downloadPlantDataAsExcel();
 
     ResponseEntity<?> downloadPlantExcelSample() throws java.io.IOException;
+
+    ResponseEntity<?> getDropDown();
+
 }

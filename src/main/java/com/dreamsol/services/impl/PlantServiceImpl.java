@@ -1,9 +1,11 @@
 package com.dreamsol.services.impl;
 
 import com.dreamsol.dtos.requestDtos.PlantRequestDto;
+import com.dreamsol.dtos.responseDtos.DropDownDto;
 import com.dreamsol.dtos.responseDtos.PlantResponseDto;
 import com.dreamsol.entites.Plant;
 import com.dreamsol.repositories.PlantRepository;
+import com.dreamsol.securities.JwtUtil;
 import com.dreamsol.services.PlantService;
 import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.utility.DtoUtilities;
@@ -33,6 +35,7 @@ public class PlantServiceImpl implements PlantService {
 
     private final PlantRepository plantRepository;
     private final ExcelUtility excelUtility;
+    private final JwtUtil jwtUtil;
 
     @Override
     public ResponseEntity<PlantResponseDto> createPlant(PlantRequestDto plantRequestDto) {
@@ -42,7 +45,9 @@ public class PlantServiceImpl implements PlantService {
         if (dbPlant.isPresent()) {
             throw new RuntimeException("Plant with name " + plantRequestDto.getPlantName() + " already Exist");
         }
-
+        plant.setCreatedBy(jwtUtil.getCurrentLoginUser());
+        plant.setUpdatedBy(jwtUtil.getCurrentLoginUser());
+        plant.setStatus(true);
         Plant savedPlant = plantRepository.save(plant);
         return ResponseEntity.ok(DtoUtilities.plantToPlantResponseDto(savedPlant));
     }
@@ -51,6 +56,7 @@ public class PlantServiceImpl implements PlantService {
     public ResponseEntity<PlantResponseDto> updatePlant(Long id, PlantRequestDto plantRequestDto) {
         Plant plant = plantRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Plant", "Id", id));
         Plant updatedPlant = DtoUtilities.plantRequestDtoToPlant(plant, plantRequestDto);
+        updatedPlant.setUpdatedBy(jwtUtil.getCurrentLoginUser());
         updatedPlant = plantRepository.save(updatedPlant);
         return ResponseEntity.ok(DtoUtilities.plantToPlantResponseDto(updatedPlant));
     }
@@ -84,6 +90,7 @@ public class PlantServiceImpl implements PlantService {
         if (plant.isStatus()) {
             plant.setStatus(false);
             plant.setUpdatedAt(LocalDateTime.now());
+            plant.setUpdatedBy(jwtUtil.getCurrentLoginUser());
             plantRepository.save(plant);
             return ResponseEntity.ok().body("Plant has been deleted");
         } else {
@@ -126,5 +133,17 @@ public class PlantServiceImpl implements PlantService {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                 .body(resource);
+    }
+
+    public ResponseEntity<?> getDropDown() {
+        List<Plant> plants = plantRepository.findAll();
+        return ResponseEntity.ok(plants.stream().map(this::plantToDropDownRes).collect(Collectors.toList()));
+    }
+
+    private DropDownDto plantToDropDownRes(Plant Plant) {
+        DropDownDto dto = new DropDownDto();
+        dto.setId(Plant.getId());
+        dto.setName(Plant.getPlantName());
+        return dto;
     }
 }

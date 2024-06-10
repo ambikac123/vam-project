@@ -20,4 +20,6 @@ public interface DepartmentService {
     ResponseEntity<?> downloadDepartmentDataAsExcel();
 
     ResponseEntity<?> downloadDepartmentExcelSample() throws java.io.IOException;
+
+    ResponseEntity<?> getDropDown();
 }

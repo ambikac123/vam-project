@@ -1,10 +1,12 @@
 package com.dreamsol.services.impl;
 
 import com.dreamsol.dtos.requestDtos.PurposeRequestDto;
+import com.dreamsol.dtos.responseDtos.DropDownDto;
 import com.dreamsol.dtos.responseDtos.PurposeResponseDto;
 import com.dreamsol.entites.Purpose;
 import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.repositories.PurposeRepository;
+import com.dreamsol.securities.JwtUtil;
 import com.dreamsol.services.PurposeService;
 import com.dreamsol.utility.DtoUtilities;
 import com.dreamsol.utility.ExcelUtility;
@@ -32,10 +34,14 @@ public class PurposeServiceImpl implements PurposeService {
 
     private final PurposeRepository purposeRepository;
     private final ExcelUtility excelUtility;
+    private final JwtUtil jwtUtil;
 
     @Override
     public ResponseEntity<PurposeResponseDto> createPurpose(PurposeRequestDto purposeRequestDto) {
         Purpose purpose = DtoUtilities.purposeRequestDtoToPurpose(purposeRequestDto);
+        purpose.setCreatedBy(jwtUtil.getCurrentLoginUser());
+        purpose.setUpdatedBy(jwtUtil.getCurrentLoginUser());
+        purpose.setStatus(true);
         Purpose savedPurpose = purposeRepository.save(purpose);
         return ResponseEntity.ok().body(DtoUtilities.purposeToPurposeResponseDto(savedPurpose));
     }
@@ -45,6 +51,7 @@ public class PurposeServiceImpl implements PurposeService {
         Purpose existingPurpose = purposeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Purpose", "Id", id));
         Purpose updatedPurpose = DtoUtilities.purposeRequestDtoToPurpose(existingPurpose, purposeRequestDto);
+        updatedPurpose.setUpdatedBy(jwtUtil.getCurrentLoginUser());
         updatedPurpose = purposeRepository.save(updatedPurpose);
         return ResponseEntity.ok().body(DtoUtilities.purposeToPurposeResponseDto(updatedPurpose));
     }
@@ -78,6 +85,8 @@ public class PurposeServiceImpl implements PurposeService {
         if (purpose.isStatus()) {
             purpose.setStatus(false);
             purpose.setUpdatedAt(LocalDateTime.now());
+            purpose.setUpdatedBy(jwtUtil.getCurrentLoginUser());
+
             purposeRepository.save(purpose);
             return ResponseEntity.ok().body("Purpose has been deleted");
         } else {
@@ -120,5 +129,17 @@ public class PurposeServiceImpl implements PurposeService {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                 .body(resource);
+    }
+
+    public ResponseEntity<?> getDropDown() {
+        List<Purpose> purposes = purposeRepository.findAll();
+        return ResponseEntity.ok(purposes.stream().map(this::purposeToDropDownRes).collect(Collectors.toList()));
+    }
+
+    private DropDownDto purposeToDropDownRes(Purpose purpose) {
+        DropDownDto dto = new DropDownDto();
+        dto.setId(purpose.getId());
+        dto.setName(purpose.getPurposeFor());
+        return dto;
     }
 }
