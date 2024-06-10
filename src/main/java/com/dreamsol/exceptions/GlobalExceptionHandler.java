@@ -26,7 +26,6 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-
     public ResponseEntity<ApiResponse> resourceNotFoundExceptionHandler(ResourceNotFoundException ex)
     {
         String message = ex.getMessage();
@@ -42,5 +41,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> globalExceptionHandler(Exception ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
+    @ExceptionHandler(InvalidOtpException.class)
+    public ResponseEntity<?> invalidOtpExceptionHandler(InvalidOtpException ex){
+        return new ResponseEntity<>(ex.getMessage(),HttpStatus.NOT_FOUND);
+    }
+    @ExceptionHandler(NullPointerException.class)
+    public ResponseEntity<?> nullPointerExceptionHandler(NullPointerException ex){
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
 }

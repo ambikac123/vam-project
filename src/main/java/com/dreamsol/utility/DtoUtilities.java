@@ -37,6 +37,7 @@ import com.dreamsol.securities.JwtUtil;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.function.BiFunction;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -48,11 +49,13 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 public class DtoUtilities {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    public BiFunction<Long,String, DropDownDto> createDropDown = DropDownDto::new;
     public User userRequstDtoToUser(UserRequestDto userRequestDto) {
         User user = new User();
-        BeanUtils.copyProperties(userRequestDto, user);
+
         user.setCreatedBy(jwtUtil.getCurrentLoginUser());
         user.setUpdatedBy(jwtUtil.getCurrentLoginUser());
+        BeanUtils.copyProperties(userRequestDto, user);
         user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
         return user;
     }
@@ -60,6 +63,7 @@ public class DtoUtilities {
     public UserResponseDto userToUserResponseDto(User user) {
         UserResponseDto userResponseDto = new UserResponseDto();
         BeanUtils.copyProperties(user, userResponseDto);
+        userResponseDto.setUsertype(userTypeToUserTypeResponseDto(user.getUserType()));
         return userResponseDto;
     }
 
@@ -77,6 +81,20 @@ public class DtoUtilities {
         return userTypeResponseDto;
     }
 
+    public VisitorPrerequest visitorPrerequestDtoToVisitorPrerequest(VisitorPrerequestDto visitorPrerequestDto){
+        VisitorPrerequest visitorPrerequest = new VisitorPrerequest();
+        BeanUtils.copyProperties(visitorPrerequestDto,visitorPrerequest);
+        visitorPrerequest.setCreatedBy(jwtUtil.getCurrentLoginUser());
+        visitorPrerequest.setUpdatedBy(jwtUtil.getCurrentLoginUser());
+        return visitorPrerequest;
+    }
+    public VisitorPrerequestResponseDto visitorPrerequestToVisitorPrerequestResponseDto(VisitorPrerequest visitorPrerequest)
+    {
+        VisitorPrerequestResponseDto visitorPrerequestResponseDto = new VisitorPrerequestResponseDto();
+        BeanUtils.copyProperties(visitorPrerequest,visitorPrerequestResponseDto);
+        visitorPrerequestResponseDto.setMeetingPurpose(visitorPrerequest.getMeetingPurpose().getPurposeFor());
+        return visitorPrerequestResponseDto;
+    }
     public DrivingLicence licenceDtoToLicence(DrivingLicenceReqDto drivingLicenceReqDto) {
         DrivingLicence drivingLicence = new DrivingLicence();
         BeanUtils.copyProperties(drivingLicenceReqDto, drivingLicence);
@@ -163,7 +181,7 @@ public class DtoUtilities {
         BeanUtils.copyProperties(unitRequestDto, unit);
         unit.setCreatedAt(LocalDateTime.now());
         unit.setUpdatedAt(LocalDateTime.now());
-
+    //    unit.setUnitId(unit.getId());
         return unit;
     }
 

@@ -1,6 +1,7 @@
 package com.dreamsol.services.impl;
 
 import com.dreamsol.dtos.requestDtos.UserTypeRequestDto;
+import com.dreamsol.dtos.responseDtos.DropDownDto;
 import com.dreamsol.dtos.responseDtos.ExcelValidateDataResponseDto;
 import com.dreamsol.dtos.responseDtos.UserTypeResponseDto;
 import com.dreamsol.dtos.responseDtos.ValidatedData;
@@ -26,19 +27,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Service
+@Service("userTypeService")
 @RequiredArgsConstructor
 public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Long>
 {
-    @PersistenceContext
-    private EntityManager entityManager;
     private final DtoUtilities dtoUtilities;
     private final ExcelUtility excelUtility;
     private final JwtUtil jwtUtil;
@@ -109,18 +106,30 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
     }
 
     @Override
-    public ResponseEntity<?> getAll(Integer pageNumber,Integer pageSize,String sortBy,String sortDir,Long unitId,Boolean status,String search)
+    public ResponseEntity<?> getDropDown() {
+        List<UserType> userTypes = userTypeRepository.findAll();
+        List<DropDownDto> dropDownDtos = userTypes.stream()
+                .map(userType -> dtoUtilities.createDropDown.apply(userType.getId(),userType.getUserTypeName()))
+                .collect(Collectors.toList());
+        return ResponseEntity.status(HttpStatus.OK).body(dropDownDtos);
+    }
+
+    @Override
+    public ResponseEntity<?> getAll(Integer pageNumber,Integer pageSize,String sortBy,String sortDir,Long unitId,Boolean status)
     {
         Sort sort = sortDir.equalsIgnoreCase("asc")?Sort.by(sortBy).ascending():Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(pageNumber,pageSize, sort);
-        List<UserType> userTypeList = userTypeRepository.findByFilters(unitId,status,search,search,pageable);
+        List<UserType> userTypeList = userTypeRepository.findByFilters(unitId,status,pageable);
         return ResponseEntity.status(HttpStatus.OK).body(userTypeList);
     }
 
     @Override
-    public ResponseEntity<?> downloadDataAsExcel() {
+    public ResponseEntity<?> downloadDataAsExcel(Integer pageNumber,Integer pageSize,String sortBy,String sortDir,Long unitId,Boolean status)
+    {
         try {
-            List<UserType> userTypeList = userTypeRepository.findAll();
+            Sort sort = sortDir.equalsIgnoreCase("asc")?Sort.by(sortBy).ascending():Sort.by(sortBy).descending();
+            Pageable pageable = PageRequest.of(pageNumber,pageSize, sort);
+            List<UserType> userTypeList = userTypeRepository.findByFilters(unitId,status,pageable);
             if (userTypeList.isEmpty()) {
                 logger.info("No users available!");
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No users available!");
@@ -240,10 +249,5 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
             logger.error("Error occurred while saving bulk data, ",e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while saving bulk data: "+e.getMessage());
         }
-    }
-
-    // usertype own methods
-    public Optional<UserType> getUserType(String userTypeName){
-        return userTypeRepository.findByUserTypeNameAndStatusTrue(userTypeName);
     }
 }

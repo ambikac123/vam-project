@@ -16,6 +16,7 @@ public class CommonAutoIdEntityRequestDto {
 
     private boolean status=true;
 
+    private Long unitId;
     // @NotEmpty(message = "CreatedBy Field cannot be Empty")
     // @Pattern(regexp = "^[a-zA-Z]+([\s][a-zA-Z]+)*$", message = "Only Alphabets
     // are allowed")
@@ -32,5 +33,4 @@ public class CommonAutoIdEntityRequestDto {
     private String updatedBy;*/
 
     // @Pattern(regexp = "^[0-9])", message = "Only Numbers are allowed")
-    private Long unitId;
 }

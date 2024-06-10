@@ -15,13 +15,11 @@ import com.dreamsol.services.UnitService;
 
 @RestController
 @RequestMapping("/api/units")
-// @CrossOrigin(origins = "http://192.168.1.8:3000")
 public class UnitController {
 
     @Autowired
     private UnitService unitService;
 
-    // @CrossOrigin(origins = "http://192.168.1.8:3000")
     @PostMapping("/create-unit")
     public ResponseEntity<UnitResponseDto> createUnit(
             @Valid @RequestBody UnitRequestDto unitRequestDto) {
@@ -42,7 +40,6 @@ public class UnitController {
 
     }
 
-    // @CrossOrigin(origins = "http://192.168.1.8:3000")
     @GetMapping("/get-all-units")
     public ResponseEntity<?> getAllUnits(
             @RequestParam(defaultValue = "10") int pageSize,
@@ -67,5 +64,10 @@ public class UnitController {
     @GetMapping(value = "/download-excel-sample", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadExcelSample() throws IOException {
         return unitService.downloadExcelSample();
+    }
+
+    @GetMapping("/drop-down")
+    public ResponseEntity<?> getUnitsDropDown() {
+        return unitService.getDropDown();
     }
 }

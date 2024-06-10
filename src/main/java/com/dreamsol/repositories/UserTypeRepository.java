@@ -16,17 +16,9 @@ public interface UserTypeRepository extends JpaRepository<UserType,Long> {
 
     Optional<UserType> findByUserTypeNameOrUserTypeCode(String userTypeName, String userTypeCode);
 
-    Optional<UserType> findByUserTypeNameAndStatusTrue(String userTypeName);
-
-    List<UserType> findAll(Specification<UserType> userTypeSpecification, Pageable pageable);
-
     @Query("SELECT u FROM UserType u WHERE " +
             "(:unitId IS NULL OR u.unitId = :unitId) AND " +
-            "(:status IS NULL OR u.status = :status) AND " +
-            "(:userTypeName IS NULL OR u.userTypeName = :userTypeName) AND " +
-            "(:userTypeCode IS NULL OR u.userTypeCode = :userTypeCode) ")
+            "(:status IS NULL OR u.status = :status)")
     List<UserType> findByFilters(@Param("unitId") Long unitId,
-                                @Param("status") Boolean status,
-                                @Param("userTypeName") String userTypeName,
-                                @Param("userTypeCode") String userTypeCode,Pageable pageable);
+                                @Param("status") Boolean status,Pageable pageable);
 }

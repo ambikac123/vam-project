@@ -14,7 +14,6 @@ import javax.persistence.OneToOne;
 @Entity
 @Getter
 @Setter
-@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class User extends CommonAutoIdEntity
@@ -25,7 +24,7 @@ public class User extends CommonAutoIdEntity
     @Column(length = 100, nullable = false,unique = true)
     private String email;
 
-    @Column(length = 10, nullable = false,unique = true)
+    @Column(nullable = false,unique = true)
     private Long mobile;
 
     @Column(nullable = false)
@@ -33,7 +32,4 @@ public class User extends CommonAutoIdEntity
 
     @ManyToOne
     private UserType userType;
-
-    @OneToOne
-    private Contact contact;
 }
