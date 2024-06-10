@@ -11,17 +11,14 @@ import com.dreamsol.dtos.responseDtos.UserResponseDto;
 import com.dreamsol.dtos.responseDtos.UserTypeResponseDto;
 import com.dreamsol.dtos.responseDtos.VehicleLicenceResDto;
 import com.dreamsol.entites.DrivingLicence;
-import com.dreamsol.dtos.requestDtos.ContactRequestDto;
 import com.dreamsol.dtos.requestDtos.DepartmentRequestDto;
 import com.dreamsol.dtos.requestDtos.PlantRequestDto;
 import com.dreamsol.dtos.requestDtos.PurposeRequestDto;
 import com.dreamsol.dtos.requestDtos.UnitRequestDto;
-import com.dreamsol.dtos.responseDtos.ContactResponseDto;
 import com.dreamsol.dtos.responseDtos.DepartmentResponseDto;
 import com.dreamsol.dtos.responseDtos.PlantResponseDto;
 import com.dreamsol.dtos.responseDtos.PurposeResponseDto;
 import com.dreamsol.dtos.responseDtos.UnitResponseDto;
-import com.dreamsol.entites.Contact;
 import com.dreamsol.entites.Department;
 import com.dreamsol.entites.Plant;
 import com.dreamsol.entites.Purpose;
@@ -30,7 +27,6 @@ import com.dreamsol.entites.Unit;
 import com.dreamsol.entites.User;
 import com.dreamsol.entites.UserType;
 import com.dreamsol.entites.VehicleLicence;
-import com.dreamsol.securities.JwtUtil;
 import com.dreamsol.dtos.requestDtos.*;
 import com.dreamsol.dtos.responseDtos.*;
 import com.dreamsol.entites.*;
@@ -47,7 +43,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RequiredArgsConstructor
 public class DtoUtilities {
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil util;
 
     public User userRequstDtoToUser(UserRequestDto userRequestDto) {
         User user = new User();
@@ -198,28 +193,6 @@ public class DtoUtilities {
         DepartmentResponseDto departmentResponseDto = new DepartmentResponseDto();
         BeanUtils.copyProperties(department, departmentResponseDto);
         return departmentResponseDto;
-    }
-
-    public static Contact contactRequestDtoToContact(ContactRequestDto contactRequestDto) {
-        Contact contact = new Contact();
-        BeanUtils.copyProperties(contactRequestDto, contact);
-        contact.setCreatedAt(LocalDateTime.now());
-        contact.setUpdatedAt(LocalDateTime.now());
-        return contact;
-    }
-
-    public static Contact contactRequestDtoToContact(Contact contact, ContactRequestDto contactRequestDto) {
-        BeanUtils.copyProperties(contactRequestDto, contact);
-        contact.setUpdatedAt(LocalDateTime.now());
-        return contact;
-    }
-
-    public static ContactResponseDto contactToContactResponseDto(Contact contact) {
-        ContactResponseDto contactResponseDto = new ContactResponseDto();
-        BeanUtils.copyProperties(contact, contactResponseDto);
-        contactResponseDto
-                .setDepartment(DtoUtilities.departmentToDepartmentResponseDto(contact.getDepartment()));
-        return contactResponseDto;
     }
 
     public static Purpose purposeRequestDtoToPurpose(PurposeRequestDto purposeRequestDto) {

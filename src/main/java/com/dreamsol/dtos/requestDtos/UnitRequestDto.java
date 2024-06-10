@@ -13,7 +13,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UnitRequestDto extends CommonAutoIdEntityRequestDto {
+public class UnitRequestDto {
     @NotEmpty(message = "unitName cannot be empty")
     @Pattern(regexp = "^[a-zA-Z0-9\\s]+$", message = "Only alphabets, numbers, and spaces are allowed in unitName")
     @Size(min = 2, max = 50, message = "unitName length must be between 2 and 50 characters")

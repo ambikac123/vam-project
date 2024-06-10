@@ -18,15 +18,14 @@ import javax.persistence.OneToOne;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class User extends CommonAutoIdEntity
-{
+public class User extends CommonAutoIdEntity {
     @Column(length = 50, nullable = false)
     private String name;
 
-    @Column(length = 100, nullable = false,unique = true)
+    @Column(length = 100, nullable = false, unique = true)
     private String email;
 
-    @Column(length = 10, nullable = false,unique = true)
+    @Column(length = 10, nullable = false, unique = true)
     private Long mobile;
 
     @Column(nullable = false)
@@ -35,6 +34,6 @@ public class User extends CommonAutoIdEntity
     @ManyToOne(fetch = FetchType.EAGER)
     private UserType userType;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    private Contact contact;
+    // @OneToOne(fetch = FetchType.EAGER)
+    // private Contact contact;
 }

@@ -47,7 +47,7 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
 
             Optional<UserType> userTypeOptional = userTypeRepository.findByUserTypeNameOrUserTypeCodeAndStatusTrue(userTypeRequestDto.getUserTypeName(),userTypeRequestDto.getUserTypeCode());
             if(userTypeOptional.isPresent()){
-                userTypeOptional.get().setStatus(userTypeRequestDto.isStatus());
+              //  userTypeOptional.get().setStatus(userTypeRequestDto.isStatus());
                 userTypeRepository.save(userTypeOptional.get());
                 logger.info("user type already exist! [usertype reactivated]");
                 return ResponseEntity.status(HttpStatus.FOUND).body("user type already exist! [usertype reactivated]");

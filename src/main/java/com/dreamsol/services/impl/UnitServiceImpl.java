@@ -6,6 +6,7 @@ import com.dreamsol.dtos.responseDtos.UnitResponseDto;
 import com.dreamsol.entites.Unit;
 import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.repositories.UnitRepository;
+import com.dreamsol.securities.JwtUtil;
 import com.dreamsol.services.UnitService;
 import com.dreamsol.utility.DtoUtilities;
 import com.dreamsol.utility.ExcelUtility;
@@ -34,6 +35,7 @@ public class UnitServiceImpl implements UnitService {
 
     private final UnitRepository unitRepository;
     private final ExcelUtility excelUtility;
+    private final JwtUtil jwtUtil;
 
     @Override
     public ResponseEntity<UnitResponseDto> createUnit(UnitRequestDto unitRequestDto) {
@@ -44,6 +46,9 @@ public class UnitServiceImpl implements UnitService {
             throw new RuntimeException("Unit with this details already exists UnitName: "
                     + unitRequestDto.getUnitName() + " ,UnitIp: " + unitRequestDto.getUnitIp());
         } else {
+            unit.setCreatedBy(jwtUtil.getCurrentLoginUser());
+            unit.setUpdatedBy(jwtUtil.getCurrentLoginUser());
+            unit.setStatus(true);
             Unit savedUnit = unitRepository.save(unit);
             return ResponseEntity.ok().body(DtoUtilities.unitToUnitResponseDto(savedUnit));
         }
@@ -54,6 +59,7 @@ public class UnitServiceImpl implements UnitService {
         Unit unit = unitRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Unit", "Id", id));
         Unit updatedUnit = DtoUtilities.unitRequestDtoToUnit(unit, unitRequestDto);
+        updatedUnit.setUpdatedBy(jwtUtil.getCurrentLoginUser());
         updatedUnit = unitRepository.save(updatedUnit);
         return ResponseEntity.ok().body(DtoUtilities.unitToUnitResponseDto(updatedUnit));
     }
@@ -85,6 +91,7 @@ public class UnitServiceImpl implements UnitService {
         if (unit.isStatus()) {
             unit.setStatus(false);
             unit.setUpdatedAt(LocalDateTime.now());
+            unit.setUpdatedBy(jwtUtil.getCurrentLoginUser());
             unitRepository.save(unit);
             return ResponseEntity.ok("Unit Deleted Successfully");
         } else {

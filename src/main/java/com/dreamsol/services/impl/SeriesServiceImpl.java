@@ -5,6 +5,7 @@ import com.dreamsol.dtos.responseDtos.DropDownDto;
 import com.dreamsol.dtos.responseDtos.SeriesResponseDto;
 import com.dreamsol.entites.Series;
 import com.dreamsol.repositories.SeriesRepository;
+import com.dreamsol.securities.JwtUtil;
 import com.dreamsol.services.SeriesService;
 import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.utility.DtoUtilities;
@@ -34,6 +35,8 @@ public class SeriesServiceImpl implements SeriesService {
 
     private final SeriesRepository seriesRepository;
     private final ExcelUtility excelUtility;
+    private final JwtUtil jwtUtil;
+
     private int num;
 
     @Override
@@ -48,10 +51,16 @@ public class SeriesServiceImpl implements SeriesService {
                     .forEach(numSeries -> num = numSeries.getNumberSeries() > num ? numSeries.getNumberSeries() : num);
             series.setNumberSeries(num + 1);
             series.setPrefix(series.getSeriesFor().substring(0, 3).toUpperCase());
+            series.setCreatedBy(jwtUtil.getCurrentLoginUser());
+            series.setUpdatedBy(jwtUtil.getCurrentLoginUser());
+            series.setStatus(true);
             Series savedSeries = seriesRepository.save(series);
             return ResponseEntity.ok().body(DtoUtilities.seriesToSeriesResponseDto(savedSeries));
         } else {
             series.setPrefix(series.getSeriesFor().substring(0, 3).toUpperCase());
+            series.setUpdatedBy(jwtUtil.getCurrentLoginUser());
+            series.setCreatedBy(jwtUtil.getCurrentLoginUser());
+            series.setStatus(true);
             Series savedSeries = seriesRepository.save(series);
             return ResponseEntity.ok().body(DtoUtilities.seriesToSeriesResponseDto(savedSeries));
         }
@@ -69,10 +78,12 @@ public class SeriesServiceImpl implements SeriesService {
             dbSeries.get().stream()
                     .forEach(numSeries -> num = numSeries.getNumberSeries() > num ? numSeries.getNumberSeries() : num);
             series.setNumberSeries(num + 1);
+            series.setUpdatedBy(jwtUtil.getCurrentLoginUser());
             Series savedSeries = seriesRepository.save(series);
             return ResponseEntity.ok().body(DtoUtilities.seriesToSeriesResponseDto(savedSeries));
         } else {
             series.setPrefix(series.getSeriesFor().substring(0, 3).toUpperCase());
+            series.setUpdatedBy(jwtUtil.getCurrentLoginUser());
             Series savedSeries = seriesRepository.save(series);
             return ResponseEntity.ok().body(DtoUtilities.seriesToSeriesResponseDto(savedSeries));
         }
@@ -109,6 +120,7 @@ public class SeriesServiceImpl implements SeriesService {
         } else {
             series.setStatus(false);
             series.setUpdatedAt(LocalDateTime.now());
+            series.setUpdatedBy(jwtUtil.getCurrentLoginUser());
             seriesRepository.save(series);
             return ResponseEntity.ok().body("Series Deleted Successfully");
         }
