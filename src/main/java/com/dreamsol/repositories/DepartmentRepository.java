@@ -22,11 +22,13 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
                         Pageable pageable);
 
         Optional<Department> findByDepartmentCodeIgnoreCase(String departmentCode);
+/*
 
         Optional<Department> findByDepartmentNameIgnoreCaseOrDepartmentCodeIgnoreCase(String departmentName,
                         String departmentCode);
 
         Optional<Department> findByDepartmentNameIgnoreCaseAndDepartmentCodeIgnoreCase(String departmentName,
                         String departmentCode);
+*/
 
 }

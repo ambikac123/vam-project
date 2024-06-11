@@ -63,7 +63,6 @@ public class VisitorPrerequestService
         int otp = 100000 + random.nextInt(900000);
         return String.valueOf(otp);
     }
-
     public ResponseEntity<?> update(VisitorPrerequestDto visitorPrerequestDto, Long id)
     {
         try{
@@ -119,6 +118,9 @@ public class VisitorPrerequestService
         }
     }
 
+    public ResponseEntity<?> getStatusCount(String status){
+        return ResponseEntity.status(HttpStatus.OK).body(visitorRepository.countByStatus(status));
+    }
     public ResponseEntity<?> getAll(Integer pageNumber, Integer pageSize, String sortBy, String sortDir, Long unitId, Boolean status, Long meetingPurposeId, String meetingStatus, LocalDate fromDate, LocalDate toDate) {
         try {
             Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
@@ -160,23 +162,6 @@ public class VisitorPrerequestService
         }catch (Exception e){
             logger.error("Error occurred while downloading data as excel file: ",e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while downloading data as excel file: "+e.getMessage());
-        }
-    }
-
-    public ResponseEntity<?> downloadExcelSample()
-    {
-        try {
-            String fileName = "visitor_prerequest_excel_sample.xlsx";
-            String sheetName = fileName.substring(0, fileName.indexOf('.'));
-            Resource resource = excelUtility.downloadExcelSample(VisitorPrerequestDto.class, sheetName);
-            logger.info("Excel format for visitors pre-request download successfully!");
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
-                    .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
-                    .body(resource);
-        }catch (Exception e) {
-            logger.error("Error occurred while downloading excel format: ",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while downloading excel format");
         }
     }
 }
