@@ -14,8 +14,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @Getter
 @Setter
-public class VisitorPrerequest extends CommonAutoIdEntity
-{
+public class VisitorPrerequest extends CommonAutoIdEntity {
     @Column(length = 50, nullable = false)
     private String name;
     @Column(nullable = false, unique = true)

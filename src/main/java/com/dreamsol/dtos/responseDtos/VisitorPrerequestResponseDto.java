@@ -8,8 +8,7 @@ import java.time.LocalTime;
 
 @Getter
 @Setter
-public class VisitorPrerequestResponseDto extends CommonAutoIdEntityResponseDto
-{
+public class VisitorPrerequestResponseDto extends CommonAutoIdEntityResponseDto {
 
     private String name;
 

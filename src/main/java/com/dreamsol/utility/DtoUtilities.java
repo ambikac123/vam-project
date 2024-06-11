@@ -150,7 +150,6 @@ public class DtoUtilities {
 
     public static Plant plantRequestDtoToPlant(PlantRequestDto plantRequestDto) {
         Plant plant = new Plant();
-
         BeanUtils.copyProperties(plantRequestDto, plant);
         plant.setCreatedAt(LocalDateTime.now());
         plant.setUpdatedAt(LocalDateTime.now());
@@ -178,7 +177,6 @@ public class DtoUtilities {
         BeanUtils.copyProperties(unitRequestDto, unit);
         unit.setCreatedAt(LocalDateTime.now());
         unit.setUpdatedAt(LocalDateTime.now());
-        // unit.setUnitId(unit.getId());
         return unit;
     }
 
