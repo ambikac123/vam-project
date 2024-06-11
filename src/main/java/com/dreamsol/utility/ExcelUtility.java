@@ -318,7 +318,6 @@ public class ExcelUtility
                 Field[] fields1 = field.getType().getDeclaredFields();
                 for(Field field1 : fields1)
                 {
-                    System.out.println(field1.getName()+" : "+cellIndex);
                     Cell cell = row.createCell(cellIndex++);
                     cell.setCellValue("NA");
                 }
@@ -328,6 +327,7 @@ public class ExcelUtility
         return cellIndex;
     }
     private void setCellValueFromField(Cell cell, Field field, Object item) throws IllegalAccessException {
+
         String fieldType = field.getType().getSimpleName();
         if(fieldType.equalsIgnoreCase("string"))
             cell.setCellValue((String) field.get(item));

@@ -4,8 +4,10 @@ import com.dreamsol.dtos.requestDtos.DrivingLicenceReqDto;
 import com.dreamsol.dtos.responseDtos.ApiResponse;
 import com.dreamsol.dtos.responseDtos.DrivingLicenceResDto;
 import com.dreamsol.dtos.responseDtos.ExcelValidateDataResponseDto;
+import com.dreamsol.dtos.responseDtos.ValidatedData;
 import com.dreamsol.entites.DrivingLicence;
 import com.dreamsol.entites.DrivingLicenceAttachment;
+import com.dreamsol.entites.VehicleLicence;
 import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.repositories.DrivingLicenceRepo;
 import com.dreamsol.repositories.DrivingLicenceAttachmentRepo;
@@ -13,6 +15,8 @@ import com.dreamsol.services.DrivingLicenceService;
 import com.dreamsol.utility.DtoUtilities;
 import com.dreamsol.utility.ExcelUtility;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -30,6 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -37,6 +42,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class DrivingLicenceServiceImpl implements DrivingLicenceService {
+
     private final DrivingLicenceRepo drivingLicenceRepo;
 
     private final DtoUtilities dtoUtilities;
@@ -46,6 +52,8 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
     private final DrivingLicenceAttachmentRepo licenceAttachmentRepo;
 
     private final ExcelUtility excelUtility;
+
+    private static final Logger logger = LoggerFactory.getLogger(DrivingLicenceServiceImpl.class);
 
     @Override
     public ResponseEntity<?> addLicence(DrivingLicenceReqDto drivingLicenceReqDto, MultipartFile file, String path) {
@@ -105,27 +113,22 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
         return ResponseEntity.ok(dtoUtilities.licenceToLicenceDto(drivingLicence));
     }
 
-
+    @Override
     public ResponseEntity<Page<DrivingLicenceResDto>> fetchAllDrivers(
             String status,
+            Long unitId,
             int page,
             int size,
-            String sortBy) {
+            String sortBy,
+            String sortDirection) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<DrivingLicence> drivingLicences;
-        boolean bool=false;
-        if (status != null) {
-            try {
-                bool = Boolean.parseBoolean(status);
-            } catch (Exception e) {
-                drivingLicences = drivingLicenceRepo.findAll(pageable);
-            }
-            drivingLicences = drivingLicenceRepo.findByStatus(bool, pageable);
-        } else {
-            drivingLicences = drivingLicenceRepo.findAll(pageable);
-        }
+        Boolean statusBoolean = (status != null) ? Boolean.parseBoolean(status) : null;
+
+        Page<DrivingLicence> drivingLicences = drivingLicenceRepo.findByStatusAndUnitId(statusBoolean, unitId, pageable);
 
         Page<DrivingLicenceResDto> drivingLicenceResDtoPage = drivingLicences.map(dtoUtilities::licenceToLicenceDto);
 
@@ -176,20 +179,6 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
                 .body(resource);
     }
 
-    @Override
-    public ResponseEntity<?> validateExcelData(MultipartFile file) {
-        try {
-            if (excelUtility.isExcelFile(file)) {
-                ExcelValidateDataResponseDto validateDataResponse = excelUtility.validateExcelData(file, DrivingLicenceReqDto.class);
-                return ResponseEntity.status(HttpStatus.OK).body(validateDataResponse);
-            } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect uploaded file type!");
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
-    }
-
     private DrivingLicenceAttachment uploadFile(MultipartFile file, String path) {
         try {
             String fileName = StringUtils.cleanPath(file.getOriginalFilename());
@@ -235,5 +224,88 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
             exception.printStackTrace();
             new DrivingLicenceAttachment();
         }
+    }
+
+    @Override
+    public ResponseEntity<?> uploadExcelFile(MultipartFile file, Class<?> currentClass) {
+        try{
+            if(excelUtility.isExcelFile(file))
+            {
+                ExcelValidateDataResponseDto validateDataResponse = excelUtility.validateExcelData(file,currentClass);
+                validateDataResponse = validateDataFromDB(validateDataResponse);
+                validateDataResponse.setTotalValidData(validateDataResponse.getValidDataList().size());
+                validateDataResponse.setTotalInvalidData(validateDataResponse.getInvalidDataList().size());
+                if(validateDataResponse.getTotalData()==0){
+                    logger.info("No data available in excel sheet!");
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No data available in excel sheet!");
+                }
+                logger.info("Excel data validated successfully!");
+                return ResponseEntity.status(HttpStatus.OK).body(validateDataResponse);
+            }else {
+                logger.info("Incorrect uploaded file type!");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect uploaded file type! supported [.xlsx or xls] type");
+            }
+        }catch(Exception e)
+        {
+            logger.error("Error occurred while validating excel data",e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while validating excel data: "+e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> saveBulkData(List<DrivingLicenceReqDto> drivingLicenceReqDtoList) {
+        try{
+            List<DrivingLicence> drivingLicenceList = drivingLicenceReqDtoList.stream()
+                    .map((dtoUtilities::licenceDtoToLicence))
+                    .collect(Collectors.toList());
+            drivingLicenceRepo.saveAll(drivingLicenceList);
+            logger.info("All data saved successfully!");
+            return ResponseEntity.status(HttpStatus.CREATED).body(drivingLicenceList);
+        }catch (Exception e){
+            logger.error("Error occurred while saving bulk data, ",e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while saving bulk data: "+e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> findByDriverMobile(Long driverMobile) {
+        try {
+            DrivingLicence drivingLicence = drivingLicenceRepo.findByDriverMobile(driverMobile)
+                    .orElseThrow(() -> new RuntimeException("Driver not found with mobile number: " + driverMobile));
+            DrivingLicenceResDto response = dtoUtilities.licenceToLicenceDto(drivingLicence);
+            return ResponseEntity.ok(response);
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(ex.getMessage(), false));
+        }
+    }
+
+    public ExcelValidateDataResponseDto validateDataFromDB(ExcelValidateDataResponseDto validateDataResponse) {
+        List<?> validList = validateDataResponse.getValidDataList();
+        List<ValidatedData> invalidList = validateDataResponse.getInvalidDataList();
+        List<DrivingLicenceReqDto> drivingLicenceReqDtoList = new ArrayList<>();
+        for(int i=0;i<validList.size();)
+        {
+            ValidatedData validatedData = (ValidatedData) validList.get(i);
+            DrivingLicenceReqDto drivingLicenceReqDto = (DrivingLicenceReqDto) validatedData.getData();
+            boolean flag = isExistInDB(drivingLicenceReqDto);
+            if(flag){
+                ValidatedData invalidData = new ValidatedData();
+                invalidData.setData(drivingLicenceReqDto);
+                invalidData.setMessage("Driver already exist!");
+                invalidList.add(invalidData);
+                validList.remove(validatedData);
+                continue;
+            }
+            drivingLicenceReqDtoList.add(drivingLicenceReqDto);
+            i++;
+        }
+        validateDataResponse.setValidDataList(drivingLicenceReqDtoList);
+        return validateDataResponse;
+    }
+
+    public boolean isExistInDB(Object keyword) {
+        DrivingLicenceReqDto drivingLicenceReqDto = (DrivingLicenceReqDto)keyword;
+        Optional<DrivingLicence> DbDriverMobile = drivingLicenceRepo.findByDriverMobile(drivingLicenceReqDto.getDriverMobile());
+        return DbDriverMobile.isPresent();
     }
 }

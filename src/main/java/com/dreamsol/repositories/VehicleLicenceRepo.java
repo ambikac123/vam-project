@@ -4,6 +4,8 @@ import com.dreamsol.entites.VehicleLicence;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -13,5 +15,8 @@ public interface VehicleLicenceRepo extends JpaRepository<VehicleLicence, Long> 
 
     Optional<VehicleLicence> findByVehicleNumber(String vehicleNumber);
 
-    Page<VehicleLicence> findByStatus(boolean b, Pageable pageable);
+    @Query("SELECT v FROM VehicleLicence v WHERE " +
+            "(:status IS NULL OR v.status = :status) AND " +
+            "(:unitId IS NULL OR v.unitId = :unitId)")
+    Page<VehicleLicence> findByStatusAndUnitId(@Param("status") Boolean status, @Param("unitId") Long unitId, Pageable pageable);
 }

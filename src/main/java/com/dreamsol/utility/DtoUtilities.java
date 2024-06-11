@@ -30,10 +30,11 @@ import com.dreamsol.entites.VehicleLicence;
 import com.dreamsol.dtos.requestDtos.*;
 import com.dreamsol.dtos.responseDtos.*;
 import com.dreamsol.entites.*;
-
+import com.dreamsol.securities.JwtUtil;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.function.BiFunction;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -45,8 +46,12 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 public class DtoUtilities {
     private final PasswordEncoder passwordEncoder;
 
+    private final JwtUtil jwtUtil;
+    public BiFunction<Long,String, DropDownDto> createDropDown = DropDownDto::new;
     public User userRequstDtoToUser(UserRequestDto userRequestDto) {
         User user = new User();
+        user.setCreatedBy(jwtUtil.getCurrentLoginUser());
+        user.setUpdatedBy(jwtUtil.getCurrentLoginUser());
         BeanUtils.copyProperties(userRequestDto, user);
         user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
         return user;
@@ -55,12 +60,15 @@ public class DtoUtilities {
     public UserResponseDto userToUserResponseDto(User user) {
         UserResponseDto userResponseDto = new UserResponseDto();
         BeanUtils.copyProperties(user, userResponseDto);
+        userResponseDto.setUsertype(userTypeToUserTypeResponseDto(user.getUserType()));
         return userResponseDto;
     }
 
     public UserType userTypeRequestDtoToUserType(UserTypeRequestDto userTypeRequestDto) {
         UserType userType = new UserType();
         BeanUtils.copyProperties(userTypeRequestDto, userType);
+        userType.setCreatedBy(jwtUtil.getCurrentLoginUser());
+        userType.setUpdatedBy(jwtUtil.getCurrentLoginUser());
         return userType;
     }
 
@@ -70,6 +78,20 @@ public class DtoUtilities {
         return userTypeResponseDto;
     }
 
+    public VisitorPrerequest visitorPrerequestDtoToVisitorPrerequest(VisitorPrerequestDto visitorPrerequestDto){
+        VisitorPrerequest visitorPrerequest = new VisitorPrerequest();
+        BeanUtils.copyProperties(visitorPrerequestDto,visitorPrerequest);
+        visitorPrerequest.setCreatedBy(jwtUtil.getCurrentLoginUser());
+        visitorPrerequest.setUpdatedBy(jwtUtil.getCurrentLoginUser());
+        return visitorPrerequest;
+    }
+    public VisitorPrerequestResponseDto visitorPrerequestToVisitorPrerequestResponseDto(VisitorPrerequest visitorPrerequest)
+    {
+        VisitorPrerequestResponseDto visitorPrerequestResponseDto = new VisitorPrerequestResponseDto();
+        BeanUtils.copyProperties(visitorPrerequest,visitorPrerequestResponseDto);
+        visitorPrerequestResponseDto.setMeetingPurpose(visitorPrerequest.getMeetingPurpose().getPurposeFor());
+        return visitorPrerequestResponseDto;
+    }
     public DrivingLicence licenceDtoToLicence(DrivingLicenceReqDto drivingLicenceReqDto) {
         DrivingLicence drivingLicence = new DrivingLicence();
         BeanUtils.copyProperties(drivingLicenceReqDto, drivingLicence);
@@ -128,10 +150,10 @@ public class DtoUtilities {
 
     public static Plant plantRequestDtoToPlant(PlantRequestDto plantRequestDto) {
         Plant plant = new Plant();
-
         BeanUtils.copyProperties(plantRequestDto, plant);
         plant.setCreatedAt(LocalDateTime.now());
         plant.setUpdatedAt(LocalDateTime.now());
+
         return plant;
     }
 
@@ -155,7 +177,6 @@ public class DtoUtilities {
         BeanUtils.copyProperties(unitRequestDto, unit);
         unit.setCreatedAt(LocalDateTime.now());
         unit.setUpdatedAt(LocalDateTime.now());
-        // unit.setUnitId(unit.getId());
         return unit;
     }
 
@@ -182,7 +203,7 @@ public class DtoUtilities {
     }
 
     public static Department departmentRequestDtoToDepartment(Department department,
-            DepartmentRequestDto departmentRequestDto) {
+                                                              DepartmentRequestDto departmentRequestDto) {
         BeanUtils.copyProperties(departmentRequestDto, department);
         department.setUpdatedAt(LocalDateTime.now());
         return department;
@@ -235,7 +256,7 @@ public class DtoUtilities {
     }
 
     public VehicleEntry vehicleEntryDtoToVehicleEntry(VehicleEntryReqDto vehicleEntryReqDto,
-            DrivingLicence drivingLicence, VehicleLicence vehicleLicence, Plant plant, Purpose purpose) {
+                                                      DrivingLicence drivingLicence, VehicleLicence vehicleLicence, Plant plant, Purpose purpose) {
         VehicleEntry vehicleEntry = new VehicleEntry();
         BeanUtils.copyProperties(vehicleEntryReqDto, vehicleEntry);
         vehicleEntry.setDrivingLicence(drivingLicence);

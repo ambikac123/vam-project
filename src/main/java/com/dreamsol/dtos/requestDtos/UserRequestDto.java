@@ -24,7 +24,7 @@ import javax.validation.constraints.Size;
 public class UserRequestDto extends CommonAutoIdEntityRequestDto
 {
 
-    @NotBlank(message = "name must be filled")
+    @NotBlank(message = "name is mandatory")
     @Size(min = 3, max=50, message = "user name should contain min of 3 and max of 100 characters")
     @Pattern(regexp = "^[A-Za-z]+(?:[\\s'][A-Za-z]+)*$", message = "name should contain alphabets only")
     @Schema(description = "name of user", example = " ")
@@ -51,9 +51,6 @@ public class UserRequestDto extends CommonAutoIdEntityRequestDto
     @Schema(description = "password of user", example = " ")
     private String password;
 
-    @NotEmpty(message = "usertype is mandatory")
-    private String userTypeName;
-
-    @NotEmpty(message = "employee id is mandatory")
-    private String employeeId;
+    @NotNull(message = "usertype is mandatory")
+    private Long usertypeId;
 }

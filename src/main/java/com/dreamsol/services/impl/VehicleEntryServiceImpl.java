@@ -2,6 +2,8 @@ package com.dreamsol.services.impl;
 
 import com.dreamsol.dtos.requestDtos.VehicleEntryReqDto;
 import com.dreamsol.dtos.responseDtos.ApiResponse;
+import com.dreamsol.dtos.responseDtos.PurposeCountDto;
+import com.dreamsol.dtos.responseDtos.VehicleEntryCountDto;
 import com.dreamsol.dtos.responseDtos.VehicleEntryResDto;
 import com.dreamsol.entites.*;
 import com.dreamsol.exceptions.ResourceNotFoundException;
@@ -17,7 +19,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -141,19 +143,36 @@ public class VehicleEntryServiceImpl implements VehicleEntryService {
        return ResponseEntity.ok(dtoUtilities.vehicleEntryToDto(vehicleEntry));
     }
 
-//    public ResponseEntity<Page<VehicleEntryResDto>> fetchAllEntries(
-//            int page,
-//            int size,
-//            String sortBy) {
-//
-//        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
-//
-//
-//        Page<VehicleEntry> vehicleEntries = vehicleEntryRepository.findAll( pageable);
-//        Page<VehicleEntryResDto> vehicleEntryResDtoPage = vehicleEntries.map(dtoUtilities::vehicleEntryToDto);
-//
-//        return ResponseEntity.ok(vehicleEntryResDtoPage);
-//    }
+
+
+    @Override
+    public ResponseEntity<Page<VehicleEntryResDto>> fetchAllEntries(
+            String status,
+            Long unitId,
+            Long plantId,
+            Long purposeId,
+            int page,
+            int size,
+            String sortBy,
+            String sortDirection) {
+
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Boolean statusBoolean = (status != null) ? Boolean.parseBoolean(status) : null;
+
+        Page<VehicleEntry> vehicleEntries = vehicleEntryRepository.findByParameters(
+                statusBoolean,
+                unitId,
+                plantId,
+                purposeId,
+                pageable);
+
+        Page<VehicleEntryResDto> vehicleEntryResDtoPage = vehicleEntries.map(dtoUtilities::vehicleEntryToDto);
+
+        return ResponseEntity.ok(vehicleEntryResDtoPage);
+    }
 
     @Override
     public ResponseEntity<?> downloadEntryDataAsExcel() {
@@ -185,4 +204,36 @@ public class VehicleEntryServiceImpl implements VehicleEntryService {
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                 .body(resource);
     }
+
+    @Override
+    public ResponseEntity<List<PurposeCountDto>> fetchPurposeCountsByDateRange(LocalDateTime fromDate, LocalDateTime toDate) {
+        List<PurposeCountDto> purposeCounts = vehicleEntryRepository.findPurposesWithinDateRange(fromDate, toDate);
+        return ResponseEntity.ok(purposeCounts);
+    }
+
+    @Override
+    public ResponseEntity<VehicleEntryCountDto> getEntryCounts() {
+        Long totalEntries = vehicleEntryRepository.countTotalEntries();
+        Long inEntries = vehicleEntryRepository.countInEntries();
+        Long outEntries = vehicleEntryRepository.countOutEntries();
+
+        VehicleEntryCountDto entryCountDto = new VehicleEntryCountDto(totalEntries, inEntries, outEntries);
+
+        return ResponseEntity.ok(entryCountDto);
+    }
+
+    @Override
+    public ResponseEntity<?> exitEntry(Long entryId) {
+        VehicleEntry vehicleEntry = vehicleEntryRepository.findById(entryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Vehicle Entry", "Id", entryId));
+
+        if (vehicleEntry.isStatus()) {
+            vehicleEntry.setStatus(false);
+            vehicleEntryRepository.save(vehicleEntry);
+            return ResponseEntity.ok(new ApiResponse("Vehicle exit successful!", true));
+        } else {
+            throw new ResourceNotFoundException("Vehicle Entry", "Id", entryId);
+        }
+    }
+
 }

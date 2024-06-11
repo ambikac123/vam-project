@@ -4,18 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 
 @Entity
 @Getter
 @Setter
-@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class User extends CommonAutoIdEntity {
@@ -25,15 +21,12 @@ public class User extends CommonAutoIdEntity {
     @Column(length = 100, nullable = false, unique = true)
     private String email;
 
-    @Column(length = 10, nullable = false, unique = true)
+    @Column(nullable = false,unique = true)
     private Long mobile;
 
     @Column(nullable = false)
     private String password;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     private UserType userType;
-
-    // @OneToOne(fetch = FetchType.EAGER)
-    // private Contact contact;
 }

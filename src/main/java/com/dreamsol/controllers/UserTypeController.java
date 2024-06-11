@@ -4,8 +4,6 @@ import com.dreamsol.dtos.requestDtos.UserTypeRequestDto;
 import com.dreamsol.services.CommonService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -44,20 +42,35 @@ public class UserTypeController
 
     @GetMapping("/get/{id}")
     public ResponseEntity<?> getUserType(@PathVariable Long id){
-        System.out.println("Success: "+id);
         return userTypeService.get(id);
+    }
+    @GetMapping("/get-dropdown")
+    public ResponseEntity<?> getDropDown()
+    {
+        return userTypeService.getDropDown();
     }
     @GetMapping("/get-all")
     public ResponseEntity<?> getAllUserType(
-            @PageableDefault(size = 10, sort = "userTypeName", page = 0) Pageable pageable,
-            @RequestParam(required = false) String search
+            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) Integer pageNumber,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize,
+            @RequestParam(value = "sortBy", defaultValue = "id", required = false) String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
+            @RequestParam(value = "unitId", defaultValue = "1", required = false) Long unitId,
+            @RequestParam(value = "status", required = false) Boolean status
     )
     {
-        return userTypeService.getAll(pageable,search);
+        return userTypeService.getAll(pageNumber,pageSize,sortBy,sortDir,unitId,status);
     }
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<?> downloadExcelData() {
-        return userTypeService.downloadDataAsExcel();
+    public ResponseEntity<?> downloadExcelData(
+            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) Integer pageNumber,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize,
+            @RequestParam(value = "sortBy", defaultValue = "id", required = false) String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
+            @RequestParam(value = "unitId", defaultValue = "1", required = false) Long unitId,
+            @RequestParam(value = "status", required = false) Boolean status
+    ) {
+        return userTypeService.downloadDataAsExcel(pageNumber,pageSize,sortBy,sortDir,unitId,status);
     }
     @GetMapping(value = "/download-excel-sample",produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadExcelSample()

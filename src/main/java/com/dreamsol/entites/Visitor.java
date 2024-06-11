@@ -2,6 +2,7 @@ package com.dreamsol.entites;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
@@ -23,28 +24,28 @@ public class Visitor extends CommonAutoIdEntity {
 
     @Column(length = 50, nullable = true)
     private String visitorCompany;
-    
+
     @Column(length = 100, nullable = true)
     private String visitorAddress;
-    
-    @ManyToOne
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "userId")
     User user;
-    
-    @ManyToOne
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "purposeId")
     Purpose purpose;
-    
-    @ManyToOne
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "departmentId")
     Department department;
-    
+
     @Column(length = 100, nullable = true)
     private String possessionAllowed;
-    
+
     @Column(length = 100, nullable = true)
     private String visitorCardNumber;
-    
+
     @Column(length = 100, nullable = true)
     private String vehicleNumber;
 

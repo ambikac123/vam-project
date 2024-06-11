@@ -1,4 +1,6 @@
 package com.dreamsol.config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -9,7 +11,7 @@ import javax.sql.DataSource;
 
 @Configuration
 public class DataSourceConfig {
-
+    private final Logger logger = LoggerFactory.getLogger(DataSourceConfig.class);
     @Value("${spring.datasource.url}")
     private String dbUrl;
 
@@ -22,7 +24,7 @@ public class DataSourceConfig {
     @Bean
     @Profile("dev")
     public DataSource devDataSource() {
-        System.out.println("Development environment running...");
+        logger.info("Application running on development environment.....");
         return DataSourceBuilder.create()
                 .url(dbUrl)
                 .username(dbUsername)
@@ -33,7 +35,7 @@ public class DataSourceConfig {
     @Bean
     @Profile("prod")
     public DataSource prodDataSource() {
-        System.out.println("Production environment running...");
+        logger.info("Application running on production environment.....");
         return DataSourceBuilder.create()
                 .url(dbUrl)
                 .username(dbUsername)
@@ -44,7 +46,7 @@ public class DataSourceConfig {
     @Bean
     @Profile("local")
     public DataSource localDataSource() {
-        System.out.println("Local environment running...");
+        logger.info("Application running on local environment.....");
         return DataSourceBuilder.create()
                 .url(dbUrl)
                 .username(dbUsername)
