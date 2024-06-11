@@ -12,6 +12,7 @@ import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.repositories.VisitorRepository;
 import com.dreamsol.repositories.DepartmentRepository;
 import com.dreamsol.repositories.PurposeRepository;
+import com.dreamsol.repositories.UnitRepository;
 import com.dreamsol.repositories.UserRepository;
 import com.dreamsol.securities.JwtUtil;
 import com.dreamsol.utility.DtoUtilities;
@@ -39,6 +40,7 @@ public class VisitorService {
     private final DepartmentRepository departmentRepository;
     private final PurposeRepository purposeRepository;
     private final UserRepository userRepository;
+    private final UnitRepository unitRepository;
     private final ExcelUtility excelUtility;
     private final JwtUtil jwtUtil;
     private final DtoUtilities utilities;
@@ -51,6 +53,11 @@ public class VisitorService {
                 () -> new RuntimeException("Department not Found with id : " + visitorRequestDto.getDepartmentId()));
         Purpose purpose = purposeRepository.findById(visitorRequestDto.getPurposeId()).orElseThrow(
                 () -> new RuntimeException("Purpose not Found with id : " + visitorRequestDto.getPurposeId()));
+        // Check if the unit exists
+        unitRepository.findById(visitorRequestDto.getUnitId())
+                .orElseThrow(() -> new RuntimeException(
+                        "Unit not found with id : " + visitorRequestDto.getUnitId()));
+
         visitor.setDepartment(department);
         visitor.setUser(user);
         visitor.setPurpose(purpose);
