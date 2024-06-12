@@ -5,13 +5,12 @@ import com.dreamsol.dtos.responseDtos.ApiResponse;
 import com.dreamsol.dtos.responseDtos.ExcelValidateDataResponseDto;
 import com.dreamsol.dtos.responseDtos.ValidatedData;
 import com.dreamsol.dtos.responseDtos.VehicleLicenceResDto;
-import com.dreamsol.entites.User;
 import com.dreamsol.entites.VehicleLicence;
 import com.dreamsol.entites.VehicleLicenceAttachment;
 import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.repositories.VehicleLicenceAttachmentRepo;
 import com.dreamsol.repositories.VehicleLicenceRepo;
-import com.dreamsol.services.VehicleLicenceService;
+import com.dreamsol.securities.JwtUtil;
 import com.dreamsol.utility.DtoUtilities;
 import com.dreamsol.utility.ExcelUtility;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +40,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class VehicleLicenceServiceImpl implements VehicleLicenceService {
+public class VehicleLicenceService {
 
     private final VehicleLicenceRepo vehicleLicenceRepo;
 
@@ -53,9 +52,10 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
 
     private final ExcelUtility excelUtility;
 
-    private static final Logger logger = LoggerFactory.getLogger(VehicleLicenceServiceImpl.class);
+    private final JwtUtil jwtUtil;
 
-    @Override
+    private static final Logger logger = LoggerFactory.getLogger(VehicleLicenceService.class);
+
     public ResponseEntity<?> addLicence(VehicleLicenceReqDto vehicleLicenceReqDto,
                                         MultipartFile pucFile,
                                         MultipartFile insuranceFile,
@@ -82,6 +82,9 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
                 VehicleLicenceAttachment registrationAttachment = uploadFile(registrationFile, path);
                 vehicleLicence.setRegistrationAttachment(registrationAttachment);
             }
+            vehicleLicence.setCreatedBy(jwtUtil.getCurrentLoginUser());
+            vehicleLicence.setUpdatedBy(jwtUtil.getCurrentLoginUser());
+            vehicleLicence.setStatus(true);
 
             VehicleLicence savedVehicle = vehicleLicenceRepo.save(vehicleLicence);
 
@@ -92,7 +95,6 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
     }
 
 
-    @Override
     public ResponseEntity<?> deleteLicence(Long licenceId) {
         VehicleLicence vehicleLicence = vehicleLicenceRepo.findById(licenceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Vehicle Licence", "Id", licenceId));
@@ -108,7 +110,6 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
         return ResponseEntity.ok(new ApiResponse("Licence deleted successfully!", true));
     }
 
-    @Override
     public ResponseEntity<?> updateLicence(VehicleLicenceReqDto vehicleLicenceReqDto, Long licenceId,
                                            MultipartFile pucFile, MultipartFile insuranceFile, MultipartFile registrationFile,
                                            String path) {
@@ -148,6 +149,8 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
                 }
             }
 
+            vehicleLicence.setUpdatedBy(jwtUtil.getCurrentLoginUser());
+
             VehicleLicence updatedVehicle = vehicleLicenceRepo.save(vehicleLicence);
 
             return ResponseEntity.ok(dtoUtilities.vehicleLicenceToVehicleLicenceDto(updatedVehicle));
@@ -156,14 +159,12 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
         }
     }
 
-    @Override
     public ResponseEntity<?> fetchById(Long licenceId) {
         VehicleLicence vehicleLicence = vehicleLicenceRepo.findById(licenceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Vehicle Licence", "Id", licenceId));
         return ResponseEntity.ok(dtoUtilities.vehicleLicenceToVehicleLicenceDto(vehicleLicence));
     }
 
-    @Override
     public ResponseEntity<Page<VehicleLicenceResDto>> fetchAllVehicles(
             String status,
             Long unitId,
@@ -201,17 +202,44 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
         }
     }
 
-    @Override
-    public ResponseEntity<?> downloadVehicleDataAsExcel() {
+//    public ResponseEntity<?> downloadVehicleDataAsExcel() {
+//        try {
+//            List<VehicleLicence> vehicleLicenceList = vehicleLicenceRepo.findAll();
+//            if (vehicleLicenceList.isEmpty())
+//                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No users available!");
+//            List<VehicleLicenceResDto> vehicleLicenceResDtoList = vehicleLicenceList.stream().map(dtoUtilities::vehicleLicenceToVehicleLicenceDto)
+//                    .collect(Collectors.toList());
+//            String fileName = "vehicle_excel_data.xlsx";
+//            String sheetName = fileName.substring(0, fileName.indexOf('.'));
+//            Resource resource = excelUtility.downloadDataAsExcel(vehicleLicenceResDtoList, sheetName);
+//            return ResponseEntity.ok()
+//                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
+//                    .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+//                    .body(resource);
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error!" + e);
+//        }
+//    }
+
+    public ResponseEntity<?> downloadVehicleDataAsExcel(
+            String status,
+            Long unitId) {
         try {
-            List<VehicleLicence> vehicleLicenceList = vehicleLicenceRepo.findAll();
+            Boolean statusBoolean = (status != null) ? Boolean.parseBoolean(status) : null;
+
+            List<VehicleLicence> vehicleLicenceList = vehicleLicenceRepo.findByStatusAndUnitId(statusBoolean, unitId);
+
             if (vehicleLicenceList.isEmpty())
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No users available!");
-            List<VehicleLicenceResDto> vehicleLicenceResDtoList = vehicleLicenceList.stream().map(dtoUtilities::vehicleLicenceToVehicleLicenceDto)
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No vehicles available!");
+
+            List<VehicleLicenceResDto> vehicleLicenceResDtoList = vehicleLicenceList.stream()
+                    .map(dtoUtilities::vehicleLicenceToVehicleLicenceDto)
                     .collect(Collectors.toList());
+
             String fileName = "vehicle_excel_data.xlsx";
             String sheetName = fileName.substring(0, fileName.indexOf('.'));
             Resource resource = excelUtility.downloadDataAsExcel(vehicleLicenceResDtoList, sheetName);
+
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
                     .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
@@ -221,7 +249,6 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
         }
     }
 
-    @Override
     public ResponseEntity<?> downloadExcelSample() throws IOException {
         String fileName = "vehicle_excel_sample.xlsx";
         String sheetName = fileName.substring(0, fileName.indexOf('.'));
@@ -278,7 +305,6 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
         }
     }
 
-    @Override
     public ResponseEntity<?> uploadExcelFile(MultipartFile file, Class<?> currentClass) {
         try{
             if(excelUtility.isExcelFile(file))
@@ -304,7 +330,6 @@ public class VehicleLicenceServiceImpl implements VehicleLicenceService {
         }
     }
 
-    @Override
     public ResponseEntity<?> saveBulkData(List<VehicleLicenceReqDto> vehicleLicenceReqDtoList) {
         try{
             List<VehicleLicence> vehicleLicenceList = vehicleLicenceReqDtoList.stream()

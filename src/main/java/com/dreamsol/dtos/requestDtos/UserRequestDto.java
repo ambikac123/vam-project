@@ -54,6 +54,6 @@ public class UserRequestDto extends CommonAutoIdEntityRequestDto
     @NotEmpty(message = "usertype is mandatory")
     private String userTypeName;
 
-    @NotEmpty(message = "employee id is mandatory")
-    private String employeeId;
+//    @NotEmpty(message = "employee id is mandatory")
+//    private String employeeId;
 }

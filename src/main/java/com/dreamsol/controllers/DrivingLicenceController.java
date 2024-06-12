@@ -1,10 +1,8 @@
 package com.dreamsol.controllers;
 
 import com.dreamsol.dtos.requestDtos.DrivingLicenceReqDto;
-import com.dreamsol.dtos.requestDtos.UserTypeRequestDto;
-import com.dreamsol.dtos.requestDtos.VehicleLicenceReqDto;
 import com.dreamsol.dtos.responseDtos.DrivingLicenceResDto;
-import com.dreamsol.services.DrivingLicenceService;
+import com.dreamsol.services.impl.DrivingLicenceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -67,11 +65,19 @@ public class DrivingLicenceController {
         return drivingLicenceService.getFile(fileName, uploadDir);
     }
 
-    @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<?> downloadExcelData()
-    {
-        return drivingLicenceService.downloadDriverDataAsExcel();
+//    @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+//    public ResponseEntity<?> downloadExcelData()
+//    {
+//        return drivingLicenceService.downloadDriverDataAsExcel();
+//    }
+
+    @GetMapping("/download-driver-data")
+    public ResponseEntity<?> downloadDriverDataAsExcel(
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "unitId", required = false) Long unitId) {
+        return drivingLicenceService.downloadDriverDataAsExcel(status, unitId);
     }
+
 
     @GetMapping(value = "/download-excel-sample",produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadExcelSample() throws IOException {

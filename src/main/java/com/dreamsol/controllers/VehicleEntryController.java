@@ -4,7 +4,7 @@ import com.dreamsol.dtos.requestDtos.VehicleEntryReqDto;
 import com.dreamsol.dtos.responseDtos.PurposeCountDto;
 import com.dreamsol.dtos.responseDtos.VehicleEntryCountDto;
 import com.dreamsol.dtos.responseDtos.VehicleEntryResDto;
-import com.dreamsol.services.VehicleEntryService;
+import com.dreamsol.services.impl.VehicleEntryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -58,25 +58,35 @@ public class VehicleEntryController {
             @RequestParam(defaultValue = "asc") String sortDirection) {
         return vehicleEntryService.fetchAllEntries(status,unitId,plantId,purposeId, page, size, sortBy,sortDirection);
     }
+//
+//    @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+//    public ResponseEntity<?> downloadExcelData()
+//    {
+//        return vehicleEntryService.downloadEntryDataAsExcel();
+//    }
 
-    @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<?> downloadExcelData()
-    {
-        return vehicleEntryService.downloadEntryDataAsExcel();
+    @GetMapping("/download-entry-data")
+    public ResponseEntity<?> downloadEntryDataAsExcel(
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "unitId", required = false) Long unitId,
+            @RequestParam(value = "plantId", required = false) Long plantId,
+            @RequestParam(value = "purposeId", required = false) Long purposeId) {
+        return vehicleEntryService.downloadEntryDataAsExcel(status, unitId, plantId, purposeId);
     }
+
 
     @GetMapping(value = "/download-excel-sample",produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadExcelSample() throws IOException {
         return vehicleEntryService.downloadExcelSample();
     }
 
-    @GetMapping("/purposes/count")
-    public ResponseEntity<List<PurposeCountDto>> fetchPurposeCountsByDateRange(
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate) {
-
-        return vehicleEntryService.fetchPurposeCountsByDateRange(fromDate.atStartOfDay(), toDate.atTime(LocalTime.MAX));
-    }
+//    @GetMapping("/purposes/count")
+//    public ResponseEntity<List<PurposeCountDto>> fetchPurposeCountsByDateRange(
+//            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
+//            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate) {
+//
+//        return vehicleEntryService.fetchPurposeCountsByDateRange(fromDate.atStartOfDay(), toDate.atTime(LocalTime.MAX));
+//    }
 
     @GetMapping("/count")
     public ResponseEntity<VehicleEntryCountDto> getEntryCounts() {

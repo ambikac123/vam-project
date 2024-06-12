@@ -2,13 +2,12 @@ package com.dreamsol.services.impl;
 
 import com.dreamsol.dtos.requestDtos.VehicleEntryReqDto;
 import com.dreamsol.dtos.responseDtos.ApiResponse;
-import com.dreamsol.dtos.responseDtos.PurposeCountDto;
 import com.dreamsol.dtos.responseDtos.VehicleEntryCountDto;
 import com.dreamsol.dtos.responseDtos.VehicleEntryResDto;
 import com.dreamsol.entites.*;
 import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.repositories.*;
-import com.dreamsol.services.VehicleEntryService;
+import com.dreamsol.securities.JwtUtil;
 import com.dreamsol.utility.DtoUtilities;
 import com.dreamsol.utility.ExcelUtility;
 import javassist.NotFoundException;
@@ -26,14 +25,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class VehicleEntryServiceImpl implements VehicleEntryService {
+public class VehicleEntryService {
 
     private final VehicleEntryRepository vehicleEntryRepository;
 
@@ -49,7 +47,8 @@ public class VehicleEntryServiceImpl implements VehicleEntryService {
 
     private final ExcelUtility excelUtility;
 
-    @Override
+    private final JwtUtil jwtUtil;
+
     public ResponseEntity<?> addEntry(VehicleEntryReqDto vehicleEntryReqDto) {
         try {
             Optional<DrivingLicence> optionalDrivingLicence = drivingLicenceRepo.findByDriverMobile(vehicleEntryReqDto.getDriverMobile());
@@ -58,13 +57,17 @@ public class VehicleEntryServiceImpl implements VehicleEntryService {
             Optional<VehicleLicence> optionalVehicleLicence = vehicleLicenceRepo.findByVehicleNumber(vehicleEntryReqDto.getVehicleNumber());
             VehicleLicence vehicleLicence = optionalVehicleLicence.orElseThrow(() -> new NotFoundException("Vehicle not found with this vehicle number,Please add the vehicle First"));
 
-            Optional<Plant> optionalPlant = plantRepository.findByPlantNameContainingIgnoreCase(vehicleEntryReqDto.getPlantName());
+            Optional<Plant> optionalPlant = plantRepository.findById(vehicleEntryReqDto.getPlantId());
             Plant plant = optionalPlant.orElseThrow(() -> new NotFoundException("Plant not found with this name,Please add the Plant first"));
 
-            Optional<Purpose> optionalPurpose = purposeRepository.findByPurposeForContainingIgnoreCase(vehicleEntryReqDto.getPurposeFor());
+            Optional<Purpose> optionalPurpose = purposeRepository.findById(vehicleEntryReqDto.getPurposeId());
             Purpose purpose = optionalPurpose.orElseThrow(() -> new NotFoundException("Purpose not found with this name,Please add the purpose first"));
 
             VehicleEntry vehicleEntry = dtoUtilities.vehicleEntryDtoToVehicleEntry(vehicleEntryReqDto,drivingLicence,vehicleLicence,plant,purpose);
+
+            vehicleEntry.setCreatedBy(jwtUtil.getCurrentLoginUser());
+            vehicleEntry.setUpdatedBy(jwtUtil.getCurrentLoginUser());
+            vehicleEntry.setStatus(true);
 
             VehicleEntry savedVehicleEntry=vehicleEntryRepository.save(vehicleEntry);
 
@@ -81,7 +84,6 @@ public class VehicleEntryServiceImpl implements VehicleEntryService {
     }
 
 
-    @Override
     public ResponseEntity<?> deleteEntry(Long entryId) {
         VehicleEntry vehicleEntry = vehicleEntryRepository.findById(entryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Vehicle Entry", "Id", entryId));
@@ -97,7 +99,6 @@ public class VehicleEntryServiceImpl implements VehicleEntryService {
         return ResponseEntity.ok(new ApiResponse("Entry deleted successfully!", true));
     }
 
-    @Override
     public ResponseEntity<?> updateEntry(VehicleEntryReqDto vehicleEntryReqDto, Long entryId) {
 
             VehicleEntry vehicleEntry = vehicleEntryRepository.findById(entryId)
@@ -109,10 +110,10 @@ public class VehicleEntryServiceImpl implements VehicleEntryService {
             Optional<VehicleLicence> optionalVehicleLicence = vehicleLicenceRepo.findByVehicleNumber(vehicleEntryReqDto.getVehicleNumber());
             VehicleLicence vehicleLicence = optionalVehicleLicence.orElseThrow(() -> new NotFoundException("Vehicle not found with this vehicle number"));
 
-            Optional<Plant> optionalPlant = plantRepository.findByPlantNameContainingIgnoreCase(vehicleEntryReqDto.getPlantName());
+            Optional<Plant> optionalPlant = plantRepository.findById(vehicleEntryReqDto.getPlantId());
             Plant plant = optionalPlant.orElseThrow(() -> new NotFoundException("Plant not found with this name"));
 
-            Optional<Purpose> optionalPurpose = purposeRepository.findByPurposeForContainingIgnoreCase(vehicleEntryReqDto.getPurposeFor());
+            Optional<Purpose> optionalPurpose = purposeRepository.findById(vehicleEntryReqDto.getPurposeId());
             Purpose purpose = optionalPurpose.orElseThrow(() -> new NotFoundException("Purpose not found with this name"));
 
             BeanUtils.copyProperties(vehicleEntryReqDto, vehicleEntry, "id");
@@ -121,6 +122,7 @@ public class VehicleEntryServiceImpl implements VehicleEntryService {
             vehicleEntry.setVehicleLicence(vehicleLicence);
             vehicleEntry.setPlant(plant);
             vehicleEntry.setPurpose(purpose);
+            vehicleEntry.setUpdatedBy(jwtUtil.getCurrentLoginUser());
 
             VehicleEntry updatedVehicleEntry = vehicleEntryRepository.save(vehicleEntry);
 
@@ -136,7 +138,6 @@ public class VehicleEntryServiceImpl implements VehicleEntryService {
     }
 
 
-    @Override
     public ResponseEntity<?> fetchById(Long entryId) {
         VehicleEntry vehicleEntry = vehicleEntryRepository.findById(entryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Vehicle Entry", "Id", entryId));
@@ -144,8 +145,6 @@ public class VehicleEntryServiceImpl implements VehicleEntryService {
     }
 
 
-
-    @Override
     public ResponseEntity<Page<VehicleEntryResDto>> fetchAllEntries(
             String status,
             Long unitId,
@@ -174,17 +173,51 @@ public class VehicleEntryServiceImpl implements VehicleEntryService {
         return ResponseEntity.ok(vehicleEntryResDtoPage);
     }
 
-    @Override
-    public ResponseEntity<?> downloadEntryDataAsExcel() {
+//    public ResponseEntity<?> downloadEntryDataAsExcel() {
+//        try {
+//            List<VehicleEntry> vehicleEntryList = vehicleEntryRepository.findAll();
+//            if (vehicleEntryList.isEmpty())
+//                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No users available!");
+//            List<VehicleEntryResDto> vehicleEntryResDtoList = vehicleEntryList.stream().map(dtoUtilities::vehicleEntryToDto)
+//                    .collect(Collectors.toList());
+//            String fileName = "entry_excel_data.xlsx";
+//            String sheetName=fileName.substring(0,fileName.indexOf('.'));
+//            Resource resource = excelUtility.downloadDataAsExcel(vehicleEntryResDtoList, sheetName);
+//            return ResponseEntity.ok()
+//                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
+//                    .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+//                    .body(resource);
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error!" + e);
+//        }
+//    }
+
+
+    public ResponseEntity<?> downloadEntryDataAsExcel(
+            String status,
+            Long unitId,
+            Long plantId,
+            Long purposeId) {
         try {
-            List<VehicleEntry> vehicleEntryList = vehicleEntryRepository.findAll();
+            Boolean statusBoolean = (status != null) ? Boolean.parseBoolean(status) : null;
+
+            List<VehicleEntry> vehicleEntryList = vehicleEntryRepository.findByParameters(
+                    statusBoolean,
+                    unitId,
+                    plantId,
+                    purposeId);
+
             if (vehicleEntryList.isEmpty())
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No users available!");
-            List<VehicleEntryResDto> vehicleEntryResDtoList = vehicleEntryList.stream().map(dtoUtilities::vehicleEntryToDto)
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No entries available!");
+
+            List<VehicleEntryResDto> vehicleEntryResDtoList = vehicleEntryList.stream()
+                    .map(dtoUtilities::vehicleEntryToDto)
                     .collect(Collectors.toList());
+
             String fileName = "entry_excel_data.xlsx";
-            String sheetName=fileName.substring(0,fileName.indexOf('.'));
+            String sheetName = fileName.substring(0, fileName.indexOf('.'));
             Resource resource = excelUtility.downloadDataAsExcel(vehicleEntryResDtoList, sheetName);
+
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
                     .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
@@ -194,7 +227,7 @@ public class VehicleEntryServiceImpl implements VehicleEntryService {
         }
     }
 
-    @Override
+
     public ResponseEntity<?> downloadExcelSample() throws IOException {
         String fileName = "entry_excel_sample.xlsx";
         String sheetName=fileName.substring(0,fileName.indexOf('.'));
@@ -205,13 +238,11 @@ public class VehicleEntryServiceImpl implements VehicleEntryService {
                 .body(resource);
     }
 
-    @Override
-    public ResponseEntity<List<PurposeCountDto>> fetchPurposeCountsByDateRange(LocalDateTime fromDate, LocalDateTime toDate) {
-        List<PurposeCountDto> purposeCounts = vehicleEntryRepository.findPurposesWithinDateRange(fromDate, toDate);
-        return ResponseEntity.ok(purposeCounts);
-    }
+//    public ResponseEntity<List<PurposeCountDto>> fetchPurposeCountsByDateRange(LocalDateTime fromDate, LocalDateTime toDate) {
+//        List<PurposeCountDto> purposeCounts = vehicleEntryRepository.findPurposesWithinDateRange(fromDate, toDate);
+//        return ResponseEntity.ok(purposeCounts);
+//    }
 
-    @Override
     public ResponseEntity<VehicleEntryCountDto> getEntryCounts() {
         Long totalEntries = vehicleEntryRepository.countTotalEntries();
         Long inEntries = vehicleEntryRepository.countInEntries();
@@ -222,7 +253,6 @@ public class VehicleEntryServiceImpl implements VehicleEntryService {
         return ResponseEntity.ok(entryCountDto);
     }
 
-    @Override
     public ResponseEntity<?> exitEntry(Long entryId) {
         VehicleEntry vehicleEntry = vehicleEntryRepository.findById(entryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Vehicle Entry", "Id", entryId));
