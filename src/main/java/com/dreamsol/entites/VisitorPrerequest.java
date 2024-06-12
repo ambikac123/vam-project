@@ -27,7 +27,6 @@ public class VisitorPrerequest extends CommonAutoIdEntity {
     private String address;
     @Column(length = 50)
     private String possessionsAllowed;
-
     @OneToOne
     private Purpose meetingPurpose;
     private LocalDateTime meetingSchedule;

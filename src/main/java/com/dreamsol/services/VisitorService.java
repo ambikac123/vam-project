@@ -145,9 +145,14 @@ public class VisitorService {
                 return ResponseEntity.ok(visitorResponseDtos);
         }
 
-        public ResponseEntity<?> downloadVisitorDataAsExcel() throws java.io.IOException {
+        public ResponseEntity<?> downloadVisitorDataAsExcel(String status, Long unitId, Long employeeId, Long purposeId,
+                        Long departmentId) throws java.io.IOException {
                 try {
-                        List<Visitor> visitorList = visitorRepository.findAll();
+                        Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
+
+                        List<Visitor> visitorList = visitorRepository
+                                        .findByEmployeeIdAndPurposeIdAndDepartmentIdAndUnitIdAndStatus(employeeId,
+                                                        purposeId, departmentId, unitId, statusBoolean);
                         if (visitorList.isEmpty()) {
                                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No purposes available!");
                         }

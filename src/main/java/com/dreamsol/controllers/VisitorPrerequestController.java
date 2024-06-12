@@ -46,13 +46,17 @@ public class VisitorPrerequestController
         return visitorPrerequestService.delete(id);
     }
     @GetMapping("/get/{id}")
-    public ResponseEntity<?> getVisitorById(Long id)
+    public ResponseEntity<?> getVisitorPrerequestById(Long id)
     {
         return visitorPrerequestService.get(id);
     }
     @GetMapping("/get-by-mobile/{mobile}")
-    public ResponseEntity<?> getVisitorByMobile(Long mobile){
+    public ResponseEntity<?> getVisitorPrerequestByMobile(Long mobile){
         return visitorPrerequestService.getVisitorByMobile(mobile);
+    }
+    @GetMapping("/get-status-count")
+    public ResponseEntity<?> getStatusCount(@RequestParam(value = "meetingStatus", required = false) String meetingStatus){
+        return visitorPrerequestService.getStatusCount(meetingStatus);
     }
     @GetMapping("/get-all")
     public ResponseEntity<?> getVisitors(
@@ -62,7 +66,7 @@ public class VisitorPrerequestController
             @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
             @RequestParam(value = "unitId", defaultValue = "1", required = false) Long unitId,
             @RequestParam(value = "status", required = false) Boolean status,
-            @RequestParam(value = "meetingPurpose", required = false) Long meetingPurposeId,
+            @RequestParam(value = "meetingPurposeId", required = false) Long meetingPurposeId,
             @RequestParam(value = "meetingStatus",required = false) String meetingStatus,
             @Parameter(description ="From Date", example = "2024-06-10", in = ParameterIn.QUERY)
             @RequestParam(value = "fromDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
@@ -87,10 +91,5 @@ public class VisitorPrerequestController
             @RequestParam(value = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate
     ){
         return visitorPrerequestService.downloadDataAsExcel(pageNumber,pageSize,sortBy,sortDir,unitId,status,meetingPurposeId,meetingStatus,fromDate,toDate);
-    }
-    @GetMapping(value = "/download-excel-sample",produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<?> downloadExcelSample()
-    {
-        return visitorPrerequestService.downloadExcelSample();
     }
 }

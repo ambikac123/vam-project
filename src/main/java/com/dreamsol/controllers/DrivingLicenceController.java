@@ -1,8 +1,6 @@
 package com.dreamsol.controllers;
 
 import com.dreamsol.dtos.requestDtos.DrivingLicenceReqDto;
-import com.dreamsol.dtos.requestDtos.UserTypeRequestDto;
-import com.dreamsol.dtos.requestDtos.VehicleLicenceReqDto;
 import com.dreamsol.dtos.responseDtos.DrivingLicenceResDto;
 import com.dreamsol.services.DrivingLicenceService;
 import lombok.RequiredArgsConstructor;

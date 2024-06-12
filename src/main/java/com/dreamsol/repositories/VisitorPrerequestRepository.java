@@ -15,6 +15,8 @@ public interface VisitorPrerequestRepository extends JpaRepository<VisitorPrereq
     Optional<VisitorPrerequest> findByMobile(Long mobile);
 
     Optional<VisitorPrerequest> findByOtp(String otp);
+    @Query("SELECT COUNT(v) FROM VisitorPrerequest v WHERE v.meetingStatus = :meetingStatus")
+    long countByStatus(@Param("meetingStatus") String meetingStatus);
     @Query("SELECT v FROM VisitorPrerequest v WHERE " +
             "(:unitId IS NULL OR v.unitId = :unitId) AND " +
             "(:status IS NULL OR v.status = :status) AND " +

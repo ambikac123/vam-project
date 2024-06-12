@@ -19,9 +19,16 @@ public interface PurposeRepository extends JpaRepository<Purpose, Long> {
                         "(:status IS NULL OR p.status = :status) AND " +
                         "(:unitId IS NULL OR p.unitId = :unitId) AND " +
                         "(:purposeName IS NULL OR p.purposeFor = :purposeName)")
-        Page<Purpose> findByStatusAndUnitIdAndPurposeName(@Param("status") Boolean status,
+        Page<Purpose> findByStatusAndUnitIdAndPurposeNameIgnoreCase(@Param("status") Boolean status,
                         @Param("unitId") Long unitId, @Param("purposeName") String purposeName,
                         Pageable pageable);
+
+        @Query("SELECT p FROM Purpose p WHERE " +
+                        "(:status IS NULL OR p.status = :status) AND " +
+                        "(:unitId IS NULL OR p.unitId = :unitId) AND " +
+                        "(:purposeName IS NULL OR p.purposeFor = :purposeName)")
+        List<Purpose> findByStatusAndUnitIdAndPurposeNameIgnoreCase(@Param("status") Boolean status,
+                        @Param("unitId") Long unitId, @Param("purposeName") String purposeName);
 
         Page<Purpose> findByPurposeForAndUnitIdAndStatus(Pageable pageable, String purposeFor, Long unitId,
                         boolean status);

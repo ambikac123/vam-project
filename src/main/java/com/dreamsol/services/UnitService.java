@@ -73,6 +73,7 @@ public class UnitService {
         PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(direction, sortBy));
 
         Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
+
         Page<Unit> unitsPage = unitRepository.findByStatus(statusBoolean, pageRequest);
 
         Page<UnitResponseDto> unitResponseDtos = unitsPage.map(DtoUtilities::unitToUnitResponseDto);
@@ -93,9 +94,12 @@ public class UnitService {
         }
     }
 
-    public ResponseEntity<?> downloadDataAsExcel() {
+    public ResponseEntity<?> downloadDataAsExcel(String status) {
+        Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
+
         try {
-            List<Unit> unitList = unitRepository.findAll();
+
+            List<Unit> unitList = unitRepository.findByStatus(statusBoolean);
             if (unitList.isEmpty())
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No units available!");
             List<UnitResponseDto> UnitResDtoList = unitList.stream().map(DtoUtilities::unitToUnitResponseDto)

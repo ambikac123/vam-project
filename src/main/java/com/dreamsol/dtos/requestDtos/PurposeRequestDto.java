@@ -26,5 +26,8 @@ public class PurposeRequestDto extends CommonAutoIdEntityRequestDto {
     private String purposeBrief;
 
     private boolean alert;
+    private String alertTime;
+    private Long userId;
+    private Long departmentId;
 
 }

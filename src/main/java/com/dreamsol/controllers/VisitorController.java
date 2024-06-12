@@ -75,8 +75,13 @@ public class VisitorController {
     }
 
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<?> downloadExcelData() throws java.io.IOException {
-        return visitorService.downloadVisitorDataAsExcel();
+    public ResponseEntity<?> downloadExcelData(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long unitId,
+            @RequestParam(required = false) Long employeeId,
+            @RequestParam(required = false) Long purposeId,
+            @RequestParam(required = false) Long departmentId) throws java.io.IOException {
+        return visitorService.downloadVisitorDataAsExcel(status, unitId, employeeId, purposeId, departmentId);
     }
 
 }

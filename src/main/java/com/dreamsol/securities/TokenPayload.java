@@ -13,12 +13,10 @@ public class TokenPayload
 {
     private Long userid;
     private Long unitId;
-    private String employeeId;
     private String name;
     private String username;
     private Long mobile;
     private String email;
-    private String department;
     private String createdBy;
     private String updatedBy;
     private LocalDateTime createdAt;

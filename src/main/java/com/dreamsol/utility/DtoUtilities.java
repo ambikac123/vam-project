@@ -1,32 +1,5 @@
 package com.dreamsol.utility;
 
-import com.dreamsol.dtos.requestDtos.DrivingLicenceReqDto;
-import com.dreamsol.dtos.requestDtos.SeriesRequestDto;
-import com.dreamsol.dtos.requestDtos.UserRequestDto;
-import com.dreamsol.dtos.requestDtos.UserTypeRequestDto;
-import com.dreamsol.dtos.requestDtos.VehicleLicenceReqDto;
-import com.dreamsol.dtos.responseDtos.DrivingLicenceResDto;
-import com.dreamsol.dtos.responseDtos.SeriesResponseDto;
-import com.dreamsol.dtos.responseDtos.UserResponseDto;
-import com.dreamsol.dtos.responseDtos.UserTypeResponseDto;
-import com.dreamsol.dtos.responseDtos.VehicleLicenceResDto;
-import com.dreamsol.entites.DrivingLicence;
-import com.dreamsol.dtos.requestDtos.DepartmentRequestDto;
-import com.dreamsol.dtos.requestDtos.PlantRequestDto;
-import com.dreamsol.dtos.requestDtos.PurposeRequestDto;
-import com.dreamsol.dtos.requestDtos.UnitRequestDto;
-import com.dreamsol.dtos.responseDtos.DepartmentResponseDto;
-import com.dreamsol.dtos.responseDtos.PlantResponseDto;
-import com.dreamsol.dtos.responseDtos.PurposeResponseDto;
-import com.dreamsol.dtos.responseDtos.UnitResponseDto;
-import com.dreamsol.entites.Department;
-import com.dreamsol.entites.Plant;
-import com.dreamsol.entites.Purpose;
-import com.dreamsol.entites.Series;
-import com.dreamsol.entites.Unit;
-import com.dreamsol.entites.User;
-import com.dreamsol.entites.UserType;
-import com.dreamsol.entites.VehicleLicence;
 import com.dreamsol.dtos.requestDtos.*;
 import com.dreamsol.dtos.responseDtos.*;
 import com.dreamsol.entites.*;
@@ -47,7 +20,8 @@ public class DtoUtilities {
     private final PasswordEncoder passwordEncoder;
 
     private final JwtUtil jwtUtil;
-    public BiFunction<Long,String, DropDownDto> createDropDown = DropDownDto::new;
+    public BiFunction<Long, String, DropDownDto> createDropDown = DropDownDto::new;
+
     public User userRequstDtoToUser(UserRequestDto userRequestDto) {
         User user = new User();
         user.setCreatedBy(jwtUtil.getCurrentLoginUser());
@@ -78,20 +52,22 @@ public class DtoUtilities {
         return userTypeResponseDto;
     }
 
-    public VisitorPrerequest visitorPrerequestDtoToVisitorPrerequest(VisitorPrerequestDto visitorPrerequestDto){
+    public VisitorPrerequest visitorPrerequestDtoToVisitorPrerequest(VisitorPrerequestDto visitorPrerequestDto) {
         VisitorPrerequest visitorPrerequest = new VisitorPrerequest();
-        BeanUtils.copyProperties(visitorPrerequestDto,visitorPrerequest);
+        BeanUtils.copyProperties(visitorPrerequestDto, visitorPrerequest);
         visitorPrerequest.setCreatedBy(jwtUtil.getCurrentLoginUser());
         visitorPrerequest.setUpdatedBy(jwtUtil.getCurrentLoginUser());
         return visitorPrerequest;
     }
-    public VisitorPrerequestResponseDto visitorPrerequestToVisitorPrerequestResponseDto(VisitorPrerequest visitorPrerequest)
-    {
+
+    public VisitorPrerequestResponseDto visitorPrerequestToVisitorPrerequestResponseDto(
+            VisitorPrerequest visitorPrerequest) {
         VisitorPrerequestResponseDto visitorPrerequestResponseDto = new VisitorPrerequestResponseDto();
-        BeanUtils.copyProperties(visitorPrerequest,visitorPrerequestResponseDto);
+        BeanUtils.copyProperties(visitorPrerequest, visitorPrerequestResponseDto);
         visitorPrerequestResponseDto.setMeetingPurpose(visitorPrerequest.getMeetingPurpose().getPurposeFor());
         return visitorPrerequestResponseDto;
     }
+
     public DrivingLicence licenceDtoToLicence(DrivingLicenceReqDto drivingLicenceReqDto) {
         DrivingLicence drivingLicence = new DrivingLicence();
         BeanUtils.copyProperties(drivingLicenceReqDto, drivingLicence);
@@ -203,7 +179,7 @@ public class DtoUtilities {
     }
 
     public static Department departmentRequestDtoToDepartment(Department department,
-                                                              DepartmentRequestDto departmentRequestDto) {
+            DepartmentRequestDto departmentRequestDto) {
         BeanUtils.copyProperties(departmentRequestDto, department);
         department.setUpdatedAt(LocalDateTime.now());
         return department;
@@ -232,6 +208,9 @@ public class DtoUtilities {
     public static PurposeResponseDto purposeToPurposeResponseDto(Purpose purpose) {
         PurposeResponseDto purposeResponseDto = new PurposeResponseDto();
         BeanUtils.copyProperties(purpose, purposeResponseDto);
+        if (purpose.getDepartment() != null) {
+            purposeResponseDto.setDepartment(DtoUtilities.departmentToDepartmentResponseDto(purpose.getDepartment()));
+        }
         return purposeResponseDto;
     }
 
@@ -256,7 +235,7 @@ public class DtoUtilities {
     }
 
     public VehicleEntry vehicleEntryDtoToVehicleEntry(VehicleEntryReqDto vehicleEntryReqDto,
-                                                      DrivingLicence drivingLicence, VehicleLicence vehicleLicence, Plant plant, Purpose purpose) {
+            DrivingLicence drivingLicence, VehicleLicence vehicleLicence, Plant plant, Purpose purpose) {
         VehicleEntry vehicleEntry = new VehicleEntry();
         BeanUtils.copyProperties(vehicleEntryReqDto, vehicleEntry);
         vehicleEntry.setDrivingLicence(drivingLicence);
@@ -296,8 +275,12 @@ public class DtoUtilities {
     public static VisitorResponseDto visitorToVisitorResponseDto(Visitor visitor) {
         VisitorResponseDto visitorResponseDto = new VisitorResponseDto();
         BeanUtils.copyProperties(visitor, visitorResponseDto);
-        visitorResponseDto.setDepartment(DtoUtilities.departmentToDepartmentResponseDto(visitor.getDepartment()));
-        visitorResponseDto.setPurpose(DtoUtilities.purposeToPurposeResponseDto(visitor.getPurpose()));
+        if (visitor.getDepartment() != null) {
+            visitorResponseDto.setDepartment(DtoUtilities.departmentToDepartmentResponseDto(visitor.getDepartment()));
+        }
+        if (visitor.getPurpose() != null) {
+            visitorResponseDto.setPurpose(DtoUtilities.purposeToPurposeResponseDto(visitor.getPurpose()));
+        }
         return visitorResponseDto;
     }
 }

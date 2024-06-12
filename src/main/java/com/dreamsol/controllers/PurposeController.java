@@ -58,8 +58,10 @@ public class PurposeController {
     }
 
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<?> downloadExcelData() {
-        return purposeService.downloadPurposeDataAsExcel();
+    public ResponseEntity<?> downloadExcelData(@RequestParam(required = false) String status,
+            @RequestParam(required = false) Long unitId,
+            @RequestParam(required = false) String purposeFor) {
+        return purposeService.downloadPurposeDataAsExcel(status, unitId, purposeFor);
     }
 
     @GetMapping(value = "/download-excel-sample", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)

@@ -53,4 +53,6 @@ public class UserRequestDto extends CommonAutoIdEntityRequestDto
 
     @NotNull(message = "usertype is mandatory")
     private Long usertypeId;
+
+    private boolean status;
 }

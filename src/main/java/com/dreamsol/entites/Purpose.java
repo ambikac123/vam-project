@@ -2,11 +2,14 @@ package com.dreamsol.entites;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.time.LocalTime;
 
 @Getter
 @Setter
@@ -21,4 +24,13 @@ public class Purpose extends CommonAutoIdEntity {
     private String purposeBrief;
 
     private boolean alert;
+
+    private LocalTime alertTime;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = true)
+    private User user;
+    @ManyToOne
+    @JoinColumn(name = "department_id", nullable = true)
+    private Department department;
 }
