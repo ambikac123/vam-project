@@ -44,15 +44,14 @@ import java.util.Map;
 import java.util.Set;
 
 @Component
-public class ExcelUtility
-{
+public class ExcelUtility {
     private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     private final Validator validator = factory.getValidator();
 
     // Checks whether the given file is an Excel file or not
     public boolean isExcelFile(MultipartFile file) {
         String contentType = file.getContentType();
-        if(contentType!=null)
+        if (contentType != null)
             return contentType.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") ||
                     contentType.equals("application/vnd.ms-excel");
         else
@@ -61,14 +60,15 @@ public class ExcelUtility
 
     // To download Excel format
     public Resource downloadExcelSample(Class<?> currentClass, String sheetName) throws IOException {
-        Map<String,String> headersMap = getRequiredMap(currentClass,"header");
-        Map<String,String> columnTypeMap = getRequiredMap(currentClass,"columntype");
-        Map<String,String> dataExampleMap = getRequiredMap(currentClass,"example");
-        return generateExcelSample(columnTypeMap,headersMap,dataExampleMap,sheetName);
+        Map<String, String> headersMap = getRequiredMap(currentClass, "header");
+        Map<String, String> columnTypeMap = getRequiredMap(currentClass, "columntype");
+        Map<String, String> dataExampleMap = getRequiredMap(currentClass, "example");
+        return generateExcelSample(columnTypeMap, headersMap, dataExampleMap, sheetName);
     }
 
     // To generate Excel format
-    private Resource generateExcelSample(Map<String,String> columnTypeMap, Map<String,String> headersMap, Map<String,String> dataExampleMap,String sheetName) throws IOException {
+    private Resource generateExcelSample(Map<String, String> columnTypeMap, Map<String, String> headersMap,
+            Map<String, String> dataExampleMap, String sheetName) throws IOException {
         Workbook workbook = new XSSFWorkbook();
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         Sheet sheet = workbook.createSheet(sheetName);
@@ -77,9 +77,8 @@ public class ExcelUtility
         Row exampleRow = sheet.createRow(1);
 
         int cellIndex = 0;
-        for(String headerName : headersNameSet)
-        {
-            createExcelHeader(workbook,columnTypeMap,headerName,headerRow,cellIndex);
+        for (String headerName : headersNameSet) {
+            createExcelHeader(workbook, columnTypeMap, headerName, headerRow, cellIndex);
             Cell exampleCell = exampleRow.createCell(cellIndex);
             exampleCell.setCellValue(dataExampleMap.get(headerName));
             exampleCell.setCellStyle(getExampleCellStyle(workbook));
@@ -92,27 +91,26 @@ public class ExcelUtility
     }
 
     // To download data in excel file
-    public Resource downloadDataAsExcel(List<?> dataList,String sheetName) throws IOException, IllegalAccessException {
+    public Resource downloadDataAsExcel(List<?> dataList, String sheetName) throws IOException, IllegalAccessException {
         Class<?> currentClass = dataList.get(0).getClass();
-        Map<String,String> headersMap = getRequiredMap(currentClass,"header");
-        return convertListToExcel(dataList,headersMap,sheetName);
+        Map<String, String> headersMap = getRequiredMap(currentClass, "header");
+        return convertListToExcel(dataList, headersMap, sheetName);
     }
 
     // To return list of valid and invalid data form Excel file
-    public ExcelValidateDataResponseDto validateExcelData(MultipartFile file, Class<?> currentClass) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public ExcelValidateDataResponseDto validateExcelData(MultipartFile file, Class<?> currentClass) throws IOException,
+            InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         ExcelValidateDataResponseDto validateDataResponse = new ExcelValidateDataResponseDto();
-        List<?> dataList = convertExcelToList(file,currentClass);
+        List<?> dataList = convertExcelToList(file, currentClass);
         List<ValidatedData> validDataList = new ArrayList<>();
         List<ValidatedData> invalidDataList = new ArrayList<>();
-        for(Object data : dataList)
-        {
+        for (Object data : dataList) {
             ValidatedData validatedData = new ValidatedData();
             validatedData.setData(data);
             validateData(validatedData);
-            if(validatedData.isStatus()) {
+            if (validatedData.isStatus()) {
                 validDataList.add(validatedData);
-            }
-            else{
+            } else {
                 invalidDataList.add(validatedData);
             }
         }
@@ -124,15 +122,13 @@ public class ExcelUtility
     }
 
     // To check whether the given data is valid or not
-    private void validateData(ValidatedData validatedData)
-    {
+    private void validateData(ValidatedData validatedData) {
 
         Set<ConstraintViolation<Object>> violations = validator.validate(validatedData.getData());
-        if(violations.isEmpty())
-        {
+        if (violations.isEmpty()) {
             validatedData.setStatus(true);
             validatedData.setMessage("Correct");
-        }else {
+        } else {
             StringBuilder message = new StringBuilder();
             for (ConstraintViolation<Object> violation : violations) {
                 message.append(violation.getMessage()).append(", ");
@@ -143,7 +139,8 @@ public class ExcelUtility
     }
 
     // To convert excel data as list
-    private List<?> convertExcelToList(MultipartFile file, Class<?> currentClass) throws IOException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    private List<?> convertExcelToList(MultipartFile file, Class<?> currentClass) throws IOException,
+            NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         List<Object> dataList = new ArrayList<>();
         InputStream inputStream = file.getInputStream();
         XSSFWorkbook workbook = new XSSFWorkbook(inputStream);
@@ -160,25 +157,24 @@ public class ExcelUtility
     }
 
     // To map excel cells to object fields
-    private void mapCellToField(Class<?> currentClass, Object currentObject, Row row, int cellIndex) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    private void mapCellToField(Class<?> currentClass, Object currentObject, Row row, int cellIndex)
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Field[] childClassFields = currentClass.getDeclaredFields();
         Field[] parentClassFields = currentClass.getSuperclass().getDeclaredFields();
         List<Field> fields = new ArrayList<>();
-        Collections.addAll(fields,childClassFields);
-        Collections.addAll(fields,parentClassFields);
-        for(Field field : fields)
-        {
-            System.out.println(field.getName());    // Added
+        Collections.addAll(fields, childClassFields);
+        Collections.addAll(fields, parentClassFields);
+        for (Field field : fields) {
+            System.out.println(field.getName()); // Added
             field.setAccessible(true);
-            if(field.getType().isPrimitive() || !field.getType().getName().startsWith("com.dreamsol"))
-            {
+            if (field.getType().isPrimitive() || !field.getType().getName().startsWith("com.dreamsol")) {
                 Cell cell = row.getCell(cellIndex);
-                setCellValueToField(currentObject, cell,field);
-            }else{
+                setCellValueToField(currentObject, cell, field);
+            } else {
                 Class<?> currentSubClass = field.getType();
                 Object currentSubObject = currentSubClass.getDeclaredConstructor().newInstance();
-                mapCellToField(currentSubClass,currentSubObject,row,cellIndex);
-                field.set(currentObject,currentSubObject);
+                mapCellToField(currentSubClass, currentSubObject, row, cellIndex);
+                field.set(currentObject, currentSubObject);
             }
             cellIndex++;
         }
@@ -186,85 +182,78 @@ public class ExcelUtility
 
     // To set cell value to fields
     private void setCellValueToField(Object currentObject, Cell cell, Field field) throws IllegalAccessException {
-        if(cell != null)
-        {
+        if (cell != null) {
             CellType cellType = cell.getCellType();
-            if(cellType == CellType.STRING)
-            {
-                field.set(currentObject,cell.getStringCellValue());
-            } else if (cellType == CellType.NUMERIC)
-            {
+            if (cellType == CellType.STRING) {
+                field.set(currentObject, cell.getStringCellValue());
+            } else if (cellType == CellType.NUMERIC) {
                 String fieldTypeName = field.getType().getSimpleName();
-                if(fieldTypeName.equalsIgnoreCase("short"))
-                    field.set(currentObject,(short)cell.getNumericCellValue());
-                else if(fieldTypeName.equalsIgnoreCase("int") || fieldTypeName.equalsIgnoreCase("integer"))
-                    field.set(currentObject,(int)cell.getNumericCellValue());
-                else if(fieldTypeName.equalsIgnoreCase("long"))
-                    field.set(currentObject,(long)cell.getNumericCellValue());
-                else if(fieldTypeName.equalsIgnoreCase("float"))
-                    field.set(currentObject,(float)cell.getNumericCellValue());
-                else if(fieldTypeName.equalsIgnoreCase("double"))
-                    field.set(currentObject,cell.getNumericCellValue());
-                else if(fieldTypeName.equalsIgnoreCase("localdate")) {
+                if (fieldTypeName.equalsIgnoreCase("short"))
+                    field.set(currentObject, (short) cell.getNumericCellValue());
+                else if (fieldTypeName.equalsIgnoreCase("int") || fieldTypeName.equalsIgnoreCase("integer"))
+                    field.set(currentObject, (int) cell.getNumericCellValue());
+                else if (fieldTypeName.equalsIgnoreCase("long"))
+                    field.set(currentObject, (long) cell.getNumericCellValue());
+                else if (fieldTypeName.equalsIgnoreCase("float"))
+                    field.set(currentObject, (float) cell.getNumericCellValue());
+                else if (fieldTypeName.equalsIgnoreCase("double"))
+                    field.set(currentObject, cell.getNumericCellValue());
+                else if (fieldTypeName.equalsIgnoreCase("localdate")) {
                     Date date = cell.getDateCellValue();
                     Instant instant = date.toInstant();
                     ZoneId zoneId = ZoneId.systemDefault();
                     LocalDate localDate = LocalDate.ofInstant(instant, zoneId);
                     field.set(currentObject, localDate);
-                }
-                else if(fieldTypeName.equalsIgnoreCase("localdatetime"))
-                    field.set(currentObject,cell.getLocalDateTimeCellValue());
+                } else if (fieldTypeName.equalsIgnoreCase("localdatetime"))
+                    field.set(currentObject, cell.getLocalDateTimeCellValue());
 
-            } else if (cellType == CellType.BOOLEAN){
-                field.set(currentObject,cell.getBooleanCellValue());
+            } else if (cellType == CellType.BOOLEAN) {
+                field.set(currentObject, cell.getBooleanCellValue());
             } else {
-                field.set(currentObject,cell.getLocalDateTimeCellValue());
+                field.set(currentObject, cell.getLocalDateTimeCellValue());
             }
         }
     }
 
     // To get required type map such as header, columntype and example
-    private Map<String,String> getRequiredMap(Class<?> currentClass,String requiredMapType)
-    {
-        Map<String,String> requiredMap = new LinkedHashMap<>();
+    private Map<String, String> getRequiredMap(Class<?> currentClass, String requiredMapType) {
+        Map<String, String> requiredMap = new LinkedHashMap<>();
         Class<?> superClass = currentClass.getSuperclass();
-        addFieldsToMap(requiredMap,currentClass.getDeclaredFields(),requiredMapType);
-        if(superClass !=null && superClass != Object.class)
-            addFieldsToMap(requiredMap,superClass.getDeclaredFields(),requiredMapType);
+        addFieldsToMap(requiredMap, currentClass.getDeclaredFields(), requiredMapType);
+        if (superClass != null && superClass != Object.class)
+            addFieldsToMap(requiredMap, superClass.getDeclaredFields(), requiredMapType);
         return requiredMap;
     }
-    private void addFieldsToMap(Map<String,String> requiredMap, Field[] fields, String requiredMapType)
-    {
-        for(Field field : fields)
-        {
-            if(field.getType().isPrimitive() || !field.getType().getName().startsWith("com.dreamsol"))
-            {
-                if(requiredMapType.equalsIgnoreCase("header"))
-                {
+
+    private void addFieldsToMap(Map<String, String> requiredMap, Field[] fields, String requiredMapType) {
+        for (Field field : fields) {
+            if (field.getType().isPrimitive() || !field.getType().getName().startsWith("com.dreamsol")) {
+                if (requiredMapType.equalsIgnoreCase("header")) {
                     String fieldName = field.getName();
                     String headerName = convertCamelCaseToWords(fieldName);
                     requiredMap.put(headerName, fieldName);
-                }else if(requiredMapType.equalsIgnoreCase("columntype"))
-                {
+                } else if (requiredMapType.equalsIgnoreCase("columntype")) {
                     Column column = field.getAnnotation(javax.persistence.Column.class);
                     NotNull notNull = field.getAnnotation(javax.validation.constraints.NotNull.class);
                     NotEmpty notEmpty = field.getAnnotation(javax.validation.constraints.NotEmpty.class);
                     NotBlank notBlank = field.getAnnotation(javax.validation.constraints.NotBlank.class);
-                    if(notNull != null || notEmpty != null || notBlank != null || (column != null && !column.nullable()))
-                    {
-                        requiredMap.put(convertCamelCaseToWords(field.getName()),"Mandatory");
-                    }else{
-                        requiredMap.put(convertCamelCaseToWords(field.getName()),"Optional");
+                    if (notNull != null || notEmpty != null || notBlank != null
+                            || (column != null && !column.nullable())) {
+                        requiredMap.put(convertCamelCaseToWords(field.getName()), "Mandatory");
+                    } else {
+                        requiredMap.put(convertCamelCaseToWords(field.getName()), "Optional");
                     }
-                }else if(requiredMapType.equalsIgnoreCase("example")){
-                    requiredMap.put(convertCamelCaseToWords(field.getName()),getSampleValueFromField(field));
+                } else if (requiredMapType.equalsIgnoreCase("example")) {
+                    requiredMap.put(convertCamelCaseToWords(field.getName()), getSampleValueFromField(field));
                 }
-            }else{
-                addFieldsToMap(requiredMap,field.getType().getDeclaredFields(),requiredMapType);
+            } else {
+                addFieldsToMap(requiredMap, field.getType().getDeclaredFields(), requiredMapType);
             }
         }
     }
-    private Resource convertListToExcel(List<?> list, Map<String,String> headersMap, String sheetName) throws IllegalAccessException, IOException {
+
+    private Resource convertListToExcel(List<?> list, Map<String, String> headersMap, String sheetName)
+            throws IllegalAccessException, IOException {
         Workbook workbook = new XSSFWorkbook();
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         Sheet sheet = workbook.createSheet(sheetName);
@@ -281,8 +270,7 @@ public class ExcelUtility
 
         int colIndex = 0;
         Row headerRow = sheet.createRow(colIndex);
-        for(String headerName : headersNameSet)
-        {
+        for (String headerName : headersNameSet) {
             Cell cell = headerRow.createCell(colIndex);
             cell.setCellValue(headerName);
             cell.setCellStyle(style1);
@@ -291,33 +279,30 @@ public class ExcelUtility
         // Create data rows
         int rowIndex = 1;
         Class<?> mainEntity = list.get(0).getClass();
-        for(Object item : list)
-        {
+        for (Object item : list) {
             Row row = sheet.createRow(rowIndex++);
             int cellIndex = 0;
-            cellIndex = fieldsFromClass(row, mainEntity, item,cellIndex);
-            fieldsFromClass(row, mainEntity.getSuperclass(),item,cellIndex);
+            cellIndex = fieldsFromClass(row, mainEntity, item, cellIndex);
+            fieldsFromClass(row, mainEntity.getSuperclass(), item, cellIndex);
         }
         workbook.write(byteArrayOutputStream);
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
         workbook.close();
         return new InputStreamResource(byteArrayInputStream);
     }
-    private int fieldsFromClass(Row row, Class<?> classType,Object item,int cellIndex) throws IllegalAccessException {
+
+    private int fieldsFromClass(Row row, Class<?> classType, Object item, int cellIndex) throws IllegalAccessException {
         Field[] fields = classType.getDeclaredFields();
-        for(Field field : fields)
-        {
+        for (Field field : fields) {
             field.setAccessible(true);
-            if(field.getType().isPrimitive() || !field.getType().getName().startsWith("com.dreamsol"))
-            {
+            if (field.getType().isPrimitive() || !field.getType().getName().startsWith("com.dreamsol")) {
                 Cell cell = row.createCell(cellIndex++);
-                setCellValueFromField(cell,field,item);
-            }else if(field.get(item)!=null){
-                cellIndex = fieldsFromClass(row,field.getType(),field.get(item),cellIndex);
-            }else{
+                setCellValueFromField(cell, field, item);
+            } else if (field.get(item) != null) {
+                cellIndex = fieldsFromClass(row, field.getType(), field.get(item), cellIndex);
+            } else {
                 Field[] fields1 = field.getType().getDeclaredFields();
-                for(Field field1 : fields1)
-                {
+                for (Field field1 : fields1) {
                     Cell cell = row.createCell(cellIndex++);
                     cell.setCellValue("NA");
                 }
@@ -326,24 +311,27 @@ public class ExcelUtility
         }
         return cellIndex;
     }
+
     private void setCellValueFromField(Cell cell, Field field, Object item) throws IllegalAccessException {
 
         String fieldType = field.getType().getSimpleName();
-        if(fieldType.equalsIgnoreCase("string"))
+        if (fieldType.equalsIgnoreCase("string"))
             cell.setCellValue((String) field.get(item));
-        else if(fieldType.equalsIgnoreCase("short"))
+        else if (fieldType.equalsIgnoreCase("short"))
             cell.setCellValue((short) field.get(item));
-        else if(fieldType.equalsIgnoreCase("int") || fieldType.equalsIgnoreCase("integer"))
+        else if (fieldType.equalsIgnoreCase("int") || fieldType.equalsIgnoreCase("integer"))
             cell.setCellValue((int) field.get(item));
-        else if(fieldType.equalsIgnoreCase("long"))
+        else if (fieldType.equalsIgnoreCase("long"))
             cell.setCellValue((long) field.get(item));
-        else if(fieldType.equalsIgnoreCase("float"))
+        else if (fieldType.equalsIgnoreCase("float"))
             cell.setCellValue((float) field.get(item));
-        else if(fieldType.equalsIgnoreCase("double"))
+        else if (fieldType.equalsIgnoreCase("double"))
             cell.setCellValue((double) field.get(item));
-        else if(fieldType.equalsIgnoreCase("boolean"))
+        else if (fieldType.equalsIgnoreCase("boolean"))
             cell.setCellValue((boolean) field.get(item));
-        else if(item!=null)
+        else if (field.get(item) == null)
+            cell.setCellValue("NA");
+        else if (item != null)
             cell.setCellValue(field.get(item).toString());
         else
             cell.setCellValue("NA");
@@ -351,8 +339,7 @@ public class ExcelUtility
 
     private String getSampleValueFromField(Field field) {
         String fieldType = field.getType().getSimpleName();
-        switch (fieldType.toLowerCase())
-        {
+        switch (fieldType.toLowerCase()) {
             case "string":
                 return "text";
             case "int":
@@ -370,15 +357,15 @@ public class ExcelUtility
                 return "NA";
         }
     }
+
     private static String convertCamelCaseToWords(String input) {
         // Use a regular expression to insert a space before each uppercase letter
         String spacedString = input.replaceAll("([a-z])([A-Z])", "$1 $2");
-        return  Character.toUpperCase(spacedString.charAt(0))+spacedString.substring(1);
+        return Character.toUpperCase(spacedString.charAt(0)) + spacedString.substring(1);
     }
 
     // Style for mandatory cells
-    private CellStyle getMandatoryCellStyle(Workbook workbook)
-    {
+    private CellStyle getMandatoryCellStyle(Workbook workbook) {
         CellStyle mandatoryCellStyle = workbook.createCellStyle();
         mandatoryCellStyle.setFillForegroundColor(IndexedColors.DARK_RED.getIndex());
         mandatoryCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -390,9 +377,8 @@ public class ExcelUtility
         return mandatoryCellStyle;
     }
 
-    //Style for optional cells
-    private CellStyle getOptionalCellStyle(Workbook workbook)
-    {
+    // Style for optional cells
+    private CellStyle getOptionalCellStyle(Workbook workbook) {
         CellStyle optionalCellStyle = workbook.createCellStyle();
         optionalCellStyle.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
         optionalCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -405,8 +391,7 @@ public class ExcelUtility
     }
 
     // Style for example cells
-    private CellStyle getExampleCellStyle(Workbook workbook)
-    {
+    private CellStyle getExampleCellStyle(Workbook workbook) {
         CellStyle exampleCellStyle = workbook.createCellStyle();
         exampleCellStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
         exampleCellStyle.setFillPattern(FillPatternType.FINE_DOTS);
@@ -417,14 +402,14 @@ public class ExcelUtility
         exampleCellStyle.setFont(exampleCellFont);
         return exampleCellStyle;
     }
-    private void createExcelHeader(Workbook workbook,Map<String,String> columnTypeMap,String headerName,Row headerRow,int cellIndex)
-    {
-        if(columnTypeMap.get(headerName).equalsIgnoreCase("mandatory"))
-        {
+
+    private void createExcelHeader(Workbook workbook, Map<String, String> columnTypeMap, String headerName,
+            Row headerRow, int cellIndex) {
+        if (columnTypeMap.get(headerName).equalsIgnoreCase("mandatory")) {
             Cell headerCell = headerRow.createCell(cellIndex);
-            headerCell.setCellValue(headerName+"*");
+            headerCell.setCellValue(headerName + "*");
             headerCell.setCellStyle(getMandatoryCellStyle(workbook));
-        }else {
+        } else {
             Cell headerCell = headerRow.createCell(cellIndex);
             headerCell.setCellValue(headerName);
             headerCell.setCellStyle(getOptionalCellStyle(workbook));
