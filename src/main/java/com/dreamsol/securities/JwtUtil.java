@@ -16,6 +16,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -28,7 +29,7 @@ public class JwtUtil {
     private static final Key key = new SecretKeySpec(SECRET_KEY.getBytes(), SignatureAlgorithm.HS512.getJcaName());
 
     public String generateToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>();
+        Map<String, Object> claims = new LinkedHashMap<>();
         UserDetailsImpl userDetailsImpl = (UserDetailsImpl) userDetails;
         User user = userDetailsImpl.getUser();
         claims.put("Id", user.getId());
@@ -36,8 +37,8 @@ public class JwtUtil {
         claims.put("Email", user.getEmail());
         claims.put("Mobile No.", user.getMobile());
         claims.put("Status", user.isStatus());
-        claims.put("Created At", user.getCreatedAt());
-        claims.put("Updated At", user.getUpdatedAt());
+        claims.put("Created By",user.getCreatedBy());
+        claims.put("Updated By",user.getUpdatedBy());
         /*
          * claims.put("Roles",
          * List.of(user.getRoles().stream().map(Role::getRoleType).toArray()));
@@ -105,12 +106,10 @@ public class JwtUtil {
         return TokenPayload.builder()
                 .userid(user.getId())
                 .unitId(user.getUnitId())
-                // .employeeId(user.getContact().getEmployeeId())
                 .name(user.getName())
                 .username(user.getEmail())
                 .mobile(user.getMobile())
                 .email(user.getEmail())
-                // .department(user.getContact().getDepartment().getDepartmentName())
                 .createdBy(user.getCreatedBy())
                 .updatedBy(user.getUpdatedBy())
                 .createdAt(user.getCreatedAt())

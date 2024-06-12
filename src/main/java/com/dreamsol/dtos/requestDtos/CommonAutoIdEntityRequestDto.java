@@ -12,25 +12,7 @@ import javax.persistence.MappedSuperclass;
 @AllArgsConstructor
 @NoArgsConstructor
 @MappedSuperclass
-public class CommonAutoIdEntityRequestDto {
-
-    // private boolean status = true;
-
-    // @NotEmpty(message = "CreatedBy Field cannot be Empty")
-    // @Pattern(regexp = "^[a-zA-Z]+([\s][a-zA-Z]+)*$", message = "Only Alphabets
-    // are allowed")
-
-    // @Size(min = 2, max = 50, message = "Enter a Valid Field value")
-    // private String createdBy;
-
-    // @NotEmpty(message = "UpdatedBy Field cannot be Empty")
-
-    // @Pattern(regexp = "^[a-zA-Z]+([\s][a-zA-Z]+)*$", message = "Only Alphabets
-    // are allowed")
-
-    // @Size(min = 2, max = 50, message = "Enter a Valid Field value")
-    // private String updatedBy;
-
-    // @Pattern(regexp = "^[0-9])", message = "Only Numbers are allowed")
+public class CommonAutoIdEntityRequestDto
+{
     private Long unitId;
 }

@@ -85,7 +85,7 @@ public class ExcelUtility
             exampleCell.setCellStyle(getExampleCellStyle(workbook));
             cellIndex++;
         }
-
+        //setOtherCellStyle(workbook);
         workbook.write(byteArrayOutputStream);
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
         return new InputStreamResource(byteArrayInputStream);
@@ -101,7 +101,7 @@ public class ExcelUtility
     // To return list of valid and invalid data form Excel file
     public ExcelValidateDataResponseDto validateExcelData(MultipartFile file, Class<?> currentClass) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         ExcelValidateDataResponseDto validateDataResponse = new ExcelValidateDataResponseDto();
-        List<?> dataList = convertExcelToList(file,currentClass);
+        List<?> dataList = convertExcelToList(file,currentClass);   // call method to convert excel into list
         List<ValidatedData> validDataList = new ArrayList<>();
         List<ValidatedData> invalidDataList = new ArrayList<>();
         for(Object data : dataList)
@@ -168,7 +168,6 @@ public class ExcelUtility
         Collections.addAll(fields,parentClassFields);
         for(Field field : fields)
         {
-            System.out.println(field.getName());    // Added
             field.setAccessible(true);
             if(field.getType().isPrimitive() || !field.getType().getName().startsWith("com.dreamsol"))
             {
@@ -189,6 +188,8 @@ public class ExcelUtility
         if(cell != null)
         {
             CellType cellType = cell.getCellType();
+            if(cellType == CellType.BLANK || cellType == CellType.ERROR)
+                return;
             if(cellType == CellType.STRING)
             {
                 field.set(currentObject,cell.getStringCellValue());
@@ -217,7 +218,7 @@ public class ExcelUtility
 
             } else if (cellType == CellType.BOOLEAN){
                 field.set(currentObject,cell.getBooleanCellValue());
-            } else {
+            }else {
                 field.set(currentObject,cell.getLocalDateTimeCellValue());
             }
         }
@@ -318,7 +319,6 @@ public class ExcelUtility
                 Field[] fields1 = field.getType().getDeclaredFields();
                 for(Field field1 : fields1)
                 {
-                    System.out.println(field1.getName()+" : "+cellIndex);
                     Cell cell = row.createCell(cellIndex++);
                     cell.setCellValue("NA");
                 }
@@ -327,7 +327,9 @@ public class ExcelUtility
         }
         return cellIndex;
     }
-    private void setCellValueFromField(Cell cell, Field field, Object item) throws IllegalAccessException {
+    private void setCellValueFromField(Cell cell, Field field, Object item) throws IllegalAccessException
+    {
+
         String fieldType = field.getType().getSimpleName();
         if(fieldType.equalsIgnoreCase("string"))
             cell.setCellValue((String) field.get(item));
@@ -343,7 +345,9 @@ public class ExcelUtility
             cell.setCellValue((double) field.get(item));
         else if(fieldType.equalsIgnoreCase("boolean"))
             cell.setCellValue((boolean) field.get(item));
-        else if(item!=null)
+        else if(field.get(item)==null)
+            cell.setCellValue("NA");
+        else if(item != null)
             cell.setCellValue(field.get(item).toString());
         else
             cell.setCellValue("NA");
@@ -383,6 +387,7 @@ public class ExcelUtility
         mandatoryCellStyle.setFillForegroundColor(IndexedColors.DARK_RED.getIndex());
         mandatoryCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         mandatoryCellStyle.setAlignment(HorizontalAlignment.CENTER);
+        mandatoryCellStyle.setLocked(true);
         Font mandatoryCellFont = workbook.createFont();
         mandatoryCellFont.setBold(true);
         mandatoryCellFont.setColor(IndexedColors.WHITE.getIndex());
@@ -397,6 +402,7 @@ public class ExcelUtility
         optionalCellStyle.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
         optionalCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         optionalCellStyle.setAlignment(HorizontalAlignment.CENTER);
+        optionalCellStyle.setLocked(true);
         Font optionalCellFont = workbook.createFont();
         optionalCellFont.setBold(true);
         optionalCellFont.setColor(IndexedColors.WHITE.getIndex());
@@ -411,12 +417,29 @@ public class ExcelUtility
         exampleCellStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
         exampleCellStyle.setFillPattern(FillPatternType.FINE_DOTS);
         exampleCellStyle.setAlignment(HorizontalAlignment.CENTER);
+        exampleCellStyle.setLocked(true);
         Font exampleCellFont = workbook.createFont();
         exampleCellFont.setItalic(true);
         exampleCellFont.setColor(IndexedColors.GREY_50_PERCENT.getIndex());
         exampleCellStyle.setFont(exampleCellFont);
         return exampleCellStyle;
     }
+    /*private void setOtherCellStyle(Workbook workbook){
+        Sheet sheet = workbook.getSheetAt(0);
+        CellStyle cellStyle = workbook.createCellStyle();
+        cellStyle.setLocked(false);
+        for(int rowIndex = 2; rowIndex < 100; rowIndex++)
+        {
+            Row row = sheet.createRow(rowIndex);
+            for(int colIndex = 0; colIndex < 26 ; colIndex++)
+            {
+                sheet.autoSizeColumn(colIndex,false);
+                Cell cell = row.createCell(colIndex);
+                cell.setCellStyle(cellStyle);
+            }
+        }
+        sheet.protectSheet("abc");
+    }*/
     private void createExcelHeader(Workbook workbook,Map<String,String> columnTypeMap,String headerName,Row headerRow,int cellIndex)
     {
         if(columnTypeMap.get(headerName).equalsIgnoreCase("mandatory"))

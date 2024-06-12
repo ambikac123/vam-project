@@ -21,4 +21,6 @@ public class UserTypeRequestDto extends CommonAutoIdEntityRequestDto
     @NotEmpty
     private String userTypeCode;
 
+    private boolean status;
+
 }

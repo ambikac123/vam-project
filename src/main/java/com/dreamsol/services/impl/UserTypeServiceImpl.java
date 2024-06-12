@@ -1,6 +1,7 @@
 package com.dreamsol.services.impl;
 
 import com.dreamsol.dtos.requestDtos.UserTypeRequestDto;
+import com.dreamsol.dtos.responseDtos.DropDownDto;
 import com.dreamsol.dtos.responseDtos.ExcelValidateDataResponseDto;
 import com.dreamsol.dtos.responseDtos.UserTypeResponseDto;
 import com.dreamsol.dtos.responseDtos.ValidatedData;
@@ -16,8 +17,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.io.Resource;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,14 +27,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Service
+@Service("userTypeService")
 @RequiredArgsConstructor
 public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Long>
 {
@@ -45,7 +45,7 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
     public ResponseEntity<?> create(UserTypeRequestDto userTypeRequestDto) {
         try {
 
-            Optional<UserType> userTypeOptional = userTypeRepository.findByUserTypeNameOrUserTypeCodeAndStatusTrue(userTypeRequestDto.getUserTypeName(),userTypeRequestDto.getUserTypeCode());
+            Optional<UserType> userTypeOptional = userTypeRepository.findByUserTypeNameOrUserTypeCode(userTypeRequestDto.getUserTypeName(),userTypeRequestDto.getUserTypeCode());
             if(userTypeOptional.isPresent()){
               //  userTypeOptional.get().setStatus(userTypeRequestDto.isStatus());
                 userTypeRepository.save(userTypeOptional.get());
@@ -54,8 +54,6 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
             }
 
             UserType userType = dtoUtilities.userTypeRequestDtoToUserType(userTypeRequestDto);
-            userType.setCreatedBy(jwtUtil.getCurrentLoginUser());
-            userType.setUpdatedBy(jwtUtil.getCurrentLoginUser());
             userTypeRepository.save(userType);
 
             logger.info("New user type created successfully!");
@@ -69,7 +67,6 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
     @Override
     public ResponseEntity<?> update(UserTypeRequestDto userTypeRequestDto, Long id) {
         try {
-
             UserType userType = userTypeRepository.findByIdAndStatusTrue(id).orElseThrow(() -> new ResourceNotFoundException("usertype", "id", id));
             BeanUtils.copyProperties(userTypeRequestDto, userType);
             userType.setUpdatedBy(jwtUtil.getCurrentLoginUser());
@@ -99,13 +96,9 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
     public ResponseEntity<?> get(Long id) {
         try{
             UserType userType = userTypeRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("usertype", "id", id));
-            if(userType.isStatus()) {
-                logger.info("usertype with id: " + id + " found!");
-                return ResponseEntity.status(HttpStatus.FOUND).body(userType);
-            }else{
-                logger.info("usertype with id: "+id+" not found!");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("usertype with id: "+id+" not found!");
-            }
+            logger.info("usertype with id: " + id + " found!");
+            return ResponseEntity.status(HttpStatus.FOUND).body(userType);
+
         }catch(Exception e){
             logger.error("Error occurred while searching usertype with id: "+id+" ,",e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while searching usertype with id: "+id+" ,"+e.getMessage());
@@ -113,40 +106,30 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
     }
 
     @Override
-    public ResponseEntity<?> getAll(Pageable pageable, String search) {
-
-        Page<UserType> userTypePage;
-        if(search == null || search.isEmpty()) {
-            userTypePage = userTypeRepository.findAll(pageable);
-        }
-        else
-        {
-            long unitId = 0L;
-            try{
-                unitId = Long.parseLong(search);
-            }catch(Exception e) {/*parsing failed continue*/}
-
-            LocalDateTime localDateTime = null;
-            try{
-                localDateTime = LocalDateTime.parse(search, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            }catch (Exception e){/*parsing failed continue*/}
-
-            boolean status = false;
-            try{
-                status = Boolean.parseBoolean(search);
-            }catch (Exception e){/*parsing failed continue*/}
-
-            userTypePage = userTypeRepository.findByUserTypeNameContainingIgnoreCaseOrUserTypeCodeContainingIgnoreCaseOrCreatedByContainingIgnoreCaseOrUpdatedByContainingIgnoreCaseOrCreatedAtOrUpdatedAtOrUnitIdOrStatus(
-                search, search, search, search, localDateTime, localDateTime, unitId, status, pageable);
-        }
-        Page<UserTypeResponseDto> userTypeResponseDtos = userTypePage.map((dtoUtilities::userTypeToUserTypeResponseDto));
-        return ResponseEntity.status(HttpStatus.OK).body(userTypeResponseDtos);
+    public ResponseEntity<?> getDropDown() {
+        List<UserType> userTypes = userTypeRepository.findAll();
+        List<DropDownDto> dropDownDtos = userTypes.stream()
+                .map(userType -> dtoUtilities.createDropDown.apply(userType.getId(),userType.getUserTypeName()))
+                .collect(Collectors.toList());
+        return ResponseEntity.status(HttpStatus.OK).body(dropDownDtos);
     }
 
     @Override
-    public ResponseEntity<?> downloadDataAsExcel() {
+    public ResponseEntity<?> getAll(Integer pageNumber,Integer pageSize,String sortBy,String sortDir,Long unitId,Boolean status)
+    {
+        Sort sort = sortDir.equalsIgnoreCase("asc")?Sort.by(sortBy).ascending():Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNumber,pageSize, sort);
+        List<UserType> userTypeList = userTypeRepository.findByFilters(unitId,status,pageable);
+        return ResponseEntity.status(HttpStatus.OK).body(userTypeList);
+    }
+
+    @Override
+    public ResponseEntity<?> downloadDataAsExcel(Integer pageNumber,Integer pageSize,String sortBy,String sortDir,Long unitId,Boolean status)
+    {
         try {
-            List<UserType> userTypeList = userTypeRepository.findAll();
+            Sort sort = sortDir.equalsIgnoreCase("asc")?Sort.by(sortBy).ascending():Sort.by(sortBy).descending();
+            Pageable pageable = PageRequest.of(pageNumber,pageSize, sort);
+            List<UserType> userTypeList = userTypeRepository.findByFilters(unitId,status,pageable);
             if (userTypeList.isEmpty()) {
                 logger.info("No users available!");
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No users available!");
@@ -265,10 +248,5 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
             logger.error("Error occurred while saving bulk data, ",e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while saving bulk data: "+e.getMessage());
         }
-    }
-
-    // usertype own methods
-    public Optional<UserType> getUserType(String userTypeName){
-        return userTypeRepository.findByUserTypeNameAndStatusTrue(userTypeName);
     }
 }

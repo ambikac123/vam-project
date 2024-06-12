@@ -56,8 +56,10 @@ public class PlantController {
     }
 
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<?> downloadExcelData() {
-        return plantService.downloadPlantDataAsExcel();
+    public ResponseEntity<?> downloadExcelData(@RequestParam(required = false) String status,
+            @RequestParam(required = false) Long unitId,
+            @RequestParam(required = false) String plantName) {
+        return plantService.downloadPlantDataAsExcel(status, unitId, plantName);
     }
 
     @GetMapping(value = "/download-excel-sample", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)

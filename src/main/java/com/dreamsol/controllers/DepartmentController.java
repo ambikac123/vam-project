@@ -55,8 +55,10 @@ public class DepartmentController {
     }
 
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<?> downloadExcelData() {
-        return departmentService.downloadDepartmentDataAsExcel();
+    public ResponseEntity<?> downloadExcelData(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long unitId) {
+        return departmentService.downloadDepartmentDataAsExcel(status, unitId);
     }
 
     @GetMapping(value = "/download-excel-sample", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)

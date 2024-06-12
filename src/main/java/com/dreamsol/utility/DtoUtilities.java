@@ -1,39 +1,13 @@
 package com.dreamsol.utility;
 
-import com.dreamsol.dtos.requestDtos.DrivingLicenceReqDto;
-import com.dreamsol.dtos.requestDtos.SeriesRequestDto;
-import com.dreamsol.dtos.requestDtos.UserRequestDto;
-import com.dreamsol.dtos.requestDtos.UserTypeRequestDto;
-import com.dreamsol.dtos.requestDtos.VehicleLicenceReqDto;
-import com.dreamsol.dtos.responseDtos.DrivingLicenceResDto;
-import com.dreamsol.dtos.responseDtos.SeriesResponseDto;
-import com.dreamsol.dtos.responseDtos.UserResponseDto;
-import com.dreamsol.dtos.responseDtos.UserTypeResponseDto;
-import com.dreamsol.dtos.responseDtos.VehicleLicenceResDto;
-import com.dreamsol.entites.DrivingLicence;
-import com.dreamsol.dtos.requestDtos.DepartmentRequestDto;
-import com.dreamsol.dtos.requestDtos.PlantRequestDto;
-import com.dreamsol.dtos.requestDtos.PurposeRequestDto;
-import com.dreamsol.dtos.requestDtos.UnitRequestDto;
-import com.dreamsol.dtos.responseDtos.DepartmentResponseDto;
-import com.dreamsol.dtos.responseDtos.PlantResponseDto;
-import com.dreamsol.dtos.responseDtos.PurposeResponseDto;
-import com.dreamsol.dtos.responseDtos.UnitResponseDto;
-import com.dreamsol.entites.Department;
-import com.dreamsol.entites.Plant;
-import com.dreamsol.entites.Purpose;
-import com.dreamsol.entites.Series;
-import com.dreamsol.entites.Unit;
-import com.dreamsol.entites.User;
-import com.dreamsol.entites.UserType;
-import com.dreamsol.entites.VehicleLicence;
 import com.dreamsol.dtos.requestDtos.*;
 import com.dreamsol.dtos.responseDtos.*;
 import com.dreamsol.entites.*;
-
+import com.dreamsol.securities.JwtUtil;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.function.BiFunction;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -45,8 +19,13 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 public class DtoUtilities {
     private final PasswordEncoder passwordEncoder;
 
+    private final JwtUtil jwtUtil;
+    public BiFunction<Long, String, DropDownDto> createDropDown = DropDownDto::new;
+
     public User userRequstDtoToUser(UserRequestDto userRequestDto) {
         User user = new User();
+        user.setCreatedBy(jwtUtil.getCurrentLoginUser());
+        user.setUpdatedBy(jwtUtil.getCurrentLoginUser());
         BeanUtils.copyProperties(userRequestDto, user);
         user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
         return user;
@@ -55,12 +34,15 @@ public class DtoUtilities {
     public UserResponseDto userToUserResponseDto(User user) {
         UserResponseDto userResponseDto = new UserResponseDto();
         BeanUtils.copyProperties(user, userResponseDto);
+        userResponseDto.setUsertype(userTypeToUserTypeResponseDto(user.getUserType()));
         return userResponseDto;
     }
 
     public UserType userTypeRequestDtoToUserType(UserTypeRequestDto userTypeRequestDto) {
         UserType userType = new UserType();
         BeanUtils.copyProperties(userTypeRequestDto, userType);
+        userType.setCreatedBy(jwtUtil.getCurrentLoginUser());
+        userType.setUpdatedBy(jwtUtil.getCurrentLoginUser());
         return userType;
     }
 
@@ -68,6 +50,22 @@ public class DtoUtilities {
         UserTypeResponseDto userTypeResponseDto = new UserTypeResponseDto();
         BeanUtils.copyProperties(userType, userTypeResponseDto);
         return userTypeResponseDto;
+    }
+
+    public VisitorPrerequest visitorPrerequestDtoToVisitorPrerequest(VisitorPrerequestDto visitorPrerequestDto) {
+        VisitorPrerequest visitorPrerequest = new VisitorPrerequest();
+        BeanUtils.copyProperties(visitorPrerequestDto, visitorPrerequest);
+        visitorPrerequest.setCreatedBy(jwtUtil.getCurrentLoginUser());
+        visitorPrerequest.setUpdatedBy(jwtUtil.getCurrentLoginUser());
+        return visitorPrerequest;
+    }
+
+    public VisitorPrerequestResponseDto visitorPrerequestToVisitorPrerequestResponseDto(
+            VisitorPrerequest visitorPrerequest) {
+        VisitorPrerequestResponseDto visitorPrerequestResponseDto = new VisitorPrerequestResponseDto();
+        BeanUtils.copyProperties(visitorPrerequest, visitorPrerequestResponseDto);
+        visitorPrerequestResponseDto.setMeetingPurpose(visitorPrerequest.getMeetingPurpose().getPurposeFor());
+        return visitorPrerequestResponseDto;
     }
 
     public DrivingLicence licenceDtoToLicence(DrivingLicenceReqDto drivingLicenceReqDto) {
@@ -128,10 +126,10 @@ public class DtoUtilities {
 
     public static Plant plantRequestDtoToPlant(PlantRequestDto plantRequestDto) {
         Plant plant = new Plant();
-
         BeanUtils.copyProperties(plantRequestDto, plant);
         plant.setCreatedAt(LocalDateTime.now());
         plant.setUpdatedAt(LocalDateTime.now());
+
         return plant;
     }
 
@@ -155,7 +153,6 @@ public class DtoUtilities {
         BeanUtils.copyProperties(unitRequestDto, unit);
         unit.setCreatedAt(LocalDateTime.now());
         unit.setUpdatedAt(LocalDateTime.now());
-        // unit.setUnitId(unit.getId());
         return unit;
     }
 
@@ -211,6 +208,9 @@ public class DtoUtilities {
     public static PurposeResponseDto purposeToPurposeResponseDto(Purpose purpose) {
         PurposeResponseDto purposeResponseDto = new PurposeResponseDto();
         BeanUtils.copyProperties(purpose, purposeResponseDto);
+        if (purpose.getDepartment() != null) {
+            purposeResponseDto.setDepartment(DtoUtilities.departmentToDepartmentResponseDto(purpose.getDepartment()));
+        }
         return purposeResponseDto;
     }
 
@@ -303,8 +303,12 @@ public class DtoUtilities {
     public static VisitorResponseDto visitorToVisitorResponseDto(Visitor visitor) {
         VisitorResponseDto visitorResponseDto = new VisitorResponseDto();
         BeanUtils.copyProperties(visitor, visitorResponseDto);
-        visitorResponseDto.setDepartment(DtoUtilities.departmentToDepartmentResponseDto(visitor.getDepartment()));
-        visitorResponseDto.setPurpose(DtoUtilities.purposeToPurposeResponseDto(visitor.getPurpose()));
+        if (visitor.getDepartment() != null) {
+            visitorResponseDto.setDepartment(DtoUtilities.departmentToDepartmentResponseDto(visitor.getDepartment()));
+        }
+        if (visitor.getPurpose() != null) {
+            visitorResponseDto.setPurpose(DtoUtilities.purposeToPurposeResponseDto(visitor.getPurpose()));
+        }
         return visitorResponseDto;
     }
 }

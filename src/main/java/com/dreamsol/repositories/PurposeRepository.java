@@ -1,6 +1,5 @@
 package com.dreamsol.repositories;
 
-import com.dreamsol.dtos.responseDtos.PurposeCountDto;
 import com.dreamsol.entites.Purpose;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -8,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import com.dreamsol.dtos.responseDtos.PurposeCountDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,21 +15,29 @@ import java.util.Optional;
 
 @Repository
 public interface PurposeRepository extends JpaRepository<Purpose, Long> {
-    @Query("SELECT p FROM Purpose p WHERE " +
-            "(:status IS NULL OR p.status = :status) AND " +
-            "(:unitId IS NULL OR p.unitId = :unitId) AND " +
-            "(:purposeName IS NULL OR p.purposeFor = :purposeName)")
-    Page<Purpose> findByStatusAndUnitIdAndPurposeName(@Param("status") Boolean status,
-            @Param("unitId") Long unitId, @Param("purposeName") String purposeName,
-            Pageable pageable);
+        @Query("SELECT p FROM Purpose p WHERE " +
+                        "(:status IS NULL OR p.status = :status) AND " +
+                        "(:unitId IS NULL OR p.unitId = :unitId) AND " +
+                        "(:purposeName IS NULL OR p.purposeFor = :purposeName)")
+        Page<Purpose> findByStatusAndUnitIdAndPurposeNameIgnoreCase(@Param("status") Boolean status,
+                        @Param("unitId") Long unitId, @Param("purposeName") String purposeName,
+                        Pageable pageable);
 
-    Page<Purpose> findByPurposeForAndUnitIdAndStatus(Pageable pageable, String purposeFor, Long unitId, boolean status);
+        @Query("SELECT p FROM Purpose p WHERE " +
+                        "(:status IS NULL OR p.status = :status) AND " +
+                        "(:unitId IS NULL OR p.unitId = :unitId) AND " +
+                        "(:purposeName IS NULL OR p.purposeFor = :purposeName)")
+        List<Purpose> findByStatusAndUnitIdAndPurposeNameIgnoreCase(@Param("status") Boolean status,
+                        @Param("unitId") Long unitId, @Param("purposeName") String purposeName);
 
-    Page<Purpose> findByPurposeForAndUnitId(Pageable pageable, String purposeFor, Long unitId);
+        Page<Purpose> findByPurposeForAndUnitIdAndStatus(Pageable pageable, String purposeFor, Long unitId,
+                        boolean status);
 
-    Optional<Purpose> findByPurposeForContainingIgnoreCase(String purposeFor);
+        Page<Purpose> findByPurposeForAndUnitId(Pageable pageable, String purposeFor, Long unitId);
 
-    @Query("SELECT new com.dreamsol.dtos.responseDtos.PurposeCountDto(p.purposeFor, COUNT(p)) " +
-            "FROM Purpose p WHERE p.createdAt BETWEEN :fromDate AND :toDate GROUP BY p.purposeFor")
-    List<PurposeCountDto> findPurposeCountByCreatedAtBetween(LocalDateTime fromDate, LocalDateTime toDate);
+        Optional<Purpose> findByPurposeForContainingIgnoreCase(String purposeFor);
+
+        @Query("SELECT new com.dreamsol.dtos.responseDtos.PurposeCountDto(p.purposeFor, COUNT(p)) " +
+                        "FROM Purpose p WHERE p.createdAt BETWEEN :fromDate AND :toDate GROUP BY p.purposeFor")
+        List<PurposeCountDto> findPurposeCountByCreatedAtBetween(LocalDateTime fromDate, LocalDateTime toDate);
 }

@@ -55,8 +55,10 @@ public class SeriesController {
     }
 
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<?> downloadExcelData() {
-        return seriesService.downloadSeriesDataAsExcel();
+    public ResponseEntity<?> downloadExcelData(@RequestParam(required = false) String status,
+            @RequestParam(required = false) Long unitId,
+            @RequestParam(required = false) String seriesFor) {
+        return seriesService.downloadSeriesDataAsExcel(status, unitId, seriesFor);
     }
 
     @GetMapping(value = "/download-excel-sample", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
