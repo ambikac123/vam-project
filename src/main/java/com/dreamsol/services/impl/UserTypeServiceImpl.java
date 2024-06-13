@@ -124,12 +124,10 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
     }
 
     @Override
-    public ResponseEntity<?> downloadDataAsExcel(Integer pageNumber,Integer pageSize,String sortBy,String sortDir,Long unitId,Boolean status)
+    public ResponseEntity<?> downloadDataAsExcel(Long unitId,Boolean status)
     {
         try {
-            Sort sort = sortDir.equalsIgnoreCase("asc")?Sort.by(sortBy).ascending():Sort.by(sortBy).descending();
-            Pageable pageable = PageRequest.of(pageNumber,pageSize, sort);
-            List<UserType> userTypeList = userTypeRepository.findByFilters(unitId,status,pageable);
+            List<UserType> userTypeList = userTypeRepository.findByFilters(unitId,status);
             if (userTypeList.isEmpty()) {
                 logger.info("No users available!");
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No users available!");

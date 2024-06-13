@@ -8,7 +8,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -51,17 +50,19 @@ public class VisitorPrerequestDto extends CommonAutoIdEntityRequestDto
 
     @NotNull(message = "meeting purpose must be selected")
     @Schema(description = "Purpose of the meeting", example = " ")
-    private Long meetingPurpose;
+    private Long meetingPurposeId;
 
     @NotNull(message = "must schedule the meeting time")
     @Schema(description = "Scheduled time for the meeting", example = " ")
     private LocalDateTime meetingSchedule;
 
     @Schema(description = "Start hours for the meeting", example = " ")
-    private LocalTime startHours;
+    @Pattern(regexp = "^(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$", message = "start hours must be in HH:MM:SS format")
+    private String startHours;
 
     @Schema(description = "End hours for the meeting", example = " ")
-    private LocalTime endHours;
+    @Pattern(regexp = "^(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$", message = "end hours must be in HH:MM:SS format")
+    private String endHours;
 
     @Size(max = 100, message = "Location must be at most 100 characters long")
     @Schema(description = "Location of the meeting", example = " ")

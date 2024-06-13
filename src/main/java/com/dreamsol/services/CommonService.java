@@ -14,7 +14,7 @@ public interface CommonService<T,ID>
     ResponseEntity<?> get(ID id);
     ResponseEntity<?> getDropDown();
     ResponseEntity<?> getAll(Integer pageNumber,Integer pageSize,String sortBy,String sortDir,Long unitId,Boolean status);
-    ResponseEntity<?> downloadDataAsExcel(Integer pageNumber, Integer pageSize, String sortBy, String sortDir, Long unitId, Boolean status);
+    ResponseEntity<?> downloadDataAsExcel(Long unitId, Boolean status);
     ResponseEntity<?> downloadExcelSample();
     ResponseEntity<?> uploadExcelFile(MultipartFile file,Class<?> currentClass);
     ExcelValidateDataResponseDto validateDataFromDB(ExcelValidateDataResponseDto validateDataResponse);

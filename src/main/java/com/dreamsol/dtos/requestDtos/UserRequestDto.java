@@ -52,7 +52,7 @@ public class UserRequestDto extends CommonAutoIdEntityRequestDto
     private String password;
 
     @NotNull(message = "usertype is mandatory")
-    private Long usertypeId;
+    private String userTypeName;
 
     private boolean status;
 }

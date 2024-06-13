@@ -58,7 +58,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user already exist!");
             }
 
-            Optional<UserType> userTypeOptional = userTypeRepository.findById(userRequestDto.getUsertypeId());
+            Optional<UserType> userTypeOptional = userTypeRepository.findByUserTypeName(userRequestDto.getUserTypeName());
             if(userTypeOptional.isEmpty()){
                 logger.info("usertype doesn't exist!");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("usertype doesn't exist!");
@@ -80,7 +80,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
         try {
             User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("user not found with id: " + id));
 
-            Optional<UserType> userTypeOptional = userTypeRepository.findById(userRequestDto.getUsertypeId());
+            Optional<UserType> userTypeOptional = userTypeRepository.findByUserTypeName(userRequestDto.getUserTypeName());
             if(userTypeOptional.isEmpty()){
                 logger.info("usertype doesn't exist!");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("usertype doesn't exist!");
@@ -159,11 +159,9 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
     }
 
     @Override
-    public ResponseEntity<?> downloadDataAsExcel(Integer pageNumber,Integer pageSize,String sortBy,String sortDir,Long unitId,Boolean status) {
+    public ResponseEntity<?> downloadDataAsExcel(Long unitId,Boolean status) {
         try {
-            Sort sort = sortDir.equalsIgnoreCase("asc")?Sort.by(sortBy).ascending():Sort.by(sortBy).descending();
-            Pageable pageable = PageRequest.of(pageNumber,pageSize, sort);
-            List<User> userList = userRepository.findByFilters(unitId,status,pageable);
+            List<User> userList = userRepository.findByFilters(unitId,status);
             if (userList.isEmpty()) {
                 logger.info("No users available!");
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No users available!");
@@ -256,7 +254,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
         Optional<User> userOptional = userRepository.findByEmailOrMobile(userRequestDto.getEmail(),userRequestDto.getMobile());
         if(userOptional.isPresent())
             return false;
-        Optional<UserType> userTypeOptional = userTypeRepository.findById(userRequestDto.getUsertypeId());
+        Optional<UserType> userTypeOptional = userTypeRepository.findByUserTypeName(userRequestDto.getUserTypeName());
         return userTypeOptional.isPresent();
     }
     @Override
@@ -268,7 +266,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
                         User user = dtoUtilities.userRequstDtoToUser(userRequestDto);
                         user.setCreatedBy(username);
                         user.setUpdatedBy(username);
-                        userTypeRepository.findById(userRequestDto.getUsertypeId()).ifPresent(user::setUserType);
+                        userTypeRepository.findByUserTypeName(userRequestDto.getUserTypeName()).ifPresent(user::setUserType);
                         return user;
                     }))
                     .collect(Collectors.toList());

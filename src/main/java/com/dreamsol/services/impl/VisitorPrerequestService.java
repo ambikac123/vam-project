@@ -26,7 +26,10 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -44,12 +47,23 @@ public class VisitorPrerequestService
     public ResponseEntity<?> create(VisitorPrerequestDto visitorPrerequestDto) {
         try {
             VisitorPrerequest visitorPrerequest = dtoUtilities.visitorPrerequestDtoToVisitorPrerequest(visitorPrerequestDto);
-            Optional<Purpose> purposeOptional = purposeRepository.findById(visitorPrerequestDto.getMeetingPurpose());
+            Optional<Purpose> purposeOptional = purposeRepository.findById(visitorPrerequestDto.getMeetingPurposeId());
             purposeOptional.ifPresent(visitorPrerequest::setMeetingPurpose);
             visitorPrerequest.setOtp(generateOTP());
             visitorPrerequest.setMeetingStatus(visitorPrerequestDto.getMeetingStatus());
-            visitorPrerequest.setStartHours(LocalTime.now());
-            visitorPrerequest.setEndHours(LocalTime.MAX);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+            if(visitorPrerequestDto.getStartHours()==null) {
+                visitorPrerequest.setStartHours(LocalTime.MIN);
+            }else {
+                LocalTime startHours = LocalTime.parse(visitorPrerequestDto.getStartHours(), formatter);
+                visitorPrerequest.setStartHours(startHours);
+            }
+            if(visitorPrerequestDto.getEndHours()==null){
+                visitorPrerequest.setEndHours(LocalTime.MAX);
+            }else{
+                LocalTime endHours = LocalTime.parse(visitorPrerequestDto.getEndHours(),formatter);
+                visitorPrerequest.setEndHours(endHours);
+            }
             visitorRepository.save(visitorPrerequest);
             logger.info("Pre-requested new visitor created successfully!");
             return ResponseEntity.status(HttpStatus.CREATED).body("Pre-requested new visitor created successfully!");
@@ -68,11 +82,22 @@ public class VisitorPrerequestService
         try{
             VisitorPrerequest visitorPrerequest = visitorRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("pre-requested visitor","id",id));
             BeanUtils.copyProperties(visitorPrerequestDto,visitorPrerequest);
-            Purpose purpose = purposeRepository.findById(visitorPrerequestDto.getMeetingPurpose()).orElseThrow(()->new ResourceNotFoundException("purpose","id",visitorPrerequestDto.getMeetingPurpose()));
+            Purpose purpose = purposeRepository.findById(visitorPrerequestDto.getMeetingPurposeId()).orElseThrow(()->new ResourceNotFoundException("purpose","purposeFor",visitorPrerequestDto.getMeetingPurposeId()));
             visitorPrerequest.setMeetingPurpose(purpose);
             visitorPrerequest.setMeetingStatus(visitorPrerequestDto.getMeetingStatus());
-            visitorPrerequest.setStartHours(visitorPrerequestDto.getStartHours());
-            visitorPrerequest.setEndHours(visitorPrerequestDto.getEndHours());
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+            if(visitorPrerequestDto.getStartHours()==null) {
+                visitorPrerequest.setStartHours(LocalTime.MIN);
+            }else {
+                LocalTime startHours = LocalTime.parse(visitorPrerequestDto.getStartHours(), formatter);
+                visitorPrerequest.setStartHours(startHours);
+            }
+            if(visitorPrerequestDto.getEndHours()==null){
+                visitorPrerequest.setEndHours(LocalTime.MAX);
+            }else{
+                LocalTime endHours = LocalTime.parse(visitorPrerequestDto.getEndHours(),formatter);
+                visitorPrerequest.setEndHours(endHours);
+            }
             visitorRepository.save(visitorPrerequest);
             logger.info("Pre-requested visitor with id: "+id+" updated successfully!");
             return ResponseEntity.status(HttpStatus.OK).body("Pre-requested visitor with id: "+id+" updated successfully!");
@@ -118,16 +143,36 @@ public class VisitorPrerequestService
         }
     }
 
-    public ResponseEntity<?> getStatusCount(String status){
-        return ResponseEntity.status(HttpStatus.OK).body(visitorRepository.countByStatus(status));
+    public ResponseEntity<?> getStatusCount(String meetingStatus,Long meetingPurposeId,LocalDate fromDate,LocalDate toDate){
+        LocalDateTime from = fromDate.atStartOfDay();
+        LocalDateTime to = toDate.atTime(LocalTime.MAX);
+        List<VisitorPrerequest> prerequestList = visitorRepository.findByFilters(meetingStatus,meetingPurposeId,from,to);
+        Map<String,Long> meetingStatusCount = new LinkedHashMap<>();
+        long countPending = 0L;
+        long countDone = 0L;
+        long countRescheduled = 0L;
+        long countCancelled = 0L;
+        for(VisitorPrerequest visitorPrerequest : prerequestList){
+            switch(visitorPrerequest.getMeetingStatus().toLowerCase()){
+                case "pending": countPending++; break;
+                case "done": countDone++; break;
+                case "reschedule": countRescheduled++; break;
+                case "cancel": countCancelled++;
+            }
+        }
+        meetingStatusCount.put("Pending",countPending);
+        meetingStatusCount.put("Done",countDone);
+        meetingStatusCount.put("Rescheduled",countRescheduled);
+        meetingStatusCount.put("Cancelled",countCancelled);
+        return ResponseEntity.status(HttpStatus.OK).body(meetingStatusCount);
     }
     public ResponseEntity<?> getAll(Integer pageNumber, Integer pageSize, String sortBy, String sortDir, Long unitId, Boolean status, Long meetingPurposeId, String meetingStatus, LocalDate fromDate, LocalDate toDate) {
         try {
             Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
             Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
-            LocalDateTime date1 = fromDate.atStartOfDay();
-            LocalDateTime date2 = toDate.atTime(LocalTime.MAX);
-            List<VisitorPrerequest> prerequestList = visitorRepository.findByFilters(unitId, status, meetingPurposeId, meetingStatus, date1, date2, pageable);
+            LocalDateTime from = fromDate.atStartOfDay();
+            LocalDateTime to = toDate.atTime(LocalTime.MAX);
+            List<VisitorPrerequest> prerequestList = visitorRepository.findByFilters(unitId, status, meetingPurposeId, meetingStatus, from, to, pageable);
             logger.info("All visitors data fetched successfully!");
             return ResponseEntity.status(HttpStatus.OK).body(prerequestList);
         }catch (Exception e){
@@ -136,14 +181,12 @@ public class VisitorPrerequestService
         }
     }
 
-    public ResponseEntity<?> downloadDataAsExcel(Integer pageNumber, Integer pageSize, String sortBy, String sortDir, Long unitId, Boolean status, Long meetingPurposeId, String meetingStatus, LocalDate fromDate, LocalDate toDate)
+    public ResponseEntity<?> downloadDataAsExcel(Long unitId, Boolean status, Long meetingPurposeId, String meetingStatus, LocalDate fromDate, LocalDate toDate)
     {
         try{
-            Sort sort = sortDir.equalsIgnoreCase("asc")?Sort.by(sortBy).ascending():Sort.by(sortBy).descending();
-            Pageable pageable = PageRequest.of(pageNumber,pageSize, sort);
-            LocalDateTime date1 = fromDate.atStartOfDay();
-            LocalDateTime date2 = toDate.atTime(LocalTime.MAX);
-            List<VisitorPrerequest> prerequestList = visitorRepository.findByFilters(unitId,status,meetingPurposeId,meetingStatus,date1,date2,pageable);
+            LocalDateTime from = fromDate.atStartOfDay();
+            LocalDateTime to = toDate.atTime(LocalTime.MAX);
+            List<VisitorPrerequest> prerequestList = visitorRepository.findByFilters(unitId,status,meetingPurposeId,meetingStatus,from,to);
             if (prerequestList.isEmpty()) {
                 logger.info("No visitors available!");
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No visitors available!");

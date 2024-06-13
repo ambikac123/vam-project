@@ -23,10 +23,10 @@ public interface PurposeRepository extends JpaRepository<Purpose, Long> {
                         @Param("unitId") Long unitId, @Param("purposeName") String purposeName,
                         Pageable pageable);
 
-        Page<Purpose> findByPurposeForAndUnitIdAndStatus(Pageable pageable, String purposeFor, Long unitId,
+        /*Page<Purpose> findByPurposeForAndUnitIdAndStatus(Pageable pageable, String purposeFor, Long unitId,
                         boolean status);
 
-        Page<Purpose> findByPurposeForAndUnitId(Pageable pageable, String purposeFor, Long unitId);
+        Page<Purpose> findByPurposeForAndUnitId(Pageable pageable, String purposeFor, Long unitId);*/
 
         Optional<Purpose> findByPurposeForContainingIgnoreCase(String purposeFor);
 

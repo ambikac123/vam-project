@@ -15,8 +15,14 @@ public interface VisitorPrerequestRepository extends JpaRepository<VisitorPrereq
     Optional<VisitorPrerequest> findByMobile(Long mobile);
 
     Optional<VisitorPrerequest> findByOtp(String otp);
-    @Query("SELECT COUNT(v) FROM VisitorPrerequest v WHERE v.meetingStatus = :meetingStatus")
-    long countByStatus(@Param("meetingStatus") String meetingStatus);
+    @Query("SELECT v FROM VisitorPrerequest v WHERE " +
+            "(:meetingStatus IS NULL OR v.meetingStatus = :meetingStatus) AND "+
+            "(:meetingPurposeId IS NULL OR v.meetingPurpose.id = :meetingPurposeId) AND "+
+            "(:fromDate IS NULL OR :toDate IS NULL OR (v.createdAt >= :fromDate AND v.createdAt <= :toDate))")
+    List<VisitorPrerequest> findByFilters(@Param("meetingStatus") String meetingStatus,
+                       @Param("meetingPurposeId") Long meetingPurposeId,
+                       @Param("fromDate") LocalDateTime fromDate,
+                       @Param("toDate") LocalDateTime toDate);
     @Query("SELECT v FROM VisitorPrerequest v WHERE " +
             "(:unitId IS NULL OR v.unitId = :unitId) AND " +
             "(:status IS NULL OR v.status = :status) AND " +
@@ -28,7 +34,19 @@ public interface VisitorPrerequestRepository extends JpaRepository<VisitorPrereq
                                           @Param("meetingPurposeId") Long meetingPurposeId,
                                           @Param("meetingStatus") String meetingStatus,
                                           @Param("fromDate") LocalDateTime fromDate,
-                                          @Param("toDate") LocalDateTime toDate,
-                                          Pageable pageable);
+                                          @Param("toDate") LocalDateTime toDate,Pageable pageable);
+
+    @Query("SELECT v FROM VisitorPrerequest v WHERE " +
+            "(:unitId IS NULL OR v.unitId = :unitId) AND " +
+            "(:status IS NULL OR v.status = :status) AND " +
+            "(:meetingPurposeId IS NULL OR v.meetingPurpose.id = :meetingPurposeId) AND " +
+            "(:meetingStatus IS NULL OR v.meetingStatus = :meetingStatus) AND " +
+            "(:fromDate IS NULL OR :toDate IS NULL OR (v.createdAt >= :fromDate AND v.createdAt <= :toDate))")
+    List<VisitorPrerequest> findByFilters(@Param("unitId") Long unitId,
+                                          @Param("status") Boolean status,
+                                          @Param("meetingPurposeId") Long meetingPurposeId,
+                                          @Param("meetingStatus") String meetingStatus,
+                                          @Param("fromDate") LocalDateTime fromDate,
+                                          @Param("toDate") LocalDateTime toDate);
 
 }

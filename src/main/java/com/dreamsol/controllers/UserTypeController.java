@@ -63,14 +63,10 @@ public class UserTypeController
     }
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadExcelData(
-            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) Integer pageNumber,
-            @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize,
-            @RequestParam(value = "sortBy", defaultValue = "id", required = false) String sortBy,
-            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
             @RequestParam(value = "unitId", defaultValue = "1", required = false) Long unitId,
             @RequestParam(value = "status", required = false) Boolean status
     ) {
-        return userTypeService.downloadDataAsExcel(pageNumber,pageSize,sortBy,sortDir,unitId,status);
+        return userTypeService.downloadDataAsExcel(unitId,status);
     }
     @GetMapping(value = "/download-excel-sample",produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadExcelSample()

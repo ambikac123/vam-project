@@ -55,8 +55,15 @@ public class VisitorPrerequestController
         return visitorPrerequestService.getVisitorByMobile(mobile);
     }
     @GetMapping("/get-status-count")
-    public ResponseEntity<?> getStatusCount(@RequestParam(value = "meetingStatus", required = false) String meetingStatus){
-        return visitorPrerequestService.getStatusCount(meetingStatus);
+    public ResponseEntity<?> getStatusCount(
+            @RequestParam(value = "meetingStatus", required = false) String meetingStatus,
+            @RequestParam(value = "meetingPurpose", required = false) Long meetingPurposeId,
+            @Parameter(description ="From Date", example = "2024-06-10", in = ParameterIn.QUERY)
+            @RequestParam(value = "fromDate", required = false)@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @Parameter(description = "To Date", example = "2024-06-10", in = ParameterIn.QUERY)
+            @RequestParam(value = "toDate", required = false)@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate
+    ){
+        return visitorPrerequestService.getStatusCount(meetingStatus,meetingPurposeId,fromDate,toDate);
     }
     @GetMapping("/get-all")
     public ResponseEntity<?> getVisitors(
@@ -77,10 +84,6 @@ public class VisitorPrerequestController
     }
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadVisitorsDataAsExcel(
-            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) Integer pageNumber,
-            @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize,
-            @RequestParam(value = "sortBy", defaultValue = "id", required = false) String sortBy,
-            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
             @RequestParam(value = "unitId", defaultValue = "1", required = false) Long unitId,
             @RequestParam(value = "status", required = false) Boolean status,
             @RequestParam(value = "meetingPurpose", required = false) Long meetingPurposeId,
@@ -90,6 +93,6 @@ public class VisitorPrerequestController
             @Parameter(description = "To Date", example = "2024-06-10", in = ParameterIn.QUERY)
             @RequestParam(value = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate
     ){
-        return visitorPrerequestService.downloadDataAsExcel(pageNumber,pageSize,sortBy,sortDir,unitId,status,meetingPurposeId,meetingStatus,fromDate,toDate);
+        return visitorPrerequestService.downloadDataAsExcel(unitId,status,meetingPurposeId,meetingStatus,fromDate,toDate);
     }
 }
