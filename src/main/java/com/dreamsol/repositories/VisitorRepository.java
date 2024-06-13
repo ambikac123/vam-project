@@ -46,22 +46,4 @@ public interface VisitorRepository extends JpaRepository<Visitor, Long> {
                         @Param("fromDate") LocalDateTime fromDate,
                         @Param("toDate") LocalDateTime toDate);
 
-        // @Query("SELECT COUNT(v) FROM Visitor v JOIN v.purpose p JOIN v.department d
-        // JOIN v.user u WHERE " +
-        // "(:userId IS NULL OR u.id = :userId) AND " +
-        // "(:purposeId IS NULL OR p.id = :purposeId) AND " +
-        // "(:departmentId IS NULL OR d.id = :departmentId) AND " +
-        // "(:unitId IS NULL OR v.unitId = :unitId) AND " +
-        // "(:status IS NULL OR v.status = :status) AND " +
-        // "((:fromDate IS NULL OR :toDate IS NULL) OR (v.createdAT BETWEEN :fromDate
-        // AND :toDate))")
-        // Long countVisitors(
-        // @Param("userId") Long userId,
-        // @Param("purposeId") Long purposeId,
-        // @Param("departmentId") Long departmentId,
-        // @Param("unitId") Long unitId,
-        // @Param("status") Boolean status,
-        // @Param("fromDate") LocalDateTime fromDate,
-        // @Param("toDate") LocalDateTime toDate);
-
 }

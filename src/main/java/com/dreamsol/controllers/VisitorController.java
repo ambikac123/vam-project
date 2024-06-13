@@ -52,23 +52,18 @@ public class VisitorController {
                 departmentId, fromDate, toDate);
     }
 
-    // @GetMapping("/get-all-visitors")
-    // public ResponseEntity<?> getAllVisitorsCount(
-    // @RequestParam(defaultValue = "10") int pageSize,
-    // @RequestParam(defaultValue = "0") int page,
-    // @RequestParam(defaultValue = "id") String sortBy,
-    // @RequestParam(required = false, defaultValue = "ASC") String sortDirection,
-    // @RequestParam(required = false) String status,
-    // @RequestParam(required = false) Long unitId,
-    // @RequestParam(required = false) Long employeeId,
-    // @RequestParam(required = false) Long purposeId,
-    // @RequestParam(required = false) Long departmentId,
-    // @RequestParam(required = false) String fromDate,
-    // @RequestParam(required = false) String toDate) {
-    // return visitorService.getVisitorsCount(pageSize, page, sortBy, sortDirection,
-    // status, unitId, employeeId, purposeId,
-    // departmentId, fromDate, toDate);
-    // }
+    @GetMapping("/get-all-visitor-count")
+    public ResponseEntity<?> getAllVisitorsCount(
+    @RequestParam(required = false) String status,
+    @RequestParam(required = false) Long unitId,
+    @RequestParam(required = false) Long employeeId,
+    @RequestParam(required = false) Long purposeId,
+    @RequestParam(required = false) Long departmentId,
+    @RequestParam(required = false) String fromDate,
+    @RequestParam(required = false) String toDate) {
+    return visitorService.getVisitorsCount(status, unitId, employeeId, purposeId,
+    departmentId, fromDate, toDate);
+    }
 
     @DeleteMapping("/delete-visitor/{id}")
     public ResponseEntity<?> deleteVisitor(@PathVariable Long id) {

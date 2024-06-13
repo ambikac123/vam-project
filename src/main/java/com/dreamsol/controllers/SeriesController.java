@@ -22,7 +22,7 @@ public class SeriesController {
     private final SeriesService seriesService;
 
     @PostMapping("/create-series")
-    public ResponseEntity<SeriesResponseDto> createPlant(@Valid @RequestBody SeriesRequestDto seriesRequestDto) {
+    public ResponseEntity<SeriesResponseDto> createSeries(@Valid @RequestBody SeriesRequestDto seriesRequestDto) {
         return seriesService.createSeries(seriesRequestDto);
     }
 
@@ -38,7 +38,7 @@ public class SeriesController {
     }
 
     @GetMapping("get-all-series")
-    public ResponseEntity<?> getAllPurposes(
+    public ResponseEntity<?> getAllSeries(
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "id") String sortBy,
