@@ -23,7 +23,6 @@ public class VisitorRequestDto extends CommonAutoIdEntityRequestDto {
     @Size(min = 3, max = 50, message = "visitorName length must be between 3 and 50 characters")
     private String visitorName;
 
-  
     @Pattern(regexp = "^[a-zA-Z0-9\\s]+$", message = "Only alphabets, numbers, and spaces are allowed in visitorCompany")
     private String visitorCompany;
 

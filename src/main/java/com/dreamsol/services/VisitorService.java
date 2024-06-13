@@ -30,6 +30,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -124,16 +125,28 @@ public class VisitorService {
         }
 
         public ResponseEntity<?> getVisitors(int pageSize, int page, String sortBy, String sortDirection, String status,
-                        Long unitId, Long employeeId, Long purposeId, Long departmentId) {
+                        Long unitId, Long employeeId, Long purposeId, Long departmentId, String fromDate,
+                        String toDate) {
                 Sort.Direction direction = sortDirection.equalsIgnoreCase("Asc") ? Sort.Direction.ASC
                                 : Sort.Direction.DESC;
                 PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(direction, sortBy));
 
                 Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
-
+                LocalDate dateFormatFromDate = null;
+                LocalDate dateFormatToDate = null;
+                try {
+                        dateFormatFromDate = fromDate != null ? LocalDate.parse(fromDate) : null;
+                        dateFormatToDate = toDate != null ? LocalDate.parse(toDate) : null;
+                } catch (Exception e) {
+                        // Ignore null values will be Assigned to the filters
+                }
+                LocalDateTime startDate = dateFormatFromDate != null ? dateFormatFromDate.atStartOfDay() : null;
+                LocalDateTime endDate = dateFormatToDate != null ? dateFormatToDate.atTime(java.time.LocalTime.MAX)
+                                : null;
                 Page<Visitor> visitorsPage = visitorRepository
                                 .findByEmployeeIdAndPurposeIdAndDepartmentIdAndUnitIdAndStatus(
-                                                employeeId, purposeId, departmentId, unitId, statusBoolean,
+                                                employeeId, purposeId, departmentId, unitId, statusBoolean, startDate,
+                                                endDate,
                                                 pageRequest);
 
                 Page<VisitorResponseDto> visitorResponseDtos = visitorsPage
@@ -146,13 +159,26 @@ public class VisitorService {
         }
 
         public ResponseEntity<?> downloadVisitorDataAsExcel(String status, Long unitId, Long employeeId, Long purposeId,
-                        Long departmentId) throws java.io.IOException {
+                        Long departmentId, String fromDate, String toDate) throws java.io.IOException {
+                LocalDate dateFormatFromDate = null;
+                LocalDate dateFormatToDate = null;
                 try {
+                        dateFormatFromDate = fromDate != null ? LocalDate.parse(fromDate) : null;
+                        dateFormatToDate = toDate != null ? LocalDate.parse(toDate) : null;
+                } catch (Exception e) {
+                        // Ignore null values will be Assigned to the filters
+                }
+                try {
+                        LocalDateTime startDate = dateFormatFromDate != null ? dateFormatFromDate.atStartOfDay() : null;
+                        LocalDateTime endDate = dateFormatToDate != null
+                                        ? dateFormatToDate.atTime(java.time.LocalTime.MAX)
+                                        : null;
                         Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
 
                         List<Visitor> visitorList = visitorRepository
                                         .findByEmployeeIdAndPurposeIdAndDepartmentIdAndUnitIdAndStatus(employeeId,
-                                                        purposeId, departmentId, unitId, statusBoolean);
+                                                        purposeId, departmentId, unitId, statusBoolean, startDate,
+                                                        endDate);
                         if (visitorList.isEmpty()) {
                                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No purposes available!");
                         }

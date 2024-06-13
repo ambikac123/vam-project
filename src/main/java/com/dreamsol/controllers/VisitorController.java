@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import com.dreamsol.dtos.requestDtos.VisitorRequestDto;
 import com.dreamsol.dtos.responseDtos.VisitorResponseDto;
 import com.dreamsol.services.VisitorService;
-
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -46,9 +45,11 @@ public class VisitorController {
             @RequestParam(required = false) Long unitId,
             @RequestParam(required = false) Long employeeId,
             @RequestParam(required = false) Long purposeId,
-            @RequestParam(required = false) Long departmentId) {
+            @RequestParam(required = false) Long departmentId,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate) {
         return visitorService.getVisitors(pageSize, page, sortBy, sortDirection, status, unitId, employeeId, purposeId,
-                departmentId);
+                departmentId, fromDate, toDate);
     }
 
     // @GetMapping("/get-all-visitors")
@@ -80,8 +81,11 @@ public class VisitorController {
             @RequestParam(required = false) Long unitId,
             @RequestParam(required = false) Long employeeId,
             @RequestParam(required = false) Long purposeId,
-            @RequestParam(required = false) Long departmentId) throws java.io.IOException {
-        return visitorService.downloadVisitorDataAsExcel(status, unitId, employeeId, purposeId, departmentId);
+            @RequestParam(required = false) Long departmentId,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate) throws java.io.IOException {
+        return visitorService.downloadVisitorDataAsExcel(status, unitId, employeeId, purposeId, departmentId, fromDate,
+                toDate);
     }
 
 }

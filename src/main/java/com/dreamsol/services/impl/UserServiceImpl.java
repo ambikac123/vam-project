@@ -37,8 +37,7 @@ import java.util.stream.Collectors;
 
 @Service("userService")
 @RequiredArgsConstructor
-public class UserServiceImpl implements CommonService<UserRequestDto,Long>
-{
+public class UserServiceImpl implements CommonService<UserRequestDto, Long> {
     private final JwtUtil jwtUtil;
     private final DtoUtilities dtoUtilities;
     private final ExcelUtility excelUtility;
@@ -48,18 +47,18 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Override
-    public ResponseEntity<?> create(UserRequestDto userRequestDto)
-    {
+    public ResponseEntity<?> create(UserRequestDto userRequestDto) {
         try {
 
-            Optional<User> userOptional = userRepository.findByEmailOrMobile(userRequestDto.getEmail(), userRequestDto.getMobile());
+            Optional<User> userOptional = userRepository.findByEmailOrMobile(userRequestDto.getEmail(),
+                    userRequestDto.getMobile());
             if (userOptional.isPresent()) {
                 logger.info("user already exist");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user already exist!");
             }
 
             Optional<UserType> userTypeOptional = userTypeRepository.findById(userRequestDto.getUsertypeId());
-            if(userTypeOptional.isEmpty()){
+            if (userTypeOptional.isEmpty()) {
                 logger.info("usertype doesn't exist!");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("usertype doesn't exist!");
             }
@@ -70,31 +69,34 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
             logger.info("New user created successfully!");
             return ResponseEntity.status(HttpStatus.CREATED).body("New user created successfully!");
         } catch (Exception e) {
-            logger.error("Error occurred while creating new user: ",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while creating new user: "+e.getMessage());
+            logger.error("Error occurred while creating new user: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error occurred while creating new user: " + e.getMessage());
         }
     }
 
     @Override
     public ResponseEntity<?> update(UserRequestDto userRequestDto, Long id) {
         try {
-            User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("user not found with id: " + id));
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("user not found with id: " + id));
 
             Optional<UserType> userTypeOptional = userTypeRepository.findById(userRequestDto.getUsertypeId());
-            if(userTypeOptional.isEmpty()){
+            if (userTypeOptional.isEmpty()) {
                 logger.info("usertype doesn't exist!");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("usertype doesn't exist!");
             }
-            BeanUtils.copyProperties(userRequestDto,user);
+            BeanUtils.copyProperties(userRequestDto, user);
             user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
             user.setUserType(userTypeOptional.get());
             user.setUpdatedBy(jwtUtil.getCurrentLoginUser());
             userRepository.save(user);
-            logger.info("User with id: "+id+" updated successfully!");
-            return ResponseEntity.status(HttpStatus.OK).body("User with id: "+id+" updated successfully!");
+            logger.info("User with id: " + id + " updated successfully!");
+            return ResponseEntity.status(HttpStatus.OK).body("User with id: " + id + " updated successfully!");
         } catch (Exception e) {
-            logger.error("Error occurred while updating user: ",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while updating user: "+e.getMessage());
+            logger.error("Error occurred while updating user: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error occurred while updating user: " + e.getMessage());
         }
     }
 
@@ -102,14 +104,15 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
     public ResponseEntity<?> delete(Long id) {
         try {
             User user = userRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("user","id",id));
+                    .orElseThrow(() -> new ResourceNotFoundException("user", "id", id));
             user.setStatus(false);
             userRepository.save(user);
-            logger.info("user with id: "+id+" deleted successfully!");
-            return ResponseEntity.status(HttpStatus.OK).body("user with id: "+id+" deleted successfully!");
+            logger.info("user with id: " + id + " deleted successfully!");
+            return ResponseEntity.status(HttpStatus.OK).body("user with id: " + id + " deleted successfully!");
         } catch (Exception e) {
-            logger.error("Error occurred while deleting user with id: "+id,e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while deleting user with id: "+id+", "+e.getMessage());
+            logger.error("Error occurred while deleting user with id: " + id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error occurred while deleting user with id: " + id + ", " + e.getMessage());
         }
     }
 
@@ -118,14 +121,15 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
         try {
             Optional<User> userOptional = userRepository.findById(id);
             if (userOptional.isEmpty()) {
-                logger.info("user not found with id: "+id);
+                logger.info("user not found with id: " + id);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with id: " + id);
             }
-            logger.info("user with id: "+id+" found successfully!");
+            logger.info("user with id: " + id + " found successfully!");
             return ResponseEntity.status(HttpStatus.FOUND).body(dtoUtilities.userToUserResponseDto(userOptional.get()));
         } catch (Exception e) {
-            logger.error("Error occurred while fetching user with id: "+id,e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while fetching user with id: "+id+", "+e.getMessage());
+            logger.error("Error occurred while fetching user with id: " + id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error occurred while fetching user with id: " + id + ", " + e.getMessage());
         }
     }
 
@@ -133,17 +137,18 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
     public ResponseEntity<?> getDropDown() {
         List<User> users = userRepository.findAll();
         List<DropDownDto> dropDownDtos = users.stream()
-                .map(user -> dtoUtilities.createDropDown.apply(user.getId(),user.getEmail()))
+                .map(user -> dtoUtilities.createDropDown.apply(user.getId(), user.getEmail()))
                 .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(dropDownDtos);
     }
 
     @Override
-    public ResponseEntity<?> getAll(Integer pageNumber,Integer pageSize,String sortBy,String sortDir,Long unitId,Boolean status) {
+    public ResponseEntity<?> getAll(Integer pageNumber, Integer pageSize, String sortBy, String sortDir, Long unitId,
+            Boolean status) {
         try {
-            Sort sort = sortDir.equalsIgnoreCase("asc")?Sort.by(sortBy).ascending():Sort.by(sortBy).descending();
-            Pageable pageable = PageRequest.of(pageNumber,pageSize, sort);
-            List<User> userList = userRepository.findByFilters(unitId,status,pageable);
+            Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+            Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+            List<User> userList = userRepository.findByFilters(unitId, status, pageable);
             if (userList.isEmpty()) {
                 logger.info("No users available!");
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No users available!");
@@ -153,17 +158,19 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
             logger.info("fetching all users successfully!");
             return ResponseEntity.status(HttpStatus.OK).body(userResponseDtoList);
         } catch (Exception e) {
-            logger.error("Error occurred while fetching user's all data",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while fetching user's all data"+e.getMessage());
+            logger.error("Error occurred while fetching user's all data", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error occurred while fetching user's all data" + e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<?> downloadDataAsExcel(Integer pageNumber,Integer pageSize,String sortBy,String sortDir,Long unitId,Boolean status) {
+    public ResponseEntity<?> downloadDataAsExcel(Integer pageNumber, Integer pageSize, String sortBy, String sortDir,
+            Long unitId, Boolean status) {
         try {
-            Sort sort = sortDir.equalsIgnoreCase("asc")?Sort.by(sortBy).ascending():Sort.by(sortBy).descending();
-            Pageable pageable = PageRequest.of(pageNumber,pageSize, sort);
-            List<User> userList = userRepository.findByFilters(unitId,status,pageable);
+            Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+            Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+            List<User> userList = userRepository.findByFilters(unitId, status, pageable);
             if (userList.isEmpty()) {
                 logger.info("No users available!");
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No users available!");
@@ -171,7 +178,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
             List<UserResponseDto> userResponseDtoList = userList.stream().map(dtoUtilities::userToUserResponseDto)
                     .collect(Collectors.toList());
             String fileName = "user_excel_data.xlsx";
-            String sheetName = fileName.substring(0,fileName.indexOf('.'));
+            String sheetName = fileName.substring(0, fileName.indexOf('.'));
             Resource resource = excelUtility.downloadDataAsExcel(userResponseDtoList, sheetName);
             logger.info("data as excel file downloaded successfully!");
             return ResponseEntity.ok()
@@ -179,13 +186,14 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
                     .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                     .body(resource);
         } catch (Exception e) {
-            logger.error("Error occurred while downloading data as excel",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while downloading data as excel: " + e.getMessage());
+            logger.error("Error occurred while downloading data as excel", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error occurred while downloading data as excel: " + e.getMessage());
         }
     }
+
     @Override
-    public ResponseEntity<?> downloadExcelSample()
-    {
+    public ResponseEntity<?> downloadExcelSample() {
         try {
             String fileName = "user_excel_sample.xlsx";
             String sheetName = fileName.substring(0, fileName.indexOf('.'));
@@ -195,49 +203,49 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
                     .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                     .body(resource);
-        }catch (Exception e)
-        {
-            logger.error("Error occurred while downloading excel format: ",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while downloading excel format");
+        } catch (Exception e) {
+            logger.error("Error occurred while downloading excel format: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error occurred while downloading excel format");
         }
     }
+
     @Override
-    public ResponseEntity<?> uploadExcelFile(MultipartFile file,Class<?> currentClass)
-    {
-        try{
-            if(excelUtility.isExcelFile(file))
-            {
-                ExcelValidateDataResponseDto validateDataResponse = excelUtility.validateExcelData(file,currentClass);
+    public ResponseEntity<?> uploadExcelFile(MultipartFile file, Class<?> currentClass) {
+        try {
+            if (excelUtility.isExcelFile(file)) {
+                ExcelValidateDataResponseDto validateDataResponse = excelUtility.validateExcelData(file, currentClass);
                 validateDataResponse = validateDataFromDB(validateDataResponse);
                 validateDataResponse.setTotalValidData(validateDataResponse.getValidDataList().size());
                 validateDataResponse.setTotalInvalidData(validateDataResponse.getInvalidDataList().size());
-                if(validateDataResponse.getTotalData()==0){
+                if (validateDataResponse.getTotalData() == 0) {
                     logger.info("No data available in excel sheet!");
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No data available in excel sheet!");
                 }
                 logger.info("Excel data validated successfully!");
                 return ResponseEntity.status(HttpStatus.OK).body(validateDataResponse);
-            }else {
+            } else {
                 logger.info("Incorrect uploaded file type!");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect uploaded file type! supported [.xlsx or xls] type");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Incorrect uploaded file type! supported [.xlsx or xls] type");
             }
-        }catch(Exception e)
-        {
-            logger.error("Error occurred while validating excel data",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while validating excel data: "+e.getMessage());
+        } catch (Exception e) {
+            logger.error("Error occurred while validating excel data", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error occurred while validating excel data: " + e.getMessage());
         }
     }
-    public ExcelValidateDataResponseDto validateDataFromDB(ExcelValidateDataResponseDto validateDataResponse){
+
+    public ExcelValidateDataResponseDto validateDataFromDB(ExcelValidateDataResponseDto validateDataResponse) {
 
         List<?> validList = validateDataResponse.getValidDataList();
         List<ValidatedData> invalidList = validateDataResponse.getInvalidDataList();
         List<UserRequestDto> userRequestDtoList = new ArrayList<>();
-        for(int i=0;i<validList.size();)
-        {
+        for (int i = 0; i < validList.size();) {
             ValidatedData validatedData = (ValidatedData) validList.get(i);
             UserRequestDto userRequestDto = (UserRequestDto) validatedData.getData();
             boolean flag = isExistInDB(userRequestDto);
-            if(!flag){
+            if (!flag) {
                 ValidatedData invalidData = new ValidatedData();
                 invalidData.setData(userRequestDto);
                 invalidData.setMessage("mobile/email already exist or usertype doesn't exist");
@@ -251,17 +259,20 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
         validateDataResponse.setValidDataList(userRequestDtoList);
         return validateDataResponse;
     }
-    public boolean isExistInDB(Object keyword){
-        UserRequestDto userRequestDto = (UserRequestDto)keyword;
-        Optional<User> userOptional = userRepository.findByEmailOrMobile(userRequestDto.getEmail(),userRequestDto.getMobile());
-        if(userOptional.isPresent())
+
+    public boolean isExistInDB(Object keyword) {
+        UserRequestDto userRequestDto = (UserRequestDto) keyword;
+        Optional<User> userOptional = userRepository.findByEmailOrMobile(userRequestDto.getEmail(),
+                userRequestDto.getMobile());
+        if (userOptional.isPresent())
             return false;
         Optional<UserType> userTypeOptional = userTypeRepository.findById(userRequestDto.getUsertypeId());
         return userTypeOptional.isPresent();
     }
+
     @Override
     public ResponseEntity<?> saveBulkData(List<UserRequestDto> userRequestDtoList) {
-        try{
+        try {
             String username = jwtUtil.getCurrentLoginUser();
             List<User> userList = userRequestDtoList.stream()
                     .map((userRequestDto -> {
@@ -275,9 +286,10 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
             userRepository.saveAll(userList);
             logger.info("All data saved successfully!");
             return ResponseEntity.status(HttpStatus.CREATED).body("All data saved successfully");
-        }catch (Exception e){
-            logger.error("Error occurred while saving bulk data, ",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while saving bulk data: "+e.getMessage());
+        } catch (Exception e) {
+            logger.error("Error occurred while saving bulk data, ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error occurred while saving bulk data: " + e.getMessage());
         }
     }
 }
