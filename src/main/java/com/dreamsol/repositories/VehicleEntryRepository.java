@@ -37,9 +37,22 @@ public interface VehicleEntryRepository extends JpaRepository<VehicleEntry, Long
     @Query("SELECT COUNT(v) FROM VehicleEntry v WHERE v.status = true AND v.purpose.status = false")
     Long countOutEntries();
 
-    @Query("SELECT v.purpose.purposeFor AS purpose, COUNT(v.purpose) AS count " +
-            "FROM VehicleEntry v " +
-            "WHERE v.createdAt BETWEEN :startDate AND :endDate " +
-            "GROUP BY v.purpose.purposeFor")
-    List<PurposeCountDto> findPurposesWithinDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+//    @Query("SELECT v.purpose.purposeFor AS purpose, COUNT(v.purpose) AS count " +
+//            "FROM VehicleEntry v " +
+//            "WHERE v.createdAt BETWEEN :startDate AND :endDate " +
+//            "GROUP BY v.purpose.purposeFor")
+//    List<PurposeCountDto> findPurposesWithinDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT ve FROM VehicleEntry ve " +
+            "JOIN ve.plant p " +
+            "JOIN ve.purpose ps " +
+            "WHERE (:status IS NULL OR ve.status = :status) " +
+            "AND (:unitId IS NULL OR ve.unitId = :unitId) " +
+            "AND (:plantId IS NULL OR p.id = :plantId) " +
+            "AND (:purposeId IS NULL OR ps.id = :purposeId)")
+    List<VehicleEntry> findByParameters(
+            @Param("status") Boolean status,
+            @Param("unitId") Long unitId,
+            @Param("plantId") Long plantId,
+            @Param("purposeId") Long purposeId);
 }
