@@ -5,11 +5,13 @@ import com.dreamsol.dtos.responseDtos.DepartmentResponseDto;
 import com.dreamsol.dtos.responseDtos.DropDownDto;
 import com.dreamsol.entites.Department;
 import com.dreamsol.exceptions.ResourceNotFoundException;
+import com.dreamsol.exceptions.ValidationException;
 import com.dreamsol.repositories.DepartmentRepository;
 import com.dreamsol.repositories.UnitRepository;
 import com.dreamsol.securities.JwtUtil;
 import com.dreamsol.utility.DtoUtilities;
 import com.dreamsol.utility.ExcelUtility;
+import com.dreamsol.utility.ValidatorUtilities;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,6 +41,7 @@ public class DepartmentService {
     private final UnitRepository unitRepository;
     private final ExcelUtility excelUtility;
     private final JwtUtil jwtUtil;
+    private final ValidatorUtilities validatioUtility;
 
     public ResponseEntity<DepartmentResponseDto> createDepartment(DepartmentRequestDto departmentRequestDto) {
         // Check if department already exists
@@ -64,8 +67,23 @@ public class DepartmentService {
 
     public ResponseEntity<List<DepartmentResponseDto>> createDepartments(
             List<DepartmentRequestDto> departmentRequestDtoList) {
+
         // Removing duplicates
         Set<DepartmentRequestDto> list = new HashSet<DepartmentRequestDto>(departmentRequestDtoList);
+
+        Set<Set<String>> msg = new HashSet<Set<String>>();
+        Set<String> set = list.stream().map((departmentDto) -> {
+            boolean b = validatioUtility.validateDto(departmentDto);
+            if (!b) {
+                msg.add(validatioUtility.validateDtoMessages(departmentDto));
+            }
+            return "Valid";
+        }).collect(Collectors.toSet());
+
+        if (!(msg.isEmpty())) {
+            throw new ValidationException(msg);
+        }
+
         // Check if department already exists
         List<Department> validDepartments = list.stream().map((departmentRequestDto) -> {
             Optional<Department> department = departmentRepository
