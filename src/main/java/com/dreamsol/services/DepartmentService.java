@@ -67,11 +67,12 @@ public class DepartmentService {
 
     public ResponseEntity<List<DepartmentResponseDto>> createDepartments(
             List<DepartmentRequestDto> departmentRequestDtoList) {
-
         // Removing duplicates
         Set<DepartmentRequestDto> list = new HashSet<DepartmentRequestDto>(departmentRequestDtoList);
-
+        // validationMessages
         Set<Set<String>> msg = new HashSet<Set<String>>();
+        // Performing Validations on DepartmentRequestDtoList
+        @SuppressWarnings("unused")
         Set<String> set = list.stream().map((departmentDto) -> {
             boolean b = validatioUtility.validateDto(departmentDto);
             if (!b) {
@@ -83,7 +84,6 @@ public class DepartmentService {
         if (!(msg.isEmpty())) {
             throw new ValidationException(msg);
         }
-
         // Check if department already exists
         List<Department> validDepartments = list.stream().map((departmentRequestDto) -> {
             Optional<Department> department = departmentRepository

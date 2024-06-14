@@ -245,20 +245,20 @@ public class DtoUtilities {
         return vehicleEntry;
     }
 
-//    public VehicleEntryResDto vehicleEntryToDto(VehicleEntry savedVehicleEntry) {
-//        VehicleEntryResDto vehicleEntryResDto = new VehicleEntryResDto();
-//        BeanUtils.copyProperties(savedVehicleEntry, vehicleEntryResDto);
-////        vehicleEntryResDto.setVehicleNumber(savedVehicleEntry.getVehicleLicence().getVehicleNumber());
-////        vehicleEntryResDto.setVehicleOwner(savedVehicleEntry.getVehicleLicence().getVehicleOwner());
-////        vehicleEntryResDto.setVehicleType(savedVehicleEntry.getVehicleLicence().getVehicleType());
-////        vehicleEntryResDto.setDriverName(savedVehicleEntry.getDrivingLicence().getDriverName());
-////        vehicleEntryResDto.setDriverMobileNumber(savedVehicleEntry.getDrivingLicence().getDriverMobile());
-////        vehicleEntryResDto.setPlantTo(savedVehicleEntry.getPlant().getPlantName());
-////        vehicleEntryResDto.setVisitPurpose(savedVehicleEntry.getPurpose().getPurposeFor());
-//
-//        vehicleEntryResDto.getDrivingLicenceResDto().
-//        return vehicleEntryResDto;
-//    }
+    // public VehicleEntryResDto vehicleEntryToDto(VehicleEntry savedVehicleEntry) {
+    // VehicleEntryResDto vehicleEntryResDto = new VehicleEntryResDto();
+    // BeanUtils.copyProperties(savedVehicleEntry, vehicleEntryResDto);
+    //// vehicleEntryResDto.setVehicleNumber(savedVehicleEntry.getVehicleLicence().getVehicleNumber());
+    //// vehicleEntryResDto.setVehicleOwner(savedVehicleEntry.getVehicleLicence().getVehicleOwner());
+    //// vehicleEntryResDto.setVehicleType(savedVehicleEntry.getVehicleLicence().getVehicleType());
+    //// vehicleEntryResDto.setDriverName(savedVehicleEntry.getDrivingLicence().getDriverName());
+    //// vehicleEntryResDto.setDriverMobileNumber(savedVehicleEntry.getDrivingLicence().getDriverMobile());
+    //// vehicleEntryResDto.setPlantTo(savedVehicleEntry.getPlant().getPlantName());
+    //// vehicleEntryResDto.setVisitPurpose(savedVehicleEntry.getPurpose().getPurposeFor());
+    //
+    // vehicleEntryResDto.getDrivingLicenceResDto().
+    // return vehicleEntryResDto;
+    // }
 
     public VehicleEntryResDto vehicleEntryToDto(VehicleEntry savedVehicleEntry) {
         VehicleEntryResDto vehicleEntryResDto = new VehicleEntryResDto();
@@ -269,7 +269,8 @@ public class DtoUtilities {
         vehicleEntryResDto.setDrivingLicenceResDto(drivingLicenceResDto);
 
         // Set VehicleLicenceResDto using the conversion method
-        VehicleLicenceResDto vehicleLicenceResDto = vehicleLicenceToVehicleLicenceDto(savedVehicleEntry.getVehicleLicence());
+        VehicleLicenceResDto vehicleLicenceResDto = vehicleLicenceToVehicleLicenceDto(
+                savedVehicleEntry.getVehicleLicence());
         vehicleEntryResDto.setVehicleLicenceResDto(vehicleLicenceResDto);
 
         // Set PlantResponseDto
@@ -284,7 +285,6 @@ public class DtoUtilities {
 
         return vehicleEntryResDto;
     }
-
 
     public static Visitor visitorRequestDtoToVisitor(VisitorRequestDto visitorRequestDto) {
         Visitor visitor = new Visitor();

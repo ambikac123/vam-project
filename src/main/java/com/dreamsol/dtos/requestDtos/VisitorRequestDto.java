@@ -1,8 +1,5 @@
 package com.dreamsol.dtos.requestDtos;
 
-import java.time.LocalDateTime;
-
-import javax.validation.constraints.Future;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
@@ -47,9 +44,9 @@ public class VisitorRequestDto extends CommonAutoIdEntityRequestDto {
 
     private boolean approvalRequired;
 
-    @Future(message = "validFrom must be a future date and time")
-    private LocalDateTime validFrom;
+    @Size(max = 25, min = 10, message = "Not A Valid Date")
+    private String validFrom;
 
-    @Future(message = "validTill must be a future date and time")
-    private LocalDateTime validTill;
+    @Size(max = 25, min = 10, message = "Not A Valid Date")
+    private String validTill;
 }

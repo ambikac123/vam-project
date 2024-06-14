@@ -64,6 +64,15 @@ public class VisitorService {
                                 .orElseThrow(() -> new RuntimeException(
                                                 "Unit not found with id : " + visitorRequestDto.getUnitId()));
 
+                try {
+                        LocalDateTime validfrom = LocalDateTime.parse(visitorRequestDto.getValidFrom());
+                        LocalDateTime validTill = LocalDateTime.parse(visitorRequestDto.getValidTill());
+                        visitor.setValidFrom(validfrom);
+                        visitor.setValidTill(validTill);
+                } catch (Exception e) {
+                        throw new RuntimeException(
+                                        "Please Select a Valid Date and Time, format is YYYY-MM-DDTHH-MM-SS");
+                }
                 visitor.setDepartment(department);
                 visitor.setUser(user);
                 visitor.setPurpose(purpose);
