@@ -74,14 +74,13 @@ public class DepartmentService {
         // Performing Validations on DepartmentRequestDtoList
         @SuppressWarnings("unused")
         Set<String> set = list.stream().map((departmentDto) -> {
-            boolean b = validatioUtility.validateDto(departmentDto);
-            if (!b) {
+            if (!validatioUtility.validateDto(departmentDto)) {
                 msg.add(validatioUtility.validateDtoMessages(departmentDto));
             }
             return "Valid";
         }).collect(Collectors.toSet());
 
-        if (!(msg.isEmpty())) {
+        if (!msg.isEmpty()) {
             throw new ValidationException(msg);
         }
         // Check if department already exists
@@ -104,7 +103,7 @@ public class DepartmentService {
 
         }).toList();
         List<Department> dbDepartments = departmentRepository.saveAll(validDepartments);
-        return ResponseEntity.ok(dbDepartments.stream().map(DtoUtilities::departmentToDepartmentResponseDto).toList());
+        return ResponseEntity.ok(dbDepartments.stream().map(DtoUtilities::departmentToDepartmentResponseDto).collect(Collectors.toList()));
     }
 
     public ResponseEntity<DepartmentResponseDto> updateDepartment(Long id, DepartmentRequestDto departmentRequestDto) {

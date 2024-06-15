@@ -44,9 +44,9 @@ public class VisitorRequestDto extends CommonAutoIdEntityRequestDto {
 
     private boolean approvalRequired;
 
-    @Size(max = 25, min = 10, message = "Not A Valid Date")
+    @Size(max = 25, min = 10, message = "Size cannot be more than 25 and less than 10 for DateAndTime")
     private String validFrom;
 
-    @Size(max = 25, min = 10, message = "Not A Valid Date")
+    @Size(max = 25, min = 10, message = "Size cannot be more than 25 and less than 10 for DateAndTime")
     private String validTill;
 }
