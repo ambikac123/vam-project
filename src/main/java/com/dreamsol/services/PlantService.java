@@ -80,7 +80,7 @@ public class PlantService {
         PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(direction, sortBy));
         Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
 
-        Page<Plant> plantsPage = plantRepository.findByStatusAndUnitIdAndPlantName(statusBoolean, unitId,
+        Page<Plant> plantsPage = plantRepository.findByStatusAndUnitIdAndPlantNameIgnoreCase(statusBoolean, unitId,
                 plantName, pageRequest);
 
         Page<PlantResponseDto> plantResponseDtos = plantsPage.map(DtoUtilities::plantToPlantResponseDto);
@@ -102,9 +102,12 @@ public class PlantService {
         }
     }
 
-    public ResponseEntity<?> downloadPlantDataAsExcel() {
+    public ResponseEntity<?> downloadPlantDataAsExcel(String status, Long unitId, String plantName) {
         try {
-            List<Plant> plantList = plantRepository.findAll();
+            Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
+
+            List<Plant> plantList = plantRepository.findByStatusAndUnitIdAndPlantNameIgnoreCase(statusBoolean, unitId,
+                    plantName);
             if (plantList.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No plants available!");
             }

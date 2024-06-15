@@ -131,9 +131,12 @@ public class SeriesService {
         }
     }
 
-    public ResponseEntity<?> downloadSeriesDataAsExcel() {
+    public ResponseEntity<?> downloadSeriesDataAsExcel(String status, Long unitId, String seriesFor) {
         try {
-            List<Series> seriesList = seriesRepository.findAll();
+            Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
+
+            List<Series> seriesList = seriesRepository.findByStatusAndUnitIdAndseriesName(statusBoolean, unitId,
+                    seriesFor);
             if (seriesList.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No series available!");
             }

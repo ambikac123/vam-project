@@ -1,6 +1,7 @@
 package com.dreamsol.services;
 
 import com.dreamsol.dtos.responseDtos.ExcelValidateDataResponseDto;
+import com.dreamsol.dtos.responseDtos.ValidatedData;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,6 +19,6 @@ public interface CommonService<T,ID>
     ResponseEntity<?> downloadExcelSample();
     ResponseEntity<?> uploadExcelFile(MultipartFile file,Class<?> currentClass);
     ExcelValidateDataResponseDto validateDataFromDB(ExcelValidateDataResponseDto validateDataResponse);
-    boolean isExistInDB(Object keyword);
+    ValidatedData checkValidOrNot(T data);
     ResponseEntity<?> saveBulkData(List<T> list);
 }

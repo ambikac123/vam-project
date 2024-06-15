@@ -166,12 +166,14 @@ public class VisitorPrerequestService
         meetingStatusCount.put("Cancelled",countCancelled);
         return ResponseEntity.status(HttpStatus.OK).body(meetingStatusCount);
     }
-    public ResponseEntity<?> getAll(Integer pageNumber, Integer pageSize, String sortBy, String sortDir, Long unitId, Boolean status, Long meetingPurposeId, String meetingStatus, LocalDate fromDate, LocalDate toDate) {
+    public ResponseEntity<?> getAll(Integer pageNumber, Integer pageSize, String sortBy, String sortDir, Long unitId, Boolean status, Long meetingPurposeId, String meetingStatus, String fromDate, String toDate) {
         try {
+            if(LocalDate.parse(toDate).isBefore(LocalDate.parse(fromDate)) || LocalDate.parse(toDate).isAfter(LocalDate.now()))
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("invalid date range!");
             Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
             Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
-            LocalDateTime from = fromDate.atStartOfDay();
-            LocalDateTime to = toDate.atTime(LocalTime.MAX);
+            LocalDateTime from = LocalDate.parse(fromDate).atStartOfDay();
+            LocalDateTime to = LocalDate.parse(toDate).atTime(LocalTime.MAX);
             List<VisitorPrerequest> prerequestList = visitorRepository.findByFilters(unitId, status, meetingPurposeId, meetingStatus, from, to, pageable);
             logger.info("All visitors data fetched successfully!");
             return ResponseEntity.status(HttpStatus.OK).body(prerequestList);
@@ -181,11 +183,13 @@ public class VisitorPrerequestService
         }
     }
 
-    public ResponseEntity<?> downloadDataAsExcel(Long unitId, Boolean status, Long meetingPurposeId, String meetingStatus, LocalDate fromDate, LocalDate toDate)
+    public ResponseEntity<?> downloadDataAsExcel(Long unitId, Boolean status, Long meetingPurposeId, String meetingStatus, String fromDate, String toDate)
     {
         try{
-            LocalDateTime from = fromDate.atStartOfDay();
-            LocalDateTime to = toDate.atTime(LocalTime.MAX);
+            if(LocalDate.parse(toDate).isBefore(LocalDate.parse(fromDate)) || LocalDate.parse(toDate).isAfter(LocalDate.now()))
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("invalid date range!");
+            LocalDateTime from = LocalDate.parse(fromDate).atStartOfDay();
+            LocalDateTime to = LocalDate.parse(toDate).atTime(LocalTime.MAX);
             List<VisitorPrerequest> prerequestList = visitorRepository.findByFilters(unitId,status,meetingPurposeId,meetingStatus,from,to);
             if (prerequestList.isEmpty()) {
                 logger.info("No visitors available!");

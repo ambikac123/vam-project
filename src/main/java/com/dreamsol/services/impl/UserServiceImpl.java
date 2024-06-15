@@ -234,12 +234,10 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
         {
             ValidatedData validatedData = (ValidatedData) validList.get(i);
             UserRequestDto userRequestDto = (UserRequestDto) validatedData.getData();
-            boolean flag = isExistInDB(userRequestDto);
-            if(!flag){
-                ValidatedData invalidData = new ValidatedData();
-                invalidData.setData(userRequestDto);
-                invalidData.setMessage("mobile/email already exist or usertype doesn't exist");
-                invalidList.add(invalidData);
+            ValidatedData checkedData = checkValidOrNot(userRequestDto);
+            if(!checkedData.isStatus())
+            {
+                invalidList.add(checkedData);
                 validList.remove(validatedData);
                 continue;
             }
@@ -249,13 +247,25 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
         validateDataResponse.setValidDataList(userRequestDtoList);
         return validateDataResponse;
     }
-    public boolean isExistInDB(Object keyword){
-        UserRequestDto userRequestDto = (UserRequestDto)keyword;
+
+    public ValidatedData checkValidOrNot(UserRequestDto userRequestDto){
+        StringBuilder message = new StringBuilder();
+        boolean status = true;
+        ValidatedData checkedData = new ValidatedData();
         Optional<User> userOptional = userRepository.findByEmailOrMobile(userRequestDto.getEmail(),userRequestDto.getMobile());
-        if(userOptional.isPresent())
-            return false;
+        if(userOptional.isPresent()) {
+            message.append("user with given mobile/email already exist, ");
+            status = false;
+        }
         Optional<UserType> userTypeOptional = userTypeRepository.findByUserTypeName(userRequestDto.getUserTypeName());
-        return userTypeOptional.isPresent();
+        if(userTypeOptional.isEmpty()) {
+            message.append("usertype doesn't exist!");
+            status = false;
+        }
+        checkedData.setData(userRequestDto);
+        checkedData.setMessage(message.toString());
+        checkedData.setStatus(status);
+        return checkedData;
     }
     @Override
     public ResponseEntity<?> saveBulkData(List<UserRequestDto> userRequestDtoList) {

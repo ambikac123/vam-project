@@ -15,4 +15,6 @@ import javax.persistence.MappedSuperclass;
 public class CommonAutoIdEntityRequestDto
 {
     private Long unitId;
+
+    private boolean status=true;
 }

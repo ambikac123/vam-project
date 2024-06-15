@@ -26,15 +26,11 @@ public class VehicleEntryReqDto extends CommonAutoIdEntityRequestDto {
     @Schema(description = "Vehicle number", example = "AB-123-CD-4567")
     private String vehicleNumber;
 
-    @NotEmpty(message = "plantName cannot be Empty")
-    @Pattern(regexp = "^[a-zA-Z0-9\\s]+$", message = "Only alphabets, numbers, and spaces are allowed in plantName")
-    @Size(min = 3, max = 50, message = "plantName length must be between 3 and 50 characters")
-    private String plantName;
+    @NotNull(message = "Plant ID is required.")
+    private Long plantId;
 
-    @NotEmpty(message = "purposeFor cannot be Empty")
-    @Pattern(regexp = "^[a-zA-Z\\s]+$", message = "Only alphabets and spaces are allowed in purposeFor")
-    @Size(min = 5, max = 50, message = "purposeFor length must be between 5 and 50 characters")
-    private String purposeFor;
+    @NotNull(message = "Purpose ID is required.")
+    private Long purposeId;
 
     @NotBlank(message = "Location from cannot be blank")
     @Size(max = 200, message = "Location from must be less than or equal to 200 characters")

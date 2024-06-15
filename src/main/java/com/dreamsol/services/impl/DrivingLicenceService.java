@@ -7,11 +7,10 @@ import com.dreamsol.dtos.responseDtos.ExcelValidateDataResponseDto;
 import com.dreamsol.dtos.responseDtos.ValidatedData;
 import com.dreamsol.entites.DrivingLicence;
 import com.dreamsol.entites.DrivingLicenceAttachment;
-import com.dreamsol.entites.VehicleLicence;
 import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.repositories.DrivingLicenceRepo;
 import com.dreamsol.repositories.DrivingLicenceAttachmentRepo;
-import com.dreamsol.services.DrivingLicenceService;
+import com.dreamsol.securities.JwtUtil;
 import com.dreamsol.utility.DtoUtilities;
 import com.dreamsol.utility.ExcelUtility;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +40,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class DrivingLicenceServiceImpl implements DrivingLicenceService {
+public class DrivingLicenceService {
 
     private final DrivingLicenceRepo drivingLicenceRepo;
 
@@ -53,9 +52,10 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
 
     private final ExcelUtility excelUtility;
 
-    private static final Logger logger = LoggerFactory.getLogger(DrivingLicenceServiceImpl.class);
+    private final JwtUtil jwtUtil;
 
-    @Override
+    private static final Logger logger = LoggerFactory.getLogger(DrivingLicenceService.class);
+
     public ResponseEntity<?> addLicence(DrivingLicenceReqDto drivingLicenceReqDto, MultipartFile file, String path) {
         Optional<DrivingLicence> existingLicence = drivingLicenceRepo.findByLicence(drivingLicenceReqDto.getLicence());
         Optional<DrivingLicence> existingMobile = drivingLicenceRepo.findByDriverMobile(drivingLicenceReqDto.getDriverMobile());
@@ -66,13 +66,15 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("Mobile number already exists!", false));
         } else {
             DrivingLicence drivingLicence = dtoUtilities.licenceDtoToLicence(drivingLicenceReqDto);
+            drivingLicence.setCreatedBy(jwtUtil.getCurrentLoginUser());
+            drivingLicence.setUpdatedBy(jwtUtil.getCurrentLoginUser());
+            drivingLicence.setStatus(true);
             drivingLicence.setFile(uploadFile(file, path));
             DrivingLicence savedDriving = drivingLicenceRepo.save(drivingLicence);
             return ResponseEntity.status(HttpStatus.CREATED).body(dtoUtilities.licenceToLicenceDto(savedDriving));
         }
     }
 
-    @Override
     public ResponseEntity<?> deleteLicence(Long licenceId) {
         DrivingLicence drivingLicence = drivingLicenceRepo.findById(licenceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Driving Licence", "Id", licenceId));
@@ -101,19 +103,18 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
             DrivingLicenceAttachment newAttachment = uploadFile(file, path);
             drivingLicence.setFile(newAttachment);
         }
+        drivingLicence.setUpdatedBy(jwtUtil.getCurrentLoginUser());
         DrivingLicence updatedDriving = drivingLicenceRepo.save(drivingLicence);
 
         return ResponseEntity.ok(dtoUtilities.licenceToLicenceDto(updatedDriving));
     }
 
-    @Override
     public ResponseEntity<?> fetchById(Long licenceId) {
         DrivingLicence drivingLicence = drivingLicenceRepo.findById(licenceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Driving Licence", "Id", licenceId));
         return ResponseEntity.ok(dtoUtilities.licenceToLicenceDto(drivingLicence));
     }
 
-    @Override
     public ResponseEntity<Page<DrivingLicenceResDto>> fetchAllDrivers(
             String status,
             Long unitId,
@@ -136,7 +137,6 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
     }
 
 
-    @Override
     public ResponseEntity<Resource> getFile(String fileName, String uploadDir) throws IOException {
         DrivingLicenceAttachment licenceAttachment = licenceAttachmentRepo.findByGeneratedFileName(fileName).orElseThrow(() -> {
             throw new ResourceNotFoundException();
@@ -148,17 +148,44 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
                 .body(new ByteArrayResource(fileService.getFile(uploadDir, licenceAttachment.getGeneratedFileName())));
     }
 
-    @Override
-    public ResponseEntity<?> downloadDriverDataAsExcel() {
+//    public ResponseEntity<?> downloadDriverDataAsExcel() {
+//        try {
+//            List<DrivingLicence> drivingLicenceList = drivingLicenceRepo.findAll();
+//            if (drivingLicenceList.isEmpty())
+//                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No users available!");
+//            List<DrivingLicenceResDto> drivingLicenceResDtoList = drivingLicenceList.stream().map(dtoUtilities::licenceToLicenceDto)
+//                    .collect(Collectors.toList());
+//            String fileName = "driver_excel_data.xlsx";
+//            String sheetName = fileName.substring(0, fileName.indexOf('.'));
+//            Resource resource = excelUtility.downloadDataAsExcel(drivingLicenceResDtoList, sheetName);
+//            return ResponseEntity.ok()
+//                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
+//                    .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+//                    .body(resource);
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error!" + e);
+//        }
+//    }
+
+    public ResponseEntity<?> downloadDriverDataAsExcel(
+            String status,
+            Long unitId) {
         try {
-            List<DrivingLicence> drivingLicenceList = drivingLicenceRepo.findAll();
+            Boolean statusBoolean = (status != null) ? Boolean.parseBoolean(status) : null;
+
+            List<DrivingLicence> drivingLicenceList = drivingLicenceRepo.findByStatusAndUnitId(statusBoolean, unitId);
+
             if (drivingLicenceList.isEmpty())
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No users available!");
-            List<DrivingLicenceResDto> drivingLicenceResDtoList = drivingLicenceList.stream().map(dtoUtilities::licenceToLicenceDto)
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No drivers available!");
+
+            List<DrivingLicenceResDto> drivingLicenceResDtoList = drivingLicenceList.stream()
+                    .map(dtoUtilities::licenceToLicenceDto)
                     .collect(Collectors.toList());
+
             String fileName = "driver_excel_data.xlsx";
             String sheetName = fileName.substring(0, fileName.indexOf('.'));
             Resource resource = excelUtility.downloadDataAsExcel(drivingLicenceResDtoList, sheetName);
+
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
                     .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
@@ -168,7 +195,7 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
         }
     }
 
-    @Override
+
     public ResponseEntity<?> downloadExcelSample() throws IOException {
         String fileName = "driver_excel_sample.xlsx";
         String sheetName = fileName.substring(0, fileName.indexOf('.'));
@@ -226,7 +253,6 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
         }
     }
 
-    @Override
     public ResponseEntity<?> uploadExcelFile(MultipartFile file, Class<?> currentClass) {
         try{
             if(excelUtility.isExcelFile(file))
@@ -252,7 +278,6 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
         }
     }
 
-    @Override
     public ResponseEntity<?> saveBulkData(List<DrivingLicenceReqDto> drivingLicenceReqDtoList) {
         try{
             List<DrivingLicence> drivingLicenceList = drivingLicenceReqDtoList.stream()
@@ -267,7 +292,6 @@ public class DrivingLicenceServiceImpl implements DrivingLicenceService {
         }
     }
 
-    @Override
     public ResponseEntity<?> findByDriverMobile(Long driverMobile) {
         try {
             DrivingLicence drivingLicence = drivingLicenceRepo.findByDriverMobile(driverMobile)

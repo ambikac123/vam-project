@@ -167,11 +167,11 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
     }
 
     @Override
-    public ResponseEntity<?> uploadExcelFile(MultipartFile file, Class<?> currentClass) {
+    public ResponseEntity<?> uploadExcelFile(MultipartFile file, Class<?> requestDtoClass) {
         try{
             if(excelUtility.isExcelFile(file))
             {
-                ExcelValidateDataResponseDto validateDataResponse = excelUtility.validateExcelData(file,currentClass);
+                ExcelValidateDataResponseDto validateDataResponse = excelUtility.validateExcelData(file,requestDtoClass);
                 validateDataResponse = validateDataFromDB(validateDataResponse);
                 validateDataResponse.setTotalValidData(validateDataResponse.getValidDataList().size());
                 validateDataResponse.setTotalInvalidData(validateDataResponse.getInvalidDataList().size());
@@ -201,12 +201,10 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
         {
             ValidatedData validatedData = (ValidatedData) validList.get(i);
             UserTypeRequestDto userTypeRequestDto = (UserTypeRequestDto) validatedData.getData();
-            boolean flag = isExistInDB(userTypeRequestDto);
-            if(flag){
-                ValidatedData invalidData = new ValidatedData();
-                invalidData.setData(userTypeRequestDto);
-                invalidData.setMessage("usertype already exist!");
-                invalidList.add(invalidData);
+            ValidatedData checkedData = checkValidOrNot(userTypeRequestDto);
+            if(!checkedData.isStatus())
+            {
+                invalidList.add(checkedData);
                 validList.remove(validatedData);
                 continue;
             }
@@ -218,9 +216,19 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
     }
 
     @Override
-    public boolean isExistInDB(Object keyword) {
-        UserTypeRequestDto userTypeRequestDto = (UserTypeRequestDto)keyword;
-        Optional<UserType> userTypeOptional = userTypeRepository.findByUserTypeNameOrUserTypeCode(userTypeRequestDto.getUserTypeName(),userTypeRequestDto.getUserTypeCode());return userTypeOptional.isPresent();
+    public ValidatedData checkValidOrNot(UserTypeRequestDto userTypeRequestDto) {
+        StringBuilder message = new StringBuilder();
+        boolean status = true;
+        ValidatedData checkedData = new ValidatedData();
+        Optional<UserType> userTypeOptional = userTypeRepository.findByUserTypeNameOrUserTypeCode(userTypeRequestDto.getUserTypeName(),userTypeRequestDto.getUserTypeCode());
+        if(userTypeOptional.isPresent()){
+            message.append("usertype already exist!");
+            status = false;
+        }
+        checkedData.setData(userTypeRequestDto);
+        checkedData.setMessage(message.toString());
+        checkedData.setStatus(status);
+        return checkedData;
     }
 
     @Override

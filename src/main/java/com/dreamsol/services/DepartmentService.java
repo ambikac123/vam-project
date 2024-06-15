@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class DepartmentService{
+public class DepartmentService {
 
     private final DepartmentRepository departmentRepository;
     private final UnitRepository unitRepository;
@@ -48,7 +48,8 @@ public class DepartmentService{
         }
         // Check if the unit exists
         unitRepository.findById(departmentRequestDto.getUnitId())
-                .orElseThrow(() -> new RuntimeException("Unit with this id does not exist : "+departmentRequestDto.getUnitId()));
+                .orElseThrow(() -> new RuntimeException(
+                        "Unit with this id does not exist : " + departmentRequestDto.getUnitId()));
         Department department = DtoUtilities.departmentRequestDtoToDepartment(departmentRequestDto);
         department.setCreatedBy(jwtUtil.getCurrentLoginUser());
         department.setUpdatedBy(jwtUtil.getCurrentLoginUser());
@@ -72,7 +73,8 @@ public class DepartmentService{
 
         // Check if the unit exists
         unitRepository.findById(departmentRequestDto.getUnitId())
-                .orElseThrow(() -> new RuntimeException("Unit with this id does not exist : "+departmentRequestDto.getUnitId()));
+                .orElseThrow(() -> new RuntimeException(
+                        "Unit with this id does not exist : " + departmentRequestDto.getUnitId()));
         // Update department fields
         Department updatedDepartment = DtoUtilities.departmentRequestDtoToDepartment(existingDepartment,
                 departmentRequestDto);
@@ -105,12 +107,11 @@ public class DepartmentService{
         }
     }
 
-    
     public ResponseEntity<?> getDepartments(int pageSize, int page, String sortBy, String sortDirection, String status,
             Long unitId) {
         Sort.Direction direction = sortDirection.equalsIgnoreCase("Asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(direction, sortBy));
-        Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
+        Boolean statusBoolean =status.equalsIgnoreCase("false")?false:true;
 
         Page<Department> departmentsPage = departmentRepository.findByStatusAndUnitId(statusBoolean, unitId,
                 pageRequest);
@@ -120,9 +121,11 @@ public class DepartmentService{
         return ResponseEntity.ok(departmentResponseDtos);
     }
 
-    public ResponseEntity<?> downloadDepartmentDataAsExcel() {
+    public ResponseEntity<?> downloadDepartmentDataAsExcel(String status,Long unitId) {
         try {
-            List<Department> departmentList = departmentRepository.findAll();
+            Boolean statusBoolean =status.equalsIgnoreCase("false")?false:true;
+
+            List<Department> departmentList = departmentRepository.findByStatusAndUnitId(statusBoolean,unitId);
             if (departmentList.isEmpty())
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No departments available!");
 

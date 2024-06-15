@@ -3,7 +3,6 @@ package com.dreamsol.services;
 import org.springframework.stereotype.Service;
 
 import com.dreamsol.dtos.requestDtos.VisitorRequestDto;
-import com.dreamsol.dtos.responseDtos.UserResponseDto;
 import com.dreamsol.dtos.responseDtos.VisitorResponseDto;
 import com.dreamsol.entites.Department;
 import com.dreamsol.entites.Purpose;
@@ -146,9 +145,14 @@ public class VisitorService {
                 return ResponseEntity.ok(visitorResponseDtos);
         }
 
-        public ResponseEntity<?> downloadVisitorDataAsExcel() throws java.io.IOException {
+        public ResponseEntity<?> downloadVisitorDataAsExcel(String status, Long unitId, Long employeeId, Long purposeId,
+                        Long departmentId) throws java.io.IOException {
                 try {
-                        List<Visitor> visitorList = visitorRepository.findAll();
+                        Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
+
+                        List<Visitor> visitorList = visitorRepository
+                                        .findByEmployeeIdAndPurposeIdAndDepartmentIdAndUnitIdAndStatus(employeeId,
+                                                        purposeId, departmentId, unitId, statusBoolean);
                         if (visitorList.isEmpty()) {
                                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No purposes available!");
                         }
@@ -174,4 +178,36 @@ public class VisitorService {
                                         .body("Internal Server Error! " + e);
                 }
         }
+
+        // public ResponseEntity<?> getVisitorsCount(int pageSize, int page, String
+        // sortBy, String sortDirection,
+        // String status,
+        // Long unitId, Long employeeId, Long purposeId, Long departmentId, String
+        // fromDate,
+        // String toDate) {
+        // Sort.Direction direction = sortDirection.equalsIgnoreCase("Asc") ?
+        // Sort.Direction.ASC
+        // : Sort.Direction.DESC;
+        // PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(direction,
+        // sortBy));
+
+        // Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
+        // LocalDateTime fromDateNew = fromDate != null ? LocalDateTime.parse(fromDate)
+        // : null;
+        // LocalDateTime toDateNew = toDate != null ? LocalDateTime.parse(toDate) :
+        // null;
+
+        // Page<Visitor> visitorsPage = visitorRepository
+        // .findVisistorCount(
+        // employeeId, purposeId, departmentId, unitId, statusBoolean, fromDateNew,
+        // toDateNew, pageRequest);
+
+        // Page<VisitorResponseDto> visitorResponseDtos = visitorsPage
+        // .map((visitor) -> {
+        // VisitorResponseDto dto = DtoUtilities.visitorToVisitorResponseDto(visitor);
+        // dto.setUser(utilities.userToUserResponseDto(visitor.getUser()));
+        // return dto;
+        // });
+        // return ResponseEntity.ok(visitorResponseDtos);
+        // }
 }

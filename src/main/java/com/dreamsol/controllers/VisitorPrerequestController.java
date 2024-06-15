@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
 import java.time.LocalDate;
 
 @RestController
@@ -75,23 +76,24 @@ public class VisitorPrerequestController
             @RequestParam(value = "status", required = false) Boolean status,
             @RequestParam(value = "meetingPurposeId", required = false) Long meetingPurposeId,
             @RequestParam(value = "meetingStatus",required = false) String meetingStatus,
-            @Parameter(description ="From Date", example = "2024-06-10", in = ParameterIn.QUERY)
-            @RequestParam(value = "fromDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-            @Parameter(description = "To Date", example = "2024-06-10", in = ParameterIn.QUERY)
-            @RequestParam(value = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate
+            @Pattern(regexp = "^(\\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$", message = "must be a valid date")
+            @RequestParam(value = "From Date (YYYY-MM-DD)",required = false) String fromDate,
+            @Pattern(regexp = "^(\\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$", message = "must be a valid date")
+            @RequestParam(value = "To Date (YYYY-MM-DD)",required = false) String toDate
             ){
         return visitorPrerequestService.getAll(pageNumber,pageSize,sortBy,sortDir,unitId,status,meetingPurposeId,meetingStatus,fromDate,toDate);
     }
+
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadVisitorsDataAsExcel(
             @RequestParam(value = "unitId", defaultValue = "1", required = false) Long unitId,
             @RequestParam(value = "status", required = false) Boolean status,
             @RequestParam(value = "meetingPurpose", required = false) Long meetingPurposeId,
             @RequestParam(value = "meetingStatus",required = false) String meetingStatus,
-            @Parameter(description ="From Date", example = "2024-06-10", in = ParameterIn.QUERY)
-            @RequestParam(value = "fromDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-            @Parameter(description = "To Date", example = "2024-06-10", in = ParameterIn.QUERY)
-            @RequestParam(value = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate
+            @Pattern(regexp = "^(\\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$", message = "must be a valid date")
+            @RequestParam(value = "From Date",defaultValue = "2024-06-10", required = false) String fromDate,
+            @Pattern(regexp = "^(\\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$", message = "must be a valid date")
+            @RequestParam(value = "To Date", defaultValue = "2024-06-10",required = false) String toDate
     ){
         return visitorPrerequestService.downloadDataAsExcel(unitId,status,meetingPurposeId,meetingStatus,fromDate,toDate);
     }

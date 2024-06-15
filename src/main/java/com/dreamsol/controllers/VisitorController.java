@@ -1,6 +1,5 @@
 package com.dreamsol.controllers;
 
-
 import javax.validation.Valid;
 
 import org.springframework.http.MediaType;
@@ -52,14 +51,37 @@ public class VisitorController {
                 departmentId);
     }
 
+    // @GetMapping("/get-all-visitors")
+    // public ResponseEntity<?> getAllVisitorsCount(
+    // @RequestParam(defaultValue = "10") int pageSize,
+    // @RequestParam(defaultValue = "0") int page,
+    // @RequestParam(defaultValue = "id") String sortBy,
+    // @RequestParam(required = false, defaultValue = "ASC") String sortDirection,
+    // @RequestParam(required = false) String status,
+    // @RequestParam(required = false) Long unitId,
+    // @RequestParam(required = false) Long employeeId,
+    // @RequestParam(required = false) Long purposeId,
+    // @RequestParam(required = false) Long departmentId,
+    // @RequestParam(required = false) String fromDate,
+    // @RequestParam(required = false) String toDate) {
+    // return visitorService.getVisitorsCount(pageSize, page, sortBy, sortDirection,
+    // status, unitId, employeeId, purposeId,
+    // departmentId, fromDate, toDate);
+    // }
+
     @DeleteMapping("/delete-visitor/{id}")
     public ResponseEntity<?> deleteVisitor(@PathVariable Long id) {
         return visitorService.deleteVisitor(id);
     }
 
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<?> downloadExcelData() throws java.io.IOException {
-        return visitorService.downloadVisitorDataAsExcel();
+    public ResponseEntity<?> downloadExcelData(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long unitId,
+            @RequestParam(required = false) Long employeeId,
+            @RequestParam(required = false) Long purposeId,
+            @RequestParam(required = false) Long departmentId) throws java.io.IOException {
+        return visitorService.downloadVisitorDataAsExcel(status, unitId, employeeId, purposeId, departmentId);
     }
 
 }
