@@ -5,11 +5,13 @@ import com.dreamsol.dtos.responseDtos.DepartmentResponseDto;
 import com.dreamsol.dtos.responseDtos.DropDownDto;
 import com.dreamsol.entites.Department;
 import com.dreamsol.exceptions.ResourceNotFoundException;
+import com.dreamsol.exceptions.ValidationException;
 import com.dreamsol.repositories.DepartmentRepository;
 import com.dreamsol.repositories.UnitRepository;
 import com.dreamsol.securities.JwtUtil;
 import com.dreamsol.utility.DtoUtilities;
 import com.dreamsol.utility.ExcelUtility;
+import com.dreamsol.utility.ValidatorUtilities;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,6 +28,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -37,6 +41,7 @@ public class DepartmentService {
     private final UnitRepository unitRepository;
     private final ExcelUtility excelUtility;
     private final JwtUtil jwtUtil;
+    private final ValidatorUtilities validatioUtility;
 
     public ResponseEntity<DepartmentResponseDto> createDepartment(DepartmentRequestDto departmentRequestDto) {
         // Check if department already exists
@@ -58,6 +63,47 @@ public class DepartmentService {
                 .save(department);
         return ResponseEntity.ok().body(DtoUtilities.departmentToDepartmentResponseDto(savedDepartment));
 
+    }
+
+    public ResponseEntity<List<DepartmentResponseDto>> createDepartments(
+            List<DepartmentRequestDto> departmentRequestDtoList) {
+        // Removing duplicates
+        Set<DepartmentRequestDto> list = new HashSet<DepartmentRequestDto>(departmentRequestDtoList);
+        // validationMessages
+        Set<Set<String>> msg = new HashSet<Set<String>>();
+        // Performing Validations on DepartmentRequestDtoList
+        @SuppressWarnings("unused")
+        Set<String> set = list.stream().map((departmentDto) -> {
+            if (!validatioUtility.validateDto(departmentDto)) {
+                msg.add(validatioUtility.validateDtoMessages(departmentDto));
+            }
+            return "Valid";
+        }).collect(Collectors.toSet());
+
+        if (!msg.isEmpty()) {
+            throw new ValidationException(msg);
+        }
+        // Check if department already exists
+        List<Department> validDepartments = list.stream().map((departmentRequestDto) -> {
+            Optional<Department> department = departmentRepository
+                    .findByDepartmentCodeIgnoreCase(departmentRequestDto.getDepartmentCode());
+            if (department.isPresent()) {
+                throw new RuntimeException(
+                        "Department with this Code Already Exist : " + departmentRequestDto.getDepartmentCode());
+            }
+            // Checking if Unit Exist
+            unitRepository.findById(departmentRequestDto.getUnitId()).orElseThrow(
+                    () -> new RuntimeException("Unit with this Id not Found : " + departmentRequestDto.getUnitId()));
+            // Converting and setting Required Values
+            Department departmentUtil = DtoUtilities.departmentRequestDtoToDepartment(departmentRequestDto);
+            departmentUtil.setCreatedBy(jwtUtil.getCurrentLoginUser());
+            departmentUtil.setUpdatedBy(jwtUtil.getCurrentLoginUser());
+            departmentUtil.setStatus(true);
+            return departmentUtil;
+
+        }).collect(Collectors.toList());
+        List<Department> dbDepartments = departmentRepository.saveAll(validDepartments);
+        return ResponseEntity.ok(dbDepartments.stream().map(DtoUtilities::departmentToDepartmentResponseDto).collect(Collectors.toList()));
     }
 
     public ResponseEntity<DepartmentResponseDto> updateDepartment(Long id, DepartmentRequestDto departmentRequestDto) {
@@ -111,7 +157,7 @@ public class DepartmentService {
             Long unitId) {
         Sort.Direction direction = sortDirection.equalsIgnoreCase("Asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(direction, sortBy));
-        Boolean statusBoolean =status.equalsIgnoreCase("false")?false:true;
+        Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
 
         Page<Department> departmentsPage = departmentRepository.findByStatusAndUnitId(statusBoolean, unitId,
                 pageRequest);
@@ -121,11 +167,11 @@ public class DepartmentService {
         return ResponseEntity.ok(departmentResponseDtos);
     }
 
-    public ResponseEntity<?> downloadDepartmentDataAsExcel(String status,Long unitId) {
+    public ResponseEntity<?> downloadDepartmentDataAsExcel(String status, Long unitId) {
         try {
-            Boolean statusBoolean =status.equalsIgnoreCase("false")?false:true;
+            Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
 
-            List<Department> departmentList = departmentRepository.findByStatusAndUnitId(statusBoolean,unitId);
+            List<Department> departmentList = departmentRepository.findByStatusAndUnitId(statusBoolean, unitId);
             if (departmentList.isEmpty())
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No departments available!");
 

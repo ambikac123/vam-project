@@ -3,6 +3,7 @@ package com.dreamsol.services;
 import org.springframework.stereotype.Service;
 
 import com.dreamsol.dtos.requestDtos.VisitorRequestDto;
+import com.dreamsol.dtos.responseDtos.VisitorCountDto;
 import com.dreamsol.dtos.responseDtos.VisitorResponseDto;
 import com.dreamsol.entites.Department;
 import com.dreamsol.entites.Purpose;
@@ -30,6 +31,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,6 +64,15 @@ public class VisitorService {
                                 .orElseThrow(() -> new RuntimeException(
                                                 "Unit not found with id : " + visitorRequestDto.getUnitId()));
 
+                try {
+                        LocalDateTime validfrom = LocalDateTime.parse(visitorRequestDto.getValidFrom());
+                        LocalDateTime validTill = LocalDateTime.parse(visitorRequestDto.getValidTill());
+                        visitor.setValidFrom(validfrom);
+                        visitor.setValidTill(validTill);
+                } catch (Exception e) {
+                        throw new RuntimeException(
+                                        "Please Select a Valid Date and Time, format is YYYY-MM-DDTHH-MM-SS");
+                }
                 visitor.setDepartment(department);
                 visitor.setUser(user);
                 visitor.setPurpose(purpose);
@@ -124,16 +135,28 @@ public class VisitorService {
         }
 
         public ResponseEntity<?> getVisitors(int pageSize, int page, String sortBy, String sortDirection, String status,
-                        Long unitId, Long employeeId, Long purposeId, Long departmentId) {
+                        Long unitId, Long employeeId, Long purposeId, Long departmentId, String fromDate,
+                        String toDate) {
                 Sort.Direction direction = sortDirection.equalsIgnoreCase("Asc") ? Sort.Direction.ASC
                                 : Sort.Direction.DESC;
                 PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(direction, sortBy));
 
                 Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
-
+                LocalDate dateFormatFromDate = null;
+                LocalDate dateFormatToDate = null;
+                try {
+                        dateFormatFromDate = fromDate != null ? LocalDate.parse(fromDate) : null;
+                        dateFormatToDate = toDate != null ? LocalDate.parse(toDate) : null;
+                } catch (Exception e) {
+                        throw new RuntimeException("Please Select a Valid Date Format YYYY-MM-DD");
+                }
+                LocalDateTime startDate = dateFormatFromDate != null ? dateFormatFromDate.atStartOfDay() : null;
+                LocalDateTime endDate = dateFormatToDate != null ? dateFormatToDate.atTime(java.time.LocalTime.MAX)
+                                : null;
                 Page<Visitor> visitorsPage = visitorRepository
                                 .findByEmployeeIdAndPurposeIdAndDepartmentIdAndUnitIdAndStatus(
-                                                employeeId, purposeId, departmentId, unitId, statusBoolean,
+                                                employeeId, purposeId, departmentId, unitId, statusBoolean, startDate,
+                                                endDate,
                                                 pageRequest);
 
                 Page<VisitorResponseDto> visitorResponseDtos = visitorsPage
@@ -146,13 +169,26 @@ public class VisitorService {
         }
 
         public ResponseEntity<?> downloadVisitorDataAsExcel(String status, Long unitId, Long employeeId, Long purposeId,
-                        Long departmentId) throws java.io.IOException {
+                        Long departmentId, String fromDate, String toDate) throws java.io.IOException {
+                LocalDate dateFormatFromDate = null;
+                LocalDate dateFormatToDate = null;
                 try {
+                        dateFormatFromDate = fromDate != null ? LocalDate.parse(fromDate) : null;
+                        dateFormatToDate = toDate != null ? LocalDate.parse(toDate) : null;
+                } catch (Exception e) {
+                        throw new RuntimeException("Please Select a Valid Date Format YYYY-MM-DD");
+                }
+                try {
+                        LocalDateTime startDate = dateFormatFromDate != null ? dateFormatFromDate.atStartOfDay() : null;
+                        LocalDateTime endDate = dateFormatToDate != null
+                                        ? dateFormatToDate.atTime(java.time.LocalTime.MAX)
+                                        : null;
                         Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
 
                         List<Visitor> visitorList = visitorRepository
                                         .findByEmployeeIdAndPurposeIdAndDepartmentIdAndUnitIdAndStatus(employeeId,
-                                                        purposeId, departmentId, unitId, statusBoolean);
+                                                        purposeId, departmentId, unitId, statusBoolean, startDate,
+                                                        endDate);
                         if (visitorList.isEmpty()) {
                                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No purposes available!");
                         }
@@ -179,35 +215,52 @@ public class VisitorService {
                 }
         }
 
-        // public ResponseEntity<?> getVisitorsCount(int pageSize, int page, String
-        // sortBy, String sortDirection,
-        // String status,
-        // Long unitId, Long employeeId, Long purposeId, Long departmentId, String
-        // fromDate,
-        // String toDate) {
-        // Sort.Direction direction = sortDirection.equalsIgnoreCase("Asc") ?
-        // Sort.Direction.ASC
-        // : Sort.Direction.DESC;
-        // PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(direction,
-        // sortBy));
+        public ResponseEntity<?> getVisitorsCount(String status, Long unitId, Long employeeId, Long purposeId,
+                        Long departmentId, String fromDate,
+                        String toDate) {
 
-        // Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
-        // LocalDateTime fromDateNew = fromDate != null ? LocalDateTime.parse(fromDate)
-        // : null;
-        // LocalDateTime toDateNew = toDate != null ? LocalDateTime.parse(toDate) :
-        // null;
+                Boolean statusBoolean = status != null ? Boolean.parseBoolean(status) : null;
+                LocalDate dateFormatFromDate = null;
+                LocalDate dateFormatToDate = null;
+                try {
+                        dateFormatFromDate = fromDate != null ? LocalDate.parse(fromDate) : null;
+                        dateFormatToDate = toDate != null ? LocalDate.parse(toDate) : null;
+                } catch (Exception e) {
+                        throw new RuntimeException("Please Select a Valid Date Format YYYY-MM-DD");
+                }
+                LocalDateTime fromDateNew = dateFormatFromDate != null ? dateFormatFromDate.atStartOfDay()
+                                : null;
+                LocalDateTime toDateNew = dateFormatToDate != null ? dateFormatToDate.atTime(java.time.LocalTime.MAX)
+                                : null;
 
-        // Page<Visitor> visitorsPage = visitorRepository
-        // .findVisistorCount(
-        // employeeId, purposeId, departmentId, unitId, statusBoolean, fromDateNew,
-        // toDateNew, pageRequest);
+                List<Visitor> list = visitorRepository.findByEmployeeIdAndPurposeIdAndDepartmentIdAndUnitIdAndStatus(
+                                employeeId, purposeId, departmentId, unitId, statusBoolean, fromDateNew, toDateNew);
 
-        // Page<VisitorResponseDto> visitorResponseDtos = visitorsPage
-        // .map((visitor) -> {
-        // VisitorResponseDto dto = DtoUtilities.visitorToVisitorResponseDto(visitor);
-        // dto.setUser(utilities.userToUserResponseDto(visitor.getUser()));
-        // return dto;
-        // });
-        // return ResponseEntity.ok(visitorResponseDtos);
-        // }
+                Long totalVisitor = 0l;
+                Long totalVisitorApproval = 0l;
+                Long totalVisitorIn = 0l;
+                Long totalVisitorOut = 0l;
+                Long totalVisitorNotApproval = 0l;
+
+                for (Visitor visitor : list) {
+                        totalVisitor++;
+                        if (visitor.isApprovalRequired() == false) {
+                                totalVisitorNotApproval++;
+                                if (visitor.isStatus()) {
+                                        totalVisitorIn++;
+                                } else {
+                                        totalVisitorOut++;
+                                }
+                        } else {
+                                totalVisitorApproval++;
+                        }
+                }
+                VisitorCountDto count = new VisitorCountDto();
+                count.setTotalVisitor(totalVisitor);
+                count.setVisitorIn(totalVisitorIn);
+                count.setVisitorOut(totalVisitorOut);
+                count.setVistorApprovalNotRequired(totalVisitorNotApproval);
+                count.setVisitorApprovalRequired(totalVisitorApproval);
+                return ResponseEntity.ok(count);
+        }
 }

@@ -26,8 +26,12 @@ public class PurposeRequestDto extends CommonAutoIdEntityRequestDto {
     private String purposeBrief;
 
     private boolean alert;
+
+    @Size(max = 10, min = 5, message = "Size cannot be more than 10 and less than 5 for Time")
     private String alertTime;
+
     private Long userId;
+
     private Long departmentId;
 
 }

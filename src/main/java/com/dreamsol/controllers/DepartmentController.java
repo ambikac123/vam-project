@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import com.dreamsol.dtos.requestDtos.DepartmentRequestDto;
 import com.dreamsol.dtos.responseDtos.DepartmentResponseDto;
 import com.dreamsol.services.DepartmentService;
+import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,7 +27,11 @@ public class DepartmentController {
             @Valid @RequestBody DepartmentRequestDto departmentRequestDto) {
         return departmentService.createDepartment(departmentRequestDto);
     }
-
+    @PostMapping("/create-departments")
+    public ResponseEntity<?> createDepartments(
+            @Valid @RequestBody List<DepartmentRequestDto> departmentRequestDtoList) {
+        return departmentService.createDepartments(departmentRequestDtoList);
+    }
     @PutMapping("/update-department/{id}")
     public ResponseEntity<DepartmentResponseDto> updateDepartment(@PathVariable Long id,
             @Valid @RequestBody DepartmentRequestDto departmentRequestDto) {
