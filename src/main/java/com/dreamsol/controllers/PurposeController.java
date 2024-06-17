@@ -1,9 +1,11 @@
 package com.dreamsol.controllers;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.validation.Valid;
 
+import com.dreamsol.dtos.requestDtos.UserRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,7 @@ import com.dreamsol.dtos.responseDtos.PurposeResponseDto;
 import com.dreamsol.services.PurposeService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/purposes")
@@ -68,7 +71,16 @@ public class PurposeController {
     public ResponseEntity<?> downloadExcelSample() throws IOException {
         return purposeService.downloadPurposeExcelSample();
     }
-
+    @PostMapping(value = "/upload-excel-file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadExcelFile(@RequestParam("file") MultipartFile file)
+    {
+        return purposeService.uploadPurposeExcel(file, PurposeRequestDto.class);
+    }
+    @PostMapping("/save-bulk-data")
+    public ResponseEntity<?> saveBulkData(@RequestBody @Valid List<PurposeRequestDto> purposeRequestDtos)
+    {
+        return purposeService.saveBulkData(purposeRequestDtos);
+    }
     @GetMapping("/drop-down")
     public ResponseEntity<?> getPurposeDropDown() {
         return purposeService.getDropDown();

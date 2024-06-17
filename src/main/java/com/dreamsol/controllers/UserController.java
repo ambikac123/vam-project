@@ -81,7 +81,7 @@ public class UserController
     @PostMapping(value = "/upload-excel-data", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadExcelData(@RequestParam("file") MultipartFile file)
     {
-        return userService.uploadExcelFile(file,UserRequestDto.class);
+        return userService.uploadExcelFile(file, UserRequestDto.class);
     }
     @PostMapping("/save-bulk-data")
     public ResponseEntity<?> saveBulkData(@RequestBody @Valid List<UserRequestDto> userList)

@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
 import java.time.LocalDate;
 
@@ -52,7 +54,12 @@ public class VisitorPrerequestController
         return visitorPrerequestService.get(id);
     }
     @GetMapping("/get-by-mobile/{mobile}")
-    public ResponseEntity<?> getVisitorPrerequestByMobile(Long mobile){
+    public ResponseEntity<?> getVisitorPrerequestByMobile(
+            @Valid
+            @Min(value = 6000000000L, message = "mobile no. must start with 6,7,8 or 9")
+            @Max(value = 9999999999L, message = "mobile no. must have 10-digits long")
+            Long mobile
+    ){
         return visitorPrerequestService.getVisitorByMobile(mobile);
     }
     @GetMapping("/get-status-count")

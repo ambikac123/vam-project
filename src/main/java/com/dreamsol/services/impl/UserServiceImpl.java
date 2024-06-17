@@ -5,9 +5,11 @@ import com.dreamsol.dtos.responseDtos.DropDownDto;
 import com.dreamsol.dtos.responseDtos.ExcelValidateDataResponseDto;
 import com.dreamsol.dtos.responseDtos.UserResponseDto;
 import com.dreamsol.dtos.responseDtos.ValidatedData;
+import com.dreamsol.entites.Unit;
 import com.dreamsol.entites.User;
 import com.dreamsol.entites.UserType;
 import com.dreamsol.exceptions.ResourceNotFoundException;
+import com.dreamsol.repositories.UnitRepository;
 import com.dreamsol.repositories.UserRepository;
 import com.dreamsol.repositories.UserTypeRepository;
 import com.dreamsol.securities.JwtUtil;
@@ -44,6 +46,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
     private final ExcelUtility excelUtility;
     private final UserRepository userRepository;
     private final UserTypeRepository userTypeRepository;
+    private final UnitRepository unitRepository;
     private final PasswordEncoder passwordEncoder;
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
@@ -200,12 +203,12 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
         }
     }
     @Override
-    public ResponseEntity<?> uploadExcelFile(MultipartFile file,Class<?> currentClass)
+    public ResponseEntity<?> uploadExcelFile(MultipartFile file,Class<?> requestDtoClass)
     {
         try{
             if(excelUtility.isExcelFile(file))
             {
-                ExcelValidateDataResponseDto validateDataResponse = excelUtility.validateExcelData(file,currentClass);
+                ExcelValidateDataResponseDto validateDataResponse = excelUtility.validateExcelData(file,requestDtoClass);
                 validateDataResponse = validateDataFromDB(validateDataResponse);
                 validateDataResponse.setTotalValidData(validateDataResponse.getValidDataList().size());
                 validateDataResponse.setTotalInvalidData(validateDataResponse.getInvalidDataList().size());
@@ -259,7 +262,12 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
         }
         Optional<UserType> userTypeOptional = userTypeRepository.findByUserTypeName(userRequestDto.getUserTypeName());
         if(userTypeOptional.isEmpty()) {
-            message.append("usertype doesn't exist!");
+            message.append("usertype doesn't exist!, ");
+            status = false;
+        }
+        Optional<Unit> unitOptional = unitRepository.findById(userRequestDto.getUnitId());
+        if(unitOptional.isEmpty()){
+            message.append("unit doesn't exist!");
             status = false;
         }
         checkedData.setData(userRequestDto);

@@ -2,9 +2,12 @@ package com.dreamsol.services;
 
 import com.dreamsol.dtos.requestDtos.PurposeRequestDto;
 import com.dreamsol.dtos.responseDtos.DropDownDto;
+import com.dreamsol.dtos.responseDtos.ExcelValidateDataResponseDto;
 import com.dreamsol.dtos.responseDtos.PurposeResponseDto;
+import com.dreamsol.dtos.responseDtos.ValidatedData;
 import com.dreamsol.entites.Department;
 import com.dreamsol.entites.Purpose;
+import com.dreamsol.entites.Unit;
 import com.dreamsol.entites.User;
 import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.repositories.DepartmentRepository;
@@ -20,7 +23,10 @@ import lombok.RequiredArgsConstructor;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.core.io.Resource;
@@ -32,6 +38,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -196,7 +203,105 @@ public class PurposeService {
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                 .body(resource);
     }
+    public ResponseEntity<?> uploadPurposeExcel(MultipartFile file, Class<?> requestDtoClass)
+    {
+        try{
+            if(excelUtility.isExcelFile(file))
+            {
+                ExcelValidateDataResponseDto validateDataResponse = excelUtility.validateExcelData(file,requestDtoClass);
+                validateDataResponse = validateDataFromDB(validateDataResponse);
+                validateDataResponse.setTotalValidData(validateDataResponse.getValidDataList().size());
+                validateDataResponse.setTotalInvalidData(validateDataResponse.getInvalidDataList().size());
+                if(validateDataResponse.getTotalData()==0){
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No data available in excel sheet!");
+                }
+                return ResponseEntity.status(HttpStatus.OK).body(validateDataResponse);
+            }else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect uploaded file type! supported [.xlsx or xls] type");
+            }
+        }catch(Exception e)
+        {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while validating excel data: "+e.getMessage());
+        }
+    }
+    public ExcelValidateDataResponseDto validateDataFromDB(ExcelValidateDataResponseDto validateDataResponse){
 
+        List<?> validList = validateDataResponse.getValidDataList();
+        List<ValidatedData> invalidList = validateDataResponse.getInvalidDataList();
+        List<PurposeRequestDto> purposeRequestDtos = new ArrayList<>();
+        for(int i=0;i<validList.size();)
+        {
+            ValidatedData validatedData = (ValidatedData) validList.get(i);
+            PurposeRequestDto userRequestDto = (PurposeRequestDto) validatedData.getData();
+            ValidatedData checkedData = checkValidOrNot(userRequestDto);
+            if(!checkedData.isStatus())
+            {
+                invalidList.add(checkedData);
+                validList.remove(validatedData);
+                continue;
+            }
+            purposeRequestDtos.add(userRequestDto);
+            i++;
+        }
+        validateDataResponse.setValidDataList(purposeRequestDtos);
+        return validateDataResponse;
+    }
+    public ValidatedData checkValidOrNot(PurposeRequestDto purposeRequestDto){
+        StringBuilder message = new StringBuilder();
+        boolean status = true;
+        ValidatedData checkedData = new ValidatedData();
+        if(purposeRequestDto.isAlert()){
+            Optional<User> user = userRepository.findById(purposeRequestDto.getUserId());
+            if(user.isEmpty())
+            {
+                message.append("user with id: ").append(purposeRequestDto.getUserId()).append(" doesn't exist, ");
+                status = false;
+            }
+            Optional<Department> department = departmentRepository.findById(purposeRequestDto.getDepartmentId());
+            if(department.isEmpty()){
+                message.append("department with id: ").append(purposeRequestDto.getDepartmentId()).append(" doesn't exist, ");
+                status = false;
+            }
+            Optional<Unit> unit = unitRepository.findById(purposeRequestDto.getUnitId());
+            if(unit.isEmpty()){
+                message.append("unit with id: ").append(purposeRequestDto.getUnitId()).append(" doesn't exist!, ");
+                status = false;
+            }
+            try {
+                LocalTime.parse(purposeRequestDto.getAlertTime());
+            }catch (DateTimeParseException e){
+                message.append("Please enter a valid time with format HH:MM:SS");
+                status = false;
+            }
+        }
+        checkedData.setData(purposeRequestDto);
+        checkedData.setMessage(message.toString());
+        checkedData.setStatus(status);
+        return checkedData;
+    }
+    public ResponseEntity<?> saveBulkData(List<PurposeRequestDto> purposeRequestDtos) {
+        try{
+            String username = jwtUtil.getCurrentLoginUser();
+            List<Purpose> purposeList = purposeRequestDtos.stream()
+                    .map(purposeReqDto -> {
+                        Purpose purpose = DtoUtilities.purposeRequestDtoToPurpose(purposeReqDto);
+                        Optional<User> user = userRepository.findById(purposeReqDto.getUserId());
+                        Optional<Department> department = departmentRepository.findById(purposeReqDto.getDepartmentId());
+                        purpose.setCreatedBy(username);
+                        purpose.setUpdatedBy(username);
+                        purpose.setStatus(purposeReqDto.isStatus());
+                        purpose.setUser(user.orElse(null));
+                        purpose.setDepartment(department.orElse(null));
+                        purpose.setAlertTime(LocalTime.parse(purposeReqDto.getAlertTime()));
+                        return purpose;
+                    })
+                    .collect(Collectors.toList());
+            purposeRepository.saveAll(purposeList);
+            return ResponseEntity.status(HttpStatus.CREATED).body("All data saved successfully");
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while saving bulk data: "+e.getMessage());
+        }
+    }
     public ResponseEntity<?> getDropDown() {
         List<Purpose> purposes = purposeRepository.findAll();
         return ResponseEntity.ok(purposes.stream().map(this::purposeToDropDownRes).collect(Collectors.toList()));

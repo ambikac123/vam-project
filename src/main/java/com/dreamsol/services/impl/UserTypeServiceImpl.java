@@ -5,8 +5,10 @@ import com.dreamsol.dtos.responseDtos.DropDownDto;
 import com.dreamsol.dtos.responseDtos.ExcelValidateDataResponseDto;
 import com.dreamsol.dtos.responseDtos.UserTypeResponseDto;
 import com.dreamsol.dtos.responseDtos.ValidatedData;
+import com.dreamsol.entites.Unit;
 import com.dreamsol.entites.UserType;
 import com.dreamsol.exceptions.ResourceNotFoundException;
+import com.dreamsol.repositories.UnitRepository;
 import com.dreamsol.repositories.UserTypeRepository;
 import com.dreamsol.securities.JwtUtil;
 import com.dreamsol.services.CommonService;
@@ -40,6 +42,7 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
     private final ExcelUtility excelUtility;
     private final JwtUtil jwtUtil;
     private final UserTypeRepository userTypeRepository;
+    private final UnitRepository unitRepository;
     private static final Logger logger = LoggerFactory.getLogger(UserTypeServiceImpl.class);
     @Override
     public ResponseEntity<?> create(UserTypeRequestDto userTypeRequestDto) {
@@ -222,7 +225,13 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
         ValidatedData checkedData = new ValidatedData();
         Optional<UserType> userTypeOptional = userTypeRepository.findByUserTypeNameOrUserTypeCode(userTypeRequestDto.getUserTypeName(),userTypeRequestDto.getUserTypeCode());
         if(userTypeOptional.isPresent()){
-            message.append("usertype already exist!");
+            message.append("usertype already exist!, ");
+            status = false;
+        }
+        Optional<Unit> unitOptional = unitRepository.findById(userTypeRequestDto.getUnitId());
+        if(unitOptional.isEmpty())
+        {
+            message.append("unit doesn't exist!");
             status = false;
         }
         checkedData.setData(userTypeRequestDto);

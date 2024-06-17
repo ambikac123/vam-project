@@ -27,6 +27,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,24 +53,15 @@ public class VisitorPrerequestService
             visitorPrerequest.setOtp(generateOTP());
             visitorPrerequest.setMeetingStatus(visitorPrerequestDto.getMeetingStatus());
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
-            if(visitorPrerequestDto.getStartHours()==null) {
-                visitorPrerequest.setStartHours(LocalTime.MIN);
-            }else {
-                LocalTime startHours = LocalTime.parse(visitorPrerequestDto.getStartHours(), formatter);
-                visitorPrerequest.setStartHours(startHours);
-            }
-            if(visitorPrerequestDto.getEndHours()==null){
-                visitorPrerequest.setEndHours(LocalTime.MAX);
-            }else{
-                LocalTime endHours = LocalTime.parse(visitorPrerequestDto.getEndHours(),formatter);
-                visitorPrerequest.setEndHours(endHours);
-            }
+            visitorPrerequest.setStartHours(visitorPrerequestDto.getStartHours()==null?LocalTime.MIN:LocalTime.parse(visitorPrerequestDto.getStartHours(), formatter));
+            visitorPrerequest.setEndHours(visitorPrerequestDto.getEndHours()==null?LocalTime.MAX:LocalTime.parse(visitorPrerequestDto.getEndHours(),formatter));
             visitorRepository.save(visitorPrerequest);
             logger.info("Pre-requested new visitor created successfully!");
             return ResponseEntity.status(HttpStatus.CREATED).body("Pre-requested new visitor created successfully!");
-        }catch (Exception e){
+        }
+        catch (Exception e){
             logger.error("Error occurred while creating new visitor, ",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while creating new visitor:"+e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while creating new visitor!");
         }
     }
     public String generateOTP(){
@@ -86,18 +78,8 @@ public class VisitorPrerequestService
             visitorPrerequest.setMeetingPurpose(purpose);
             visitorPrerequest.setMeetingStatus(visitorPrerequestDto.getMeetingStatus());
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
-            if(visitorPrerequestDto.getStartHours()==null) {
-                visitorPrerequest.setStartHours(LocalTime.MIN);
-            }else {
-                LocalTime startHours = LocalTime.parse(visitorPrerequestDto.getStartHours(), formatter);
-                visitorPrerequest.setStartHours(startHours);
-            }
-            if(visitorPrerequestDto.getEndHours()==null){
-                visitorPrerequest.setEndHours(LocalTime.MAX);
-            }else{
-                LocalTime endHours = LocalTime.parse(visitorPrerequestDto.getEndHours(),formatter);
-                visitorPrerequest.setEndHours(endHours);
-            }
+            visitorPrerequest.setStartHours(visitorPrerequestDto.getStartHours()==null?LocalTime.MIN:LocalTime.parse(visitorPrerequestDto.getStartHours(), formatter));
+            visitorPrerequest.setEndHours(visitorPrerequestDto.getEndHours()==null?LocalTime.MAX:LocalTime.parse(visitorPrerequestDto.getEndHours(),formatter));
             visitorRepository.save(visitorPrerequest);
             logger.info("Pre-requested visitor with id: "+id+" updated successfully!");
             return ResponseEntity.status(HttpStatus.OK).body("Pre-requested visitor with id: "+id+" updated successfully!");
@@ -117,7 +99,7 @@ public class VisitorPrerequestService
             return ResponseEntity.status(HttpStatus.OK).body("Visitor pre-request with id: "+id+" deleted successfully!");
         }catch (Exception e){
             logger.error("Error occurred while deleting visitor pre-request: "+e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while deleting visitor pre-request: "+e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while deleting visitor pre-request!");
         }
     }
 
@@ -129,7 +111,7 @@ public class VisitorPrerequestService
             return ResponseEntity.status(HttpStatus.FOUND).body(visitorPrerequest);
         }catch (Exception e){
             logger.error("Error occurred while fetching pre-requested visitor with id: "+id,e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while fetching pre-requested visitor with id: "+id+", "+e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while fetching pre-requested visitor with id: "+id);
         }
     }
     public ResponseEntity<?> getVisitorByMobile(Long mobile){
@@ -144,27 +126,39 @@ public class VisitorPrerequestService
     }
 
     public ResponseEntity<?> getStatusCount(String meetingStatus,Long meetingPurposeId,LocalDate fromDate,LocalDate toDate){
-        LocalDateTime from = fromDate.atStartOfDay();
-        LocalDateTime to = toDate.atTime(LocalTime.MAX);
-        List<VisitorPrerequest> prerequestList = visitorRepository.findByFilters(meetingStatus,meetingPurposeId,from,to);
-        Map<String,Long> meetingStatusCount = new LinkedHashMap<>();
-        long countPending = 0L;
-        long countDone = 0L;
-        long countRescheduled = 0L;
-        long countCancelled = 0L;
-        for(VisitorPrerequest visitorPrerequest : prerequestList){
-            switch(visitorPrerequest.getMeetingStatus().toLowerCase()){
-                case "pending": countPending++; break;
-                case "done": countDone++; break;
-                case "reschedule": countRescheduled++; break;
-                case "cancel": countCancelled++;
+        try {
+            LocalDateTime from = fromDate.atStartOfDay();
+            LocalDateTime to = toDate.atTime(LocalTime.MAX);
+            List<VisitorPrerequest> prerequestList = visitorRepository.findByFilters(meetingStatus, meetingPurposeId, from, to);
+            Map<String, Long> meetingStatusCount = new LinkedHashMap<>();
+            long countPending = 0L;
+            long countDone = 0L;
+            long countRescheduled = 0L;
+            long countCancelled = 0L;
+            for (VisitorPrerequest visitorPrerequest : prerequestList) {
+                switch (visitorPrerequest.getMeetingStatus().toLowerCase()) {
+                    case "pending":
+                        countPending++;
+                        break;
+                    case "done":
+                        countDone++;
+                        break;
+                    case "reschedule":
+                        countRescheduled++;
+                        break;
+                    case "cancel":
+                        countCancelled++;
+                }
             }
+            meetingStatusCount.put("Pending", countPending);
+            meetingStatusCount.put("Done", countDone);
+            meetingStatusCount.put("Rescheduled", countRescheduled);
+            meetingStatusCount.put("Cancelled", countCancelled);
+            return ResponseEntity.status(HttpStatus.OK).body(meetingStatusCount);
+        }catch (Exception e){
+            logger.error("Error occurred while fetching count of meeting status",e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while fetching count of meeting status: ");
         }
-        meetingStatusCount.put("Pending",countPending);
-        meetingStatusCount.put("Done",countDone);
-        meetingStatusCount.put("Rescheduled",countRescheduled);
-        meetingStatusCount.put("Cancelled",countCancelled);
-        return ResponseEntity.status(HttpStatus.OK).body(meetingStatusCount);
     }
     public ResponseEntity<?> getAll(Integer pageNumber, Integer pageSize, String sortBy, String sortDir, Long unitId, Boolean status, Long meetingPurposeId, String meetingStatus, String fromDate, String toDate) {
         try {
@@ -177,7 +171,11 @@ public class VisitorPrerequestService
             List<VisitorPrerequest> prerequestList = visitorRepository.findByFilters(unitId, status, meetingPurposeId, meetingStatus, from, to, pageable);
             logger.info("All visitors data fetched successfully!");
             return ResponseEntity.status(HttpStatus.OK).body(prerequestList);
-        }catch (Exception e){
+        }catch (DateTimeParseException e){
+            logger.error("Invalid date format, It must be in YYYY-MM-DD format!",e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid date format, It must be in YYYY-MM-DD format!");
+        }
+        catch (Exception e){
             logger.error("Error occurred while fetching all visitors: ",e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while fetching all visitors: "+e.getMessage());
         }
@@ -193,7 +191,7 @@ public class VisitorPrerequestService
             List<VisitorPrerequest> prerequestList = visitorRepository.findByFilters(unitId,status,meetingPurposeId,meetingStatus,from,to);
             if (prerequestList.isEmpty()) {
                 logger.info("No visitors available!");
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No visitors available!");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No visitors available!");
             }
             List<VisitorPrerequestResponseDto> responseDtos = prerequestList.stream()
                     .map(dtoUtilities::visitorPrerequestToVisitorPrerequestResponseDto)
@@ -206,7 +204,11 @@ public class VisitorPrerequestService
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
                     .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                     .body(resource);
-        }catch (Exception e){
+        }catch (DateTimeParseException e){
+            logger.error("Invalid date format, It must be in YYYY-MM-DD format!",e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid date format, It must be in YYYY-MM-DD format!");
+        }
+        catch (Exception e){
             logger.error("Error occurred while downloading data as excel file: ",e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while downloading data as excel file: "+e.getMessage());
         }

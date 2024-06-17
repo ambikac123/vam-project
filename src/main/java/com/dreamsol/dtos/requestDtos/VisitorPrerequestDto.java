@@ -57,11 +57,11 @@ public class VisitorPrerequestDto extends CommonAutoIdEntityRequestDto
     private LocalDateTime meetingSchedule;
 
     @Schema(description = "Start hours for the meeting", example = " ")
-    @Pattern(regexp = "^(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$", message = "start hours must be in HH:MM:SS format")
+    @Pattern(regexp = "^(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$", message = "start hours must be valid in HH:MM:SS format")
     private String startHours;
 
     @Schema(description = "End hours for the meeting", example = " ")
-    @Pattern(regexp = "^(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$", message = "end hours must be in HH:MM:SS format")
+    @Pattern(regexp = "^(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$", message = "end hours must be valid in HH:MM:SS format")
     private String endHours;
 
     @Size(max = 100, message = "Location must be at most 100 characters long")
