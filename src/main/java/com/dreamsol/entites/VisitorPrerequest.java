@@ -17,16 +17,16 @@ import java.time.LocalTime;
 public class VisitorPrerequest extends CommonAutoIdEntity {
     @Column(length = 50, nullable = false)
     private String name;
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private Long mobile;
-    @Column(length = 100, unique = true)
-    private String email;
+    @Column(length = 100)
+    private String email="";
     @Column(length = 50, nullable = false)
     private String organizationName;
     @Column(length = 100)
-    private String address;
+    private String address="";
     @Column(length = 50)
-    private String possessionsAllowed;
+    private String possessionsAllowed="";
     @OneToOne
     private Purpose meetingPurpose;
     private LocalDateTime meetingSchedule;

@@ -7,7 +7,6 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -19,13 +18,13 @@ public class VisitorPrerequestDto extends CommonAutoIdEntityRequestDto
 {
 
     @NotBlank(message = "Name is mandatory")
-    @Size(min = 3, max=50, message = "User name should contain a minimum of 3 and a maximum of 50 characters")
+    @Size(min = 3, max=50, message = "Visitor name should contain a minimum of 3 and a maximum of 50 characters")
     @Pattern(regexp = "^[A-Za-z]+(?:[\\s'][A-Za-z]+)*$", message = "Name should contain alphabets only")
     @Schema(description = "Name of visitor", example = " ")
     private String name;
 
     @NotNull(message = "Mobile no. is mandatory")
-    @Min(value = 6000000000L, message = "Mobile number must be at least 10 digits and starts with 6,7,8 or 9")
+    @Min(value = 6000000000L, message = "Mobile number must start with 6,7,8 or 9")
     @Max(value = 9999999999L, message = "Mobile number must be at most 10 digits")
     @Schema(description = "mobile no. of visitor", example = "0")
     private Long mobile;
@@ -44,7 +43,7 @@ public class VisitorPrerequestDto extends CommonAutoIdEntityRequestDto
     @Schema(description = "Address of the visitor", example = " ")
     private String address;
 
-    @Size(max = 100, message = "Possessions allowed must be at most 100 characters long")
+    @Size(max = 50, message = "Possessions allowed must be at most 50 characters long")
     @Schema(description = "Allowed possessions for visitor", example = " ")
     private String possessionsAllowed;
 
@@ -54,7 +53,7 @@ public class VisitorPrerequestDto extends CommonAutoIdEntityRequestDto
 
     @NotNull(message = "must schedule the meeting time")
     @Schema(description = "Scheduled time for the meeting", example = " ")
-    private LocalDateTime meetingSchedule;
+    private String meetingSchedule;
 
     @Schema(description = "Start hours for the meeting", example = " ")
     @Pattern(regexp = "^(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$", message = "start hours must be valid in HH:MM:SS format")
