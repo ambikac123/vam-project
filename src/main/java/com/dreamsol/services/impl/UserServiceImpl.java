@@ -74,7 +74,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
             return ResponseEntity.status(HttpStatus.CREATED).body("New user created successfully!");
         } catch (Exception e) {
             logger.error("Error occurred while creating new user: ",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while creating new user: "+e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while creating new user.");
         }
     }
 
@@ -97,7 +97,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
             return ResponseEntity.status(HttpStatus.OK).body("User with id: "+id+" updated successfully!");
         } catch (Exception e) {
             logger.error("Error occurred while updating user: ",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while updating user: "+e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while updating user.");
         }
     }
 
@@ -112,7 +112,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
             return ResponseEntity.status(HttpStatus.OK).body("user with id: "+id+" deleted successfully!");
         } catch (Exception e) {
             logger.error("Error occurred while deleting user with id: "+id,e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while deleting user with id: "+id+", "+e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while deleting user with id: "+id);
         }
     }
 
@@ -128,17 +128,23 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
             return ResponseEntity.status(HttpStatus.FOUND).body(dtoUtilities.userToUserResponseDto(userOptional.get()));
         } catch (Exception e) {
             logger.error("Error occurred while fetching user with id: "+id,e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while fetching user with id: "+id+", "+e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while fetching user with id: "+id);
         }
     }
 
     @Override
     public ResponseEntity<?> getDropDown() {
-        List<User> users = userRepository.findAll();
-        List<DropDownDto> dropDownDtos = users.stream()
-                .map(user -> dtoUtilities.createDropDown.apply(user.getId(),user.getEmail()))
-                .collect(Collectors.toList());
-        return ResponseEntity.status(HttpStatus.OK).body(dropDownDtos);
+        try {
+            List<User> users = userRepository.findAll();
+            List<DropDownDto> dropDownDtos = users.stream()
+                    .map(user -> dtoUtilities.createDropDown.apply(user.getId(), user.getEmail()))
+                    .collect(Collectors.toList());
+            logger.info("fetched all users for drop-down");
+            return ResponseEntity.status(HttpStatus.OK).body(dropDownDtos);
+        }catch(Exception e){
+            logger.error("Error occurred while fetching user drop-down: ",e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while fetching user drop-down");
+        }
     }
 
     @Override
@@ -149,7 +155,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
             List<User> userList = userRepository.findByFilters(unitId,status,pageable);
             if (userList.isEmpty()) {
                 logger.info("No users available!");
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No users available!");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No users available!");
             }
             List<UserResponseDto> userResponseDtoList = userList.stream()
                     .map((dtoUtilities::userToUserResponseDto)).collect(Collectors.toList());
@@ -157,7 +163,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
             return ResponseEntity.status(HttpStatus.OK).body(userResponseDtoList);
         } catch (Exception e) {
             logger.error("Error occurred while fetching user's all data",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while fetching user's all data"+e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while fetching user's all data");
         }
     }
 
@@ -167,7 +173,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
             List<User> userList = userRepository.findByFilters(unitId,status);
             if (userList.isEmpty()) {
                 logger.info("No users available!");
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No users available!");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No users available!");
             }
             List<UserResponseDto> userResponseDtoList = userList.stream().map(dtoUtilities::userToUserResponseDto)
                     .collect(Collectors.toList());
@@ -181,7 +187,7 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
                     .body(resource);
         } catch (Exception e) {
             logger.error("Error occurred while downloading data as excel",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while downloading data as excel: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while downloading data as excel.");
         }
     }
     @Override
@@ -214,22 +220,22 @@ public class UserServiceImpl implements CommonService<UserRequestDto,Long>
                 validateDataResponse.setTotalInvalidData(validateDataResponse.getInvalidDataList().size());
                 if(validateDataResponse.getTotalData()==0){
                     logger.info("No data available in excel sheet!");
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No data available in excel sheet!");
+                    return ResponseEntity.status(HttpStatus.OK).body("No data available in excel sheet!");
                 }
                 logger.info("Excel data validated successfully!");
                 return ResponseEntity.status(HttpStatus.OK).body(validateDataResponse);
             }else {
                 logger.info("Incorrect uploaded file type!");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect uploaded file type! supported [.xlsx or xls] type");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect uploaded file type! supported only excel [.xlsx or xls] type");
             }
         }catch(Exception e)
         {
             logger.error("Error occurred while validating excel data",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while validating excel data: "+e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while validating excel data.");
         }
     }
-    public ExcelValidateDataResponseDto validateDataFromDB(ExcelValidateDataResponseDto validateDataResponse){
-
+    public ExcelValidateDataResponseDto validateDataFromDB(ExcelValidateDataResponseDto validateDataResponse)
+    {
         List<?> validList = validateDataResponse.getValidDataList();
         List<ValidatedData> invalidList = validateDataResponse.getInvalidDataList();
         List<UserRequestDto> userRequestDtoList = new ArrayList<>();
