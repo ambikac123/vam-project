@@ -91,7 +91,7 @@ public class ExcelUtility
         return new InputStreamResource(byteArrayInputStream);
     }
 
-    // To download data in excel file
+    // To download data as excel file
     public Resource downloadDataAsExcel(List<?> dataList,String sheetName) throws IOException, IllegalAccessException {
         Class<?> currentClass = dataList.get(0).getClass();
         Map<String,String> headersMap = getRequiredMap(currentClass,"header");
@@ -99,6 +99,7 @@ public class ExcelUtility
         headersMap.remove("Unit Id");
         return convertListToExcel(dataList,headersMap,sheetName);
     }
+    // To convert list to Excel sheet
     private Resource convertListToExcel(List<?> list, Map<String,String> headersMap, String sheetName) throws IllegalAccessException, IOException {
         Workbook workbook = new XSSFWorkbook();
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -138,6 +139,7 @@ public class ExcelUtility
         workbook.close();
         return new InputStreamResource(byteArrayInputStream);
     }
+    // To get the declared fields of a class and create new cell
     private int fieldsFromClass(Row row, Class<?> classType,Object item,int cellIndex) throws IllegalAccessException
     {
         Field[] fields = classType.getDeclaredFields();
@@ -164,6 +166,7 @@ public class ExcelUtility
         }
         return cellIndex;
     }
+    // To set object field value into cell
     private void setCellValueFromField(Cell cell, Field field, Object item) throws IllegalAccessException
     {
 
@@ -205,7 +208,7 @@ public class ExcelUtility
         {
             ValidatedData validatedData = new ValidatedData();
             validatedData.setData(data);
-            validateData(validatedData);
+            validateData(validatedData); // method call to validate data on the basis of annotations
             if(validatedData.isStatus()) {
                 validDataList.add(validatedData);
             }
@@ -219,6 +222,22 @@ public class ExcelUtility
         validateDataResponse.setMessage("Process completed successfully!");
         return validateDataResponse;
     }
+    // To convert excel data into list
+    private List<?> convertExcelToList(MultipartFile file, Class<?> currentClass) throws IOException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    List<Object> dataList = new ArrayList<>();
+    InputStream inputStream = file.getInputStream();
+    XSSFWorkbook workbook = new XSSFWorkbook(inputStream);
+    Sheet sheet = workbook.getSheetAt(0);
+    for (Row row : sheet) {
+        if (row.getRowNum() <= 1)
+            continue;
+        Object currentObject = currentClass.getDeclaredConstructor().newInstance();
+        int cellIndex = 0;
+        mapCellToField(currentClass, currentObject, row, cellIndex);
+        dataList.add(currentObject);
+    }
+    return dataList;
+}
 
     // To check whether the given data is valid or not
     private void validateData(ValidatedData validatedData)
@@ -240,21 +259,7 @@ public class ExcelUtility
     }
 
     // To convert excel data as list
-    private List<?> convertExcelToList(MultipartFile file, Class<?> currentClass) throws IOException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        List<Object> dataList = new ArrayList<>();
-        InputStream inputStream = file.getInputStream();
-        XSSFWorkbook workbook = new XSSFWorkbook(inputStream);
-        Sheet sheet = workbook.getSheetAt(0);
-        for (Row row : sheet) {
-            if (row.getRowNum() <= 1)
-                continue;
-            Object currentObject = currentClass.getDeclaredConstructor().newInstance();
-            int cellIndex = 0;
-            mapCellToField(currentClass, currentObject, row, cellIndex);
-            dataList.add(currentObject);
-        }
-        return dataList;
-    }
+
 
     // To map excel cells to object fields
     private void mapCellToField(Class<?> currentClass, Object currentObject, Row row, int cellIndex) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {

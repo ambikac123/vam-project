@@ -50,10 +50,8 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
 
             Optional<UserType> userTypeOptional = userTypeRepository.findByUserTypeNameOrUserTypeCode(userTypeRequestDto.getUserTypeName(),userTypeRequestDto.getUserTypeCode());
             if(userTypeOptional.isPresent()){
-              //  userTypeOptional.get().setStatus(userTypeRequestDto.isStatus());
-                userTypeRepository.save(userTypeOptional.get());
-                logger.info("user type already exist! [usertype reactivated]");
-                return ResponseEntity.status(HttpStatus.FOUND).body("user type already exist! [usertype reactivated]");
+                logger.info("user type already exist! [status= INACTIVE]");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user type already exist! [status= INACTIVE]");
             }
 
             UserType userType = dtoUtilities.userTypeRequestDtoToUserType(userTypeRequestDto);
@@ -63,14 +61,14 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
             return ResponseEntity.status(HttpStatus.CREATED).body("New user type created successfully!");
         }catch (Exception e){
             logger.error("Error occurred while creating user type, ",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while creating user type: "+e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while creating user type.");
         }
     }
 
     @Override
     public ResponseEntity<?> update(UserTypeRequestDto userTypeRequestDto, Long id) {
         try {
-            UserType userType = userTypeRepository.findByIdAndStatusTrue(id).orElseThrow(() -> new ResourceNotFoundException("usertype", "id", id));
+            UserType userType = userTypeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("usertype", "id", id));
             BeanUtils.copyProperties(userTypeRequestDto, userType);
             userType.setUpdatedBy(jwtUtil.getCurrentLoginUser());
             userTypeRepository.save(userType);
@@ -78,7 +76,7 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
             return ResponseEntity.status(HttpStatus.OK).body("user type updated successfully!");
         }catch (Exception e){
             logger.error("Error occurred while updating user type, ",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while updating user type: "+e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while updating user type.");
         }
     }
     @Override
@@ -91,7 +89,7 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
             return ResponseEntity.status(HttpStatus.OK).body("usertype with id:"+id+" deleted successfully!");
         }catch(Exception e){
             logger.error("Error occurred while deleting usertype: ",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while deleting usertype: "+e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while deleting usertype.");
         }
     }
 
@@ -104,17 +102,23 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
 
         }catch(Exception e){
             logger.error("Error occurred while searching usertype with id: "+id+" ,",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while searching usertype with id: "+id+" ,"+e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while searching usertype with id: "+id);
         }
     }
 
     @Override
     public ResponseEntity<?> getDropDown() {
-        List<UserType> userTypes = userTypeRepository.findAll();
-        List<DropDownDto> dropDownDtos = userTypes.stream()
-                .map(userType -> dtoUtilities.createDropDown.apply(userType.getId(),userType.getUserTypeName()))
-                .collect(Collectors.toList());
-        return ResponseEntity.status(HttpStatus.OK).body(dropDownDtos);
+        try {
+            List<UserType> userTypes = userTypeRepository.findAll();
+            List<DropDownDto> dropDownDtos = userTypes.stream()
+                    .map(userType -> dtoUtilities.createDropDown.apply(userType.getId(), userType.getUserTypeName()))
+                    .collect(Collectors.toList());
+            logger.info("fetched usertype drop-down successfully!");
+            return ResponseEntity.status(HttpStatus.OK).body(dropDownDtos);
+        }catch (Exception e){
+            logger.error("Error occurred while fetching usertype drop-down");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error");
+        }
     }
 
     @Override
@@ -147,7 +151,7 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
                     .body(resource);
         } catch (Exception e) {
             logger.error("Error occurred while downloading data as excel",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while downloading data as excel: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while downloading data as excel.");
         }
     }
 
@@ -180,7 +184,7 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
                 validateDataResponse.setTotalInvalidData(validateDataResponse.getInvalidDataList().size());
                 if(validateDataResponse.getTotalData()==0){
                     logger.info("No data available in excel sheet!");
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No data available in excel sheet!");
+                    return ResponseEntity.status(HttpStatus.OK).body("No data available in excel sheet!");
                 }
                 logger.info("Excel data validated successfully!");
                 return ResponseEntity.status(HttpStatus.OK).body(validateDataResponse);
@@ -191,7 +195,7 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
         }catch(Exception e)
         {
             logger.error("Error occurred while validating excel data",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while validating excel data: "+e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while validating excel data.");
         }
     }
 
@@ -261,7 +265,7 @@ public class UserTypeServiceImpl implements CommonService<UserTypeRequestDto,Lon
             return ResponseEntity.status(HttpStatus.CREATED).body("All data saved successfully");
         }catch (Exception e){
             logger.error("Error occurred while saving bulk data, ",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while saving bulk data: "+e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while saving bulk data.");
         }
     }
 }

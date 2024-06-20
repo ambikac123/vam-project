@@ -97,7 +97,7 @@ public class VisitorPrerequestService
             Purpose purpose = purposeRepository.findById(visitorPrerequestDto.getMeetingPurposeId()).orElseThrow(()->new ResourceNotFoundException("purpose","purposeFor",visitorPrerequestDto.getMeetingPurposeId()));
             visitorPrerequest.setMeetingPurpose(purpose);
             try {
-                DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss"); // Using 24-hour format
+                DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mm:ss"); // Using 24-hour format
                 DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd"); // Ensuring the date format
 
                 // Parsing Start Hours
