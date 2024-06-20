@@ -1,6 +1,9 @@
 package com.dreamsol.dtos.requestDtos;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
@@ -49,4 +52,9 @@ public class VisitorRequestDto extends CommonAutoIdEntityRequestDto {
 
     @Size(max = 25, min = 10, message = "Size cannot be more than 25 and less than 10 for DateAndTime")
     private String validTill;
+
+    @NotNull(message = "Mobile number is mandatory")
+    @Min(value = 6000000000L, message = "Mobile number must be at least 10 digits and starts with 6,7,8 or 9")
+    @Max(value = 9999999999L, message = "Mobile number must be at most 10 digits")
+    private Long phoneNumber;
 }

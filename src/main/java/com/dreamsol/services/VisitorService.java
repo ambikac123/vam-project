@@ -263,4 +263,10 @@ public class VisitorService {
                 count.setVisitorApprovalRequired(totalVisitorApproval);
                 return ResponseEntity.ok(count);
         }
+
+        public ResponseEntity<?> searchVisitor(Long phoneNumber) {
+                List<Visitor> visitors = visitorRepository.findByPhoneNumber(phoneNumber);
+                return visitors.isEmpty() ? ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+                                : ResponseEntity.ok(visitors.get(visitors.size() - 1));
+        }
 }

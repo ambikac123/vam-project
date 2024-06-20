@@ -45,5 +45,6 @@ public interface VisitorRepository extends JpaRepository<Visitor, Long> {
                         @Param("status") Boolean status,
                         @Param("fromDate") LocalDateTime fromDate,
                         @Param("toDate") LocalDateTime toDate);
-
+                        
+      List<Visitor> findByPhoneNumber(Long phoneNumber);
 }
