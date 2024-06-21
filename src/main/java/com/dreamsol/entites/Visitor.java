@@ -60,4 +60,7 @@ public class Visitor extends CommonAutoIdEntity {
     @Column(length = 100, nullable = true)
     private LocalDateTime validTill;
 
+    @Column(nullable = false)
+    private Long phoneNumber;
+
 }

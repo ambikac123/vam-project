@@ -91,11 +91,111 @@ public class ExcelUtility
         return new InputStreamResource(byteArrayInputStream);
     }
 
-    // To download data in excel file
+    // To download data as excel file
     public Resource downloadDataAsExcel(List<?> dataList,String sheetName) throws IOException, IllegalAccessException {
         Class<?> currentClass = dataList.get(0).getClass();
         Map<String,String> headersMap = getRequiredMap(currentClass,"header");
+        headersMap.remove("Id");
+        headersMap.remove("Unit Id");
         return convertListToExcel(dataList,headersMap,sheetName);
+    }
+    // To convert list to Excel sheet
+    private Resource convertListToExcel(List<?> list, Map<String,String> headersMap, String sheetName) throws IllegalAccessException, IOException {
+        Workbook workbook = new XSSFWorkbook();
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        Sheet sheet = workbook.createSheet(sheetName);
+        Set<String> headersNameSet = headersMap.keySet();
+
+        CellStyle style1 = workbook.createCellStyle();
+        style1.setAlignment(HorizontalAlignment.CENTER);
+        style1.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
+        style1.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        Font font1 = workbook.createFont();
+        font1.setColor(IndexedColors.WHITE.getIndex());
+        font1.setBold(true);
+        style1.setFont(font1);
+
+        int colIndex = 0;
+        Row headerRow = sheet.createRow(colIndex);
+        for(String headerName : headersNameSet)
+        {
+            Cell cell = headerRow.createCell(colIndex);
+            cell.setCellValue(headerName);
+            cell.setCellStyle(style1);
+            colIndex++;
+        }
+        // Create data rows
+        int rowIndex = 1;
+        Class<?> mainEntity = list.get(0).getClass();
+        for(Object item : list)
+        {
+            Row row = sheet.createRow(rowIndex++);
+            int cellIndex = 0;
+            cellIndex = fieldsFromClass(row, mainEntity, item,cellIndex);
+            fieldsFromClass(row, mainEntity.getSuperclass(),item,cellIndex);
+        }
+        workbook.write(byteArrayOutputStream);
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+        workbook.close();
+        return new InputStreamResource(byteArrayInputStream);
+    }
+    // To get the declared fields of a class and create new cell
+    private int fieldsFromClass(Row row, Class<?> classType,Object item,int cellIndex) throws IllegalAccessException
+    {
+        Field[] fields = classType.getDeclaredFields();
+        for(Field field : fields)
+        {
+            field.setAccessible(true);
+            if(field.getType().isPrimitive() || !field.getType().getName().startsWith("com.dreamsol"))
+            {
+                if(!field.getName().toLowerCase().contains("id")) {
+                    Cell cell = row.createCell(cellIndex++);
+                    setCellValueFromField(cell, field, item);
+                }
+            }else if(field.get(item)!=null){
+                cellIndex = fieldsFromClass(row,field.getType(),field.get(item),cellIndex);
+            }else{
+                Field[] fields1 = field.getType().getDeclaredFields();
+                for(Field field1 : fields1)
+                {
+                    Cell cell = row.createCell(cellIndex++);
+                    cell.setCellValue("NA");
+                }
+            }
+
+        }
+        return cellIndex;
+    }
+    // To set object field value into cell
+    private void setCellValueFromField(Cell cell, Field field, Object item) throws IllegalAccessException
+    {
+
+        String fieldType = field.getType().getSimpleName();
+        if(fieldType.equalsIgnoreCase("string"))
+            cell.setCellValue((String) field.get(item));
+        else if(fieldType.equalsIgnoreCase("short"))
+            cell.setCellValue((short) field.get(item));
+        else if(fieldType.equalsIgnoreCase("int") || fieldType.equalsIgnoreCase("integer"))
+            cell.setCellValue((int) field.get(item));
+        else if(fieldType.equalsIgnoreCase("long"))
+            cell.setCellValue((long) field.get(item));
+        else if(fieldType.equalsIgnoreCase("float"))
+            cell.setCellValue((float) field.get(item));
+        else if(fieldType.equalsIgnoreCase("double"))
+            cell.setCellValue((double) field.get(item));
+        else if(fieldType.equalsIgnoreCase("boolean")) {
+            if(field.getName().equalsIgnoreCase("status"))
+            {
+                cell.setCellValue(((boolean)field.get(item)?"ACTIVE":"INACTIVE"));
+            }else
+                cell.setCellValue((boolean) field.get(item));
+        }
+        else if(field.get(item)==null)
+            cell.setCellValue("NA");
+        else if(item != null)
+            cell.setCellValue(field.get(item).toString());
+        else
+            cell.setCellValue("NA");
     }
 
     // To return list of valid and invalid data form Excel file
@@ -108,7 +208,7 @@ public class ExcelUtility
         {
             ValidatedData validatedData = new ValidatedData();
             validatedData.setData(data);
-            validateData(validatedData);
+            validateData(validatedData); // method call to validate data on the basis of annotations
             if(validatedData.isStatus()) {
                 validDataList.add(validatedData);
             }
@@ -122,6 +222,22 @@ public class ExcelUtility
         validateDataResponse.setMessage("Process completed successfully!");
         return validateDataResponse;
     }
+    // To convert excel data into list
+    private List<?> convertExcelToList(MultipartFile file, Class<?> currentClass) throws IOException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    List<Object> dataList = new ArrayList<>();
+    InputStream inputStream = file.getInputStream();
+    XSSFWorkbook workbook = new XSSFWorkbook(inputStream);
+    Sheet sheet = workbook.getSheetAt(0);
+    for (Row row : sheet) {
+        if (row.getRowNum() <= 1)
+            continue;
+        Object currentObject = currentClass.getDeclaredConstructor().newInstance();
+        int cellIndex = 0;
+        mapCellToField(currentClass, currentObject, row, cellIndex);
+        dataList.add(currentObject);
+    }
+    return dataList;
+}
 
     // To check whether the given data is valid or not
     private void validateData(ValidatedData validatedData)
@@ -143,21 +259,7 @@ public class ExcelUtility
     }
 
     // To convert excel data as list
-    private List<?> convertExcelToList(MultipartFile file, Class<?> currentClass) throws IOException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        List<Object> dataList = new ArrayList<>();
-        InputStream inputStream = file.getInputStream();
-        XSSFWorkbook workbook = new XSSFWorkbook(inputStream);
-        Sheet sheet = workbook.getSheetAt(0);
-        for (Row row : sheet) {
-            if (row.getRowNum() <= 1)
-                continue;
-            Object currentObject = currentClass.getDeclaredConstructor().newInstance();
-            int cellIndex = 0;
-            mapCellToField(currentClass, currentObject, row, cellIndex);
-            dataList.add(currentObject);
-        }
-        return dataList;
-    }
+
 
     // To map excel cells to object fields
     private void mapCellToField(Class<?> currentClass, Object currentObject, Row row, int cellIndex) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
@@ -265,93 +367,6 @@ public class ExcelUtility
             }
         }
     }
-    private Resource convertListToExcel(List<?> list, Map<String,String> headersMap, String sheetName) throws IllegalAccessException, IOException {
-        Workbook workbook = new XSSFWorkbook();
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        Sheet sheet = workbook.createSheet(sheetName);
-        Set<String> headersNameSet = headersMap.keySet();
-
-        CellStyle style1 = workbook.createCellStyle();
-        style1.setAlignment(HorizontalAlignment.CENTER);
-        style1.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
-        style1.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        Font font1 = workbook.createFont();
-        font1.setColor(IndexedColors.WHITE.getIndex());
-        font1.setBold(true);
-        style1.setFont(font1);
-
-        int colIndex = 0;
-        Row headerRow = sheet.createRow(colIndex);
-        for(String headerName : headersNameSet)
-        {
-            Cell cell = headerRow.createCell(colIndex);
-            cell.setCellValue(headerName);
-            cell.setCellStyle(style1);
-            colIndex++;
-        }
-        // Create data rows
-        int rowIndex = 1;
-        Class<?> mainEntity = list.get(0).getClass();
-        for(Object item : list)
-        {
-            Row row = sheet.createRow(rowIndex++);
-            int cellIndex = 0;
-            cellIndex = fieldsFromClass(row, mainEntity, item,cellIndex);
-            fieldsFromClass(row, mainEntity.getSuperclass(),item,cellIndex);
-        }
-        workbook.write(byteArrayOutputStream);
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-        workbook.close();
-        return new InputStreamResource(byteArrayInputStream);
-    }
-    private int fieldsFromClass(Row row, Class<?> classType,Object item,int cellIndex) throws IllegalAccessException {
-        Field[] fields = classType.getDeclaredFields();
-        for(Field field : fields)
-        {
-            field.setAccessible(true);
-            if(field.getType().isPrimitive() || !field.getType().getName().startsWith("com.dreamsol"))
-            {
-                Cell cell = row.createCell(cellIndex++);
-                setCellValueFromField(cell,field,item);
-            }else if(field.get(item)!=null){
-                cellIndex = fieldsFromClass(row,field.getType(),field.get(item),cellIndex);
-            }else{
-                Field[] fields1 = field.getType().getDeclaredFields();
-                for(Field field1 : fields1)
-                {
-                    Cell cell = row.createCell(cellIndex++);
-                    cell.setCellValue("NA");
-                }
-            }
-
-        }
-        return cellIndex;
-    }
-    private void setCellValueFromField(Cell cell, Field field, Object item) throws IllegalAccessException
-    {
-
-        String fieldType = field.getType().getSimpleName();
-        if(fieldType.equalsIgnoreCase("string"))
-            cell.setCellValue((String) field.get(item));
-        else if(fieldType.equalsIgnoreCase("short"))
-            cell.setCellValue((short) field.get(item));
-        else if(fieldType.equalsIgnoreCase("int") || fieldType.equalsIgnoreCase("integer"))
-            cell.setCellValue((int) field.get(item));
-        else if(fieldType.equalsIgnoreCase("long"))
-            cell.setCellValue((long) field.get(item));
-        else if(fieldType.equalsIgnoreCase("float"))
-            cell.setCellValue((float) field.get(item));
-        else if(fieldType.equalsIgnoreCase("double"))
-            cell.setCellValue((double) field.get(item));
-        else if(fieldType.equalsIgnoreCase("boolean"))
-            cell.setCellValue((boolean) field.get(item));
-        else if(field.get(item)==null)
-            cell.setCellValue("NA");
-        else if(item != null)
-            cell.setCellValue(field.get(item).toString());
-        else
-            cell.setCellValue("NA");
-    }
 
     private String getSampleValueFromField(Field field) {
         String fieldType = field.getType().getSimpleName();
@@ -360,7 +375,7 @@ public class ExcelUtility
             case "string":
                 return "text";
             case "int":
-            case "integer": // Adding integer to handle the Integer wrapper class
+            case "integer":
             case "long":
             case "double":
             case "float":

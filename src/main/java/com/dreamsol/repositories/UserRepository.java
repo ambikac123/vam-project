@@ -17,5 +17,10 @@ public interface UserRepository extends JpaRepository<User,Long> {
             "(:status IS NULL OR u.status = :status)")
     List<User> findByFilters(@Param("unitId") Long unitId,
                                  @Param("status") Boolean status, Pageable pageable);
+    @Query("SELECT u FROM User u WHERE " +
+            "(:unitId IS NULL OR u.unitId = :unitId) AND " +
+            "(:status IS NULL OR u.status = :status)")
+    List<User> findByFilters(@Param("unitId") Long unitId,
+                             @Param("status") Boolean status);
 
 }

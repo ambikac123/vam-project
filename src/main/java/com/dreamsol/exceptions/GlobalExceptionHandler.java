@@ -8,11 +8,13 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler
+{
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> methodArgumentNotFoundExceptionHandler(
             MethodArgumentNotValidException ex) {
@@ -36,11 +38,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> globalExceptionHandler(Exception ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
     @ExceptionHandler(InvalidOtpException.class)
     public ResponseEntity<?> invalidOtpExceptionHandler(InvalidOtpException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
@@ -49,5 +46,24 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NullPointerException.class)
     public ResponseEntity<?> nullPointerExceptionHandler(NullPointerException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(DateTimeParseException.class)
+    public ResponseEntity<?> dateTimeParseExceptionHandler(DateTimeParseException ex){
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<?> validationExceptionHandler(ValidationException ex) {
+        return new ResponseEntity<>(ex.getError(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<?> runtimeExceptionHandler(Exception ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> globalExceptionHandler(Exception ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

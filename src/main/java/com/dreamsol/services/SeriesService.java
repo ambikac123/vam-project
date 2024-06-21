@@ -2,8 +2,11 @@ package com.dreamsol.services;
 
 import com.dreamsol.dtos.requestDtos.SeriesRequestDto;
 import com.dreamsol.dtos.responseDtos.DropDownDto;
+import com.dreamsol.dtos.responseDtos.ExcelValidateDataResponseDto;
 import com.dreamsol.dtos.responseDtos.SeriesResponseDto;
+import com.dreamsol.dtos.responseDtos.ValidatedData;
 import com.dreamsol.entites.Series;
+import com.dreamsol.entites.Unit;
 import com.dreamsol.repositories.SeriesRepository;
 import com.dreamsol.repositories.UnitRepository;
 import com.dreamsol.securities.JwtUtil;
@@ -22,9 +25,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -168,7 +173,96 @@ public class SeriesService {
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                 .body(resource);
     }
+    public ResponseEntity<?> uploadPurposeExcel(MultipartFile file, Class<?> requestDtoClass)
+    {
+        try{
+            if(excelUtility.isExcelFile(file))
+            {
+                ExcelValidateDataResponseDto validateDataResponse = excelUtility.validateExcelData(file,requestDtoClass);
+                validateDataResponse = validateDataFromDB(validateDataResponse);
+                validateDataResponse.setTotalValidData(validateDataResponse.getValidDataList().size());
+                validateDataResponse.setTotalInvalidData(validateDataResponse.getInvalidDataList().size());
+                if(validateDataResponse.getTotalData()==0){
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No data available in excel sheet!");
+                }
+                return ResponseEntity.status(HttpStatus.OK).body(validateDataResponse);
+            }else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect uploaded file type! supported [.xlsx or xls] type");
+            }
+        }catch(Exception e)
+        {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while validating excel data: "+e.getMessage());
+        }
+    }
+    public ExcelValidateDataResponseDto validateDataFromDB(ExcelValidateDataResponseDto validateDataResponse){
 
+        List<?> validList = validateDataResponse.getValidDataList();
+        List<ValidatedData> invalidList = validateDataResponse.getInvalidDataList();
+        List<SeriesRequestDto> seriesRequestDtos = new ArrayList<>();
+        for(int i=0;i<validList.size();)
+        {
+            ValidatedData validatedData = (ValidatedData) validList.get(i);
+            SeriesRequestDto seriesRequestDto = (SeriesRequestDto) validatedData.getData();
+            ValidatedData checkedData = checkValidOrNot(seriesRequestDto);
+            if(!checkedData.isStatus())
+            {
+                invalidList.add(checkedData);
+                validList.remove(validatedData);
+                continue;
+            }
+            seriesRequestDtos.add(seriesRequestDto);
+            i++;
+        }
+        validateDataResponse.setValidDataList(seriesRequestDtos);
+        return validateDataResponse;
+    }
+    public ValidatedData checkValidOrNot(SeriesRequestDto seriesRequestDto){
+        StringBuilder message = new StringBuilder();
+        boolean status = true;
+        ValidatedData checkedData = new ValidatedData();
+        Optional<Unit> unitOptional = unitRepository.findById(seriesRequestDto.getUnitId());
+        if(unitOptional.isEmpty()){
+            message.append("unit doesn't exist!, ");
+            status = false;
+        }
+        checkedData.setData(seriesRequestDto);
+        checkedData.setMessage(message.toString());
+        checkedData.setStatus(status);
+        return checkedData;
+    }
+    public ResponseEntity<?> saveBulkData(List<SeriesRequestDto> seriesRequestDtos) {
+        try{
+            String username = jwtUtil.getCurrentLoginUser();
+            List<Series> seriesList = seriesRequestDtos.stream()
+                    .map(seriesRequestDto -> {
+                        Series series = DtoUtilities.seriesRequestDtoToSeries(seriesRequestDto);
+                        Optional<List<Series>> dbSeries = seriesRepository
+                                .findBySeriesForIgnoreCaseAndSubPrefixIgnoreCase(seriesRequestDto.getSeriesFor(),
+                                        seriesRequestDto.getSubPrefix());
+                        if (dbSeries.isPresent() && !dbSeries.get().isEmpty()) {
+                            dbSeries.get()
+                                    .forEach(numSeries -> num = numSeries.getNumberSeries() > num ? numSeries.getNumberSeries() : num);
+                            series.setNumberSeries(num + 1);
+                            series.setPrefix(series.getSeriesFor().substring(0, 3).toUpperCase());
+                            series.setCreatedBy(jwtUtil.getCurrentLoginUser());
+                            series.setUpdatedBy(jwtUtil.getCurrentLoginUser());
+                        } else {
+                            series.setPrefix(series.getSeriesFor().substring(0, 3).toUpperCase());
+                            series.setUpdatedBy(jwtUtil.getCurrentLoginUser());
+                            series.setCreatedBy(jwtUtil.getCurrentLoginUser());
+                        }
+                        series.setCreatedBy(username);
+                        series.setUpdatedBy(username);
+                        series.setStatus(seriesRequestDto.isStatus());
+                        return series;
+                    })
+                    .collect(Collectors.toList());
+            seriesRepository.saveAll(seriesList);
+            return ResponseEntity.status(HttpStatus.CREATED).body("All data saved successfully");
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while saving bulk data: "+e.getMessage());
+        }
+    }
     public ResponseEntity<?> getDropDown() {
         List<Series> series = seriesRepository.findAll();
         return ResponseEntity.ok(series.stream().map(this::seriesToDropDownRes).collect(Collectors.toList()));

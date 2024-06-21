@@ -24,34 +24,31 @@ import java.util.List;
 @RequestMapping("/api/user-types")
 @SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
-public class UserTypeController {
-    private final CommonService<UserTypeRequestDto, Long> userTypeService;
-
+public class UserTypeController
+{
+    private final CommonService<UserTypeRequestDto,Long> userTypeService;
     @PostMapping("/create")
-    public ResponseEntity<?> createUserType(@RequestBody @Valid UserTypeRequestDto userTypeRequestDto) {
+    public ResponseEntity<?> createUserType(@RequestBody @Valid UserTypeRequestDto userTypeRequestDto){
         return userTypeService.create(userTypeRequestDto);
     }
-
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateUserType(@RequestBody @Valid UserTypeRequestDto userTypeRequestDto, @PathVariable Long id) {
-        return userTypeService.update(userTypeRequestDto, id);
+    public ResponseEntity<?> updateUserType(@RequestBody @Valid UserTypeRequestDto userTypeRequestDto,@PathVariable Long id){
+        return userTypeService.update(userTypeRequestDto,id);
     }
-
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> deleteUserType(@PathVariable Long id) {
+    public ResponseEntity<?> deleteUserType(@PathVariable Long id){
         return userTypeService.delete(id);
     }
 
     @GetMapping("/get/{id}")
-    public ResponseEntity<?> getUserType(@PathVariable Long id) {
+    public ResponseEntity<?> getUserType(@PathVariable Long id){
         return userTypeService.get(id);
     }
-
     @GetMapping("/get-dropdown")
-    public ResponseEntity<?> getDropDown() {
+    public ResponseEntity<?> getDropDown()
+    {
         return userTypeService.getDropDown();
     }
-
     @GetMapping("/get-all")
     public ResponseEntity<?> getAllUserType(
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) Integer pageNumber,
@@ -60,34 +57,30 @@ public class UserTypeController {
             @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
             @RequestParam(value = "unitId", defaultValue = "1", required = false) Long unitId,
             @RequestParam(value = "status", required = false) Boolean status
-    ) {
-        return userTypeService.getAll(pageNumber, pageSize, sortBy, sortDir, unitId, status);
+    )
+    {
+        return userTypeService.getAll(pageNumber,pageSize,sortBy,sortDir,unitId,status);
     }
-
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadExcelData(
-            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) Integer pageNumber,
-            @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize,
-            @RequestParam(value = "sortBy", defaultValue = "id", required = false) String sortBy,
-            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
             @RequestParam(value = "unitId", defaultValue = "1", required = false) Long unitId,
             @RequestParam(value = "status", required = false) Boolean status
     ) {
-        return userTypeService.downloadDataAsExcel(pageNumber, pageSize, sortBy, sortDir, unitId, status);
+        return userTypeService.downloadDataAsExcel(unitId,status);
     }
-
-    @GetMapping(value = "/download-excel-sample", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<?> downloadExcelSample() {
+    @GetMapping(value = "/download-excel-sample",produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<?> downloadExcelSample()
+    {
         return userTypeService.downloadExcelSample();
     }
-
     @PostMapping(value = "/upload-excel-data", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadExcelData(@RequestParam("file") MultipartFile file) {
-        return userTypeService.uploadExcelFile(file, UserTypeRequestDto.class);
+    public ResponseEntity<?> uploadExcelData(@RequestParam("file") MultipartFile file)
+    {
+        return userTypeService.uploadExcelFile(file,UserTypeRequestDto.class);
     }
-
     @PostMapping("/save-bulk-data")
-    public ResponseEntity<?> saveBulkData(@RequestBody @Valid List<UserTypeRequestDto> userTypeRequestDtoList) {
+    public ResponseEntity<?> saveBulkData(@RequestBody @Valid List<UserTypeRequestDto> userTypeRequestDtoList)
+    {
         return userTypeService.saveBulkData(userTypeRequestDtoList);
     }
 }

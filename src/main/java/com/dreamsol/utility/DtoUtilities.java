@@ -260,7 +260,8 @@ public class DtoUtilities {
         vehicleEntryResDto.setDrivingLicenceResDto(drivingLicenceResDto);
 
         // Set VehicleLicenceResDto using the conversion method
-        VehicleLicenceResDto vehicleLicenceResDto = vehicleLicenceToVehicleLicenceDto(savedVehicleEntry.getVehicleLicence());
+        VehicleLicenceResDto vehicleLicenceResDto = vehicleLicenceToVehicleLicenceDto(
+                savedVehicleEntry.getVehicleLicence());
         vehicleEntryResDto.setVehicleLicenceResDto(vehicleLicenceResDto);
 
         // Set PlantResponseDto
@@ -275,7 +276,6 @@ public class DtoUtilities {
 
         return vehicleEntryResDto;
     }
-
 
     public static Visitor visitorRequestDtoToVisitor(VisitorRequestDto visitorRequestDto) {
         Visitor visitor = new Visitor();

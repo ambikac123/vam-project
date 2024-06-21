@@ -1,11 +1,8 @@
 package com.dreamsol.dtos.requestDtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Max;
@@ -17,9 +14,6 @@ import javax.validation.constraints.Size;
 
 @Getter
 @Setter
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
 public class UserRequestDto extends CommonAutoIdEntityRequestDto
 {
 
@@ -50,10 +44,7 @@ public class UserRequestDto extends CommonAutoIdEntityRequestDto
     @Schema(description = "password of user", example = " ")
     private String password;
 
-    @NotNull(message = "usertype is mandatory")
-    private Long usertypeId;
+    @NotBlank(message = "usertype is mandatory")
+    private String userTypeName;
 
-//    @NotEmpty(message = "employee id is mandatory")
-//    private String employeeId;
-    private boolean status;
 }

@@ -1,5 +1,6 @@
 package com.dreamsol.controllers;
 
+import com.dreamsol.dtos.requestDtos.PlantRequestDto;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.MediaType;
@@ -9,8 +10,10 @@ import org.springframework.web.bind.annotation.*;
 import com.dreamsol.dtos.requestDtos.SeriesRequestDto;
 import com.dreamsol.dtos.responseDtos.SeriesResponseDto;
 import com.dreamsol.services.SeriesService;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.validation.Valid;
 
@@ -22,7 +25,7 @@ public class SeriesController {
     private final SeriesService seriesService;
 
     @PostMapping("/create-series")
-    public ResponseEntity<SeriesResponseDto> createPlant(@Valid @RequestBody SeriesRequestDto seriesRequestDto) {
+    public ResponseEntity<SeriesResponseDto> createSeries(@Valid @RequestBody SeriesRequestDto seriesRequestDto) {
         return seriesService.createSeries(seriesRequestDto);
     }
 
@@ -38,7 +41,7 @@ public class SeriesController {
     }
 
     @GetMapping("get-all-series")
-    public ResponseEntity<?> getAllPurposes(
+    public ResponseEntity<?> getAllSeries(
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "id") String sortBy,
@@ -65,7 +68,16 @@ public class SeriesController {
     public ResponseEntity<?> downloadExcelSample() throws IOException {
         return seriesService.downloadSeriesExcelSample();
     }
-
+    @PostMapping(value = "/upload-excel-file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadExcelFile(@RequestParam("file") MultipartFile file)
+    {
+        return seriesService.uploadPurposeExcel(file, SeriesRequestDto.class);
+    }
+    @PostMapping("/save-bulk-data")
+    public ResponseEntity<?> saveBulkData(@RequestBody @Valid List<SeriesRequestDto> seriesRequestDtos)
+    {
+        return seriesService.saveBulkData(seriesRequestDtos);
+    }
     @GetMapping("/drop-down")
     public ResponseEntity<?> getSeriesDropDown() {
         return seriesService.getDropDown();

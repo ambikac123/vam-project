@@ -2,8 +2,11 @@ package com.dreamsol.services;
 
 import com.dreamsol.dtos.requestDtos.PlantRequestDto;
 import com.dreamsol.dtos.responseDtos.DropDownDto;
+import com.dreamsol.dtos.responseDtos.ExcelValidateDataResponseDto;
 import com.dreamsol.dtos.responseDtos.PlantResponseDto;
+import com.dreamsol.dtos.responseDtos.ValidatedData;
 import com.dreamsol.entites.Plant;
+import com.dreamsol.entites.Unit;
 import com.dreamsol.repositories.PlantRepository;
 import com.dreamsol.repositories.UnitRepository;
 import com.dreamsol.securities.JwtUtil;
@@ -22,9 +25,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -140,6 +145,87 @@ public class PlantService {
                 .body(resource);
     }
 
+    public ResponseEntity<?> uploadPurposeExcel(MultipartFile file, Class<?> requestDtoClass)
+    {
+        try{
+            if(excelUtility.isExcelFile(file))
+            {
+                ExcelValidateDataResponseDto validateDataResponse = excelUtility.validateExcelData(file,requestDtoClass);
+                validateDataResponse = validateDataFromDB(validateDataResponse);
+                validateDataResponse.setTotalValidData(validateDataResponse.getValidDataList().size());
+                validateDataResponse.setTotalInvalidData(validateDataResponse.getInvalidDataList().size());
+                if(validateDataResponse.getTotalData()==0){
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No data available in excel sheet!");
+                }
+                return ResponseEntity.status(HttpStatus.OK).body(validateDataResponse);
+            }else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect uploaded file type! supported [.xlsx or xls] type");
+            }
+        }catch(Exception e)
+        {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while validating excel data: "+e.getMessage());
+        }
+    }
+    public ExcelValidateDataResponseDto validateDataFromDB(ExcelValidateDataResponseDto validateDataResponse){
+
+        List<?> validList = validateDataResponse.getValidDataList();
+        List<ValidatedData> invalidList = validateDataResponse.getInvalidDataList();
+        List<PlantRequestDto> plantRequestDtos = new ArrayList<>();
+        for(int i=0;i<validList.size();)
+        {
+            ValidatedData validatedData = (ValidatedData) validList.get(i);
+            PlantRequestDto plantRequestDto = (PlantRequestDto) validatedData.getData();
+            ValidatedData checkedData = checkValidOrNot(plantRequestDto);
+            if(!checkedData.isStatus())
+            {
+                invalidList.add(checkedData);
+                validList.remove(validatedData);
+                continue;
+            }
+            plantRequestDtos.add(plantRequestDto);
+            i++;
+        }
+        validateDataResponse.setValidDataList(plantRequestDtos);
+        return validateDataResponse;
+    }
+    public ValidatedData checkValidOrNot(PlantRequestDto plantRequestDto){
+        StringBuilder message = new StringBuilder();
+        boolean status = true;
+        ValidatedData checkedData = new ValidatedData();
+        Optional<Plant> dbPlant = plantRepository.findByPlantNameIgnoreCase(plantRequestDto.getPlantName());
+        if (dbPlant.isPresent()) {
+            message.append("plant already exist!");
+            status = false;
+        }
+        // Check if the unit exists
+        Optional<Unit> dbUnit = unitRepository.findById(plantRequestDto.getUnitId());
+        if(dbUnit.isEmpty()){
+            message.append("unit doesn't exist");
+            status = false;
+        }
+        checkedData.setData(plantRequestDto);
+        checkedData.setMessage(message.toString());
+        checkedData.setStatus(status);
+        return checkedData;
+    }
+    public ResponseEntity<?> saveBulkData(List<PlantRequestDto> plantRequestDtos) {
+        try{
+            String username = jwtUtil.getCurrentLoginUser();
+            List<Plant> plantList = plantRequestDtos.stream()
+                            .map((plantRequestDto -> {
+                                Plant plant = DtoUtilities.plantRequestDtoToPlant(plantRequestDto);
+                                plant.setUnitId(plantRequestDto.getUnitId());
+                                plant.setCreatedBy(username);
+                                plant.setUpdatedBy(username);
+                                return plant;
+                            }))
+                            .collect(Collectors.toList());
+            plantRepository.saveAll(plantList);
+            return ResponseEntity.status(HttpStatus.CREATED).body("All data saved successfully");
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while saving bulk data: "+e.getMessage());
+        }
+    }
     public ResponseEntity<?> getDropDown() {
         List<Plant> plants = plantRepository.findAll();
         return ResponseEntity.ok(plants.stream().map(this::plantToDropDownRes).collect(Collectors.toList()));
