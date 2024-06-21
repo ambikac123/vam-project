@@ -1,9 +1,11 @@
 package com.dreamsol.controllers;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.validation.Valid;
 
+import com.dreamsol.dtos.requestDtos.UnitRequestDto;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +15,7 @@ import com.dreamsol.dtos.responseDtos.DepartmentResponseDto;
 import com.dreamsol.services.DepartmentService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/departments")
@@ -69,5 +72,17 @@ public class DepartmentController {
     @GetMapping("/drop-down")
     public ResponseEntity<?> getDepartmentsDropDown() {
         return departmentService.getDropDown();
+    }
+
+    @PostMapping(value = "/upload-excel-data", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadExcelData(@RequestParam("file") MultipartFile file)
+    {
+        return departmentService.uploadExcelFile(file,DepartmentRequestDto.class);
+    }
+
+    @PostMapping("/save-bulk-data")
+    public ResponseEntity<?> saveBulkData(@RequestBody @Valid List<DepartmentRequestDto> departmentRequestDtoList)
+    {
+        return departmentService.saveBulkData(departmentRequestDtoList);
     }
 }

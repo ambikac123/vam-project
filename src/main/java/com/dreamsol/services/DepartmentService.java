@@ -3,7 +3,10 @@ package com.dreamsol.services;
 import com.dreamsol.dtos.requestDtos.DepartmentRequestDto;
 import com.dreamsol.dtos.responseDtos.DepartmentResponseDto;
 import com.dreamsol.dtos.responseDtos.DropDownDto;
+import com.dreamsol.dtos.responseDtos.ExcelValidateDataResponseDto;
+import com.dreamsol.dtos.responseDtos.ValidatedData;
 import com.dreamsol.entites.Department;
+import com.dreamsol.entites.Unit;
 import com.dreamsol.exceptions.ResourceNotFoundException;
 import com.dreamsol.repositories.DepartmentRepository;
 import com.dreamsol.repositories.UnitRepository;
@@ -13,6 +16,8 @@ import com.dreamsol.utility.ExcelUtility;
 
 import lombok.RequiredArgsConstructor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,9 +27,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -37,6 +44,8 @@ public class DepartmentService {
     private final UnitRepository unitRepository;
     private final ExcelUtility excelUtility;
     private final JwtUtil jwtUtil;
+
+    private static final Logger logger = LoggerFactory.getLogger(DepartmentService.class);
 
     public ResponseEntity<DepartmentResponseDto> createDepartment(DepartmentRequestDto departmentRequestDto) {
         // Check if department already exists
@@ -169,4 +178,87 @@ public class DepartmentService {
         return dto;
     }
 
+    public ResponseEntity<?> uploadExcelFile(MultipartFile file, Class<?> currentClass) {
+        try {
+            if (excelUtility.isExcelFile(file)) {
+                ExcelValidateDataResponseDto validateDataResponse = excelUtility.validateExcelData(file, currentClass);
+                validateDataResponse = validateDataFromDB(validateDataResponse);
+                validateDataResponse.setTotalValidData(validateDataResponse.getValidDataList().size());
+                validateDataResponse.setTotalInvalidData(validateDataResponse.getInvalidDataList().size());
+                if (validateDataResponse.getTotalData() == 0) {
+                    logger.info("No data available in excel sheet!");
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No data available in excel sheet!");
+                }
+                logger.info("Excel data validated successfully!");
+                return ResponseEntity.status(HttpStatus.OK).body(validateDataResponse);
+            } else {
+                logger.info("Incorrect uploaded file type!");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect uploaded file type! supported [.xlsx or xls] type");
+            }
+        } catch (Exception e) {
+            logger.error("Error occurred while validating excel data", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while validating excel data: " + e.getMessage());
+        }
+    }
+
+    public ExcelValidateDataResponseDto validateDataFromDB(ExcelValidateDataResponseDto validateDataResponse) {
+        List<?> validList = validateDataResponse.getValidDataList();
+        List<ValidatedData> invalidList = validateDataResponse.getInvalidDataList();
+        List<DepartmentRequestDto> departmentRequestDtoList = new ArrayList<>();
+        for (int i = 0; i < validList.size(); ) {
+            ValidatedData validatedData = (ValidatedData) validList.get(i);
+            DepartmentRequestDto departmentRequestDto = (DepartmentRequestDto) validatedData.getData();
+            ValidatedData checkedData = checkValidOrNot(departmentRequestDto);
+            if(!checkedData.isStatus()){
+                invalidList.add(checkedData);
+                validList.remove(validatedData);
+                continue;
+            }
+            departmentRequestDtoList.add(departmentRequestDto);
+            i++;
+        }
+        validateDataResponse.setValidDataList(departmentRequestDtoList);
+        return validateDataResponse;
+    }
+
+    public ValidatedData checkValidOrNot(DepartmentRequestDto departmentRequestDto){
+        StringBuilder message = new StringBuilder();
+        boolean status = true;
+        ValidatedData checkedData = new ValidatedData();
+        Optional<Department> DbDepartment = departmentRepository.findByDepartmentCodeIgnoreCase(departmentRequestDto.getDepartmentCode());
+        if(DbDepartment.isPresent()){
+            message.append("Department already exist!, ");
+            status = false;
+        }
+        Optional<Unit> DbUnit=unitRepository.findById(departmentRequestDto.getUnitId());
+        if(DbUnit.isEmpty())
+        {
+            message.append("Unit doesn't exist! ");
+            status = false;
+        }
+        checkedData.setData(departmentRequestDto);
+        checkedData.setMessage(message.toString());
+        checkedData.setStatus(status);
+        return checkedData;
+    }
+
+    public ResponseEntity<?> saveBulkData(List<DepartmentRequestDto> departmentRequestDtoList) {
+        try {
+            String currentUser = jwtUtil.getCurrentLoginUser();
+            List<Department> departmentList = departmentRequestDtoList.stream()
+                    .map(DtoUtilities::departmentRequestDtoToDepartment)
+                    .peek(drivingLicence -> {
+                        drivingLicence.setCreatedBy(currentUser);
+                        drivingLicence.setUpdatedBy(currentUser);
+                        drivingLicence.setStatus(true);
+                    })
+                    .collect(Collectors.toList());
+            departmentRepository.saveAll(departmentList);
+            logger.info("All data saved successfully!");
+            return ResponseEntity.status(HttpStatus.CREATED).body(departmentList);
+        } catch (Exception e) {
+            logger.error("Error occurred while saving bulk data: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while saving bulk data: " + e.getMessage());
+        }
+    }
 }

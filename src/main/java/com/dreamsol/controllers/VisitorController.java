@@ -27,7 +27,7 @@ public class VisitorController {
 
     @PutMapping("/update-visitor/{id}")
     public ResponseEntity<VisitorResponseDto> updateVisitor(@PathVariable Long id,
-            @Valid @RequestBody VisitorRequestDto visitorRequestDto) {
+                                                            @Valid @RequestBody VisitorRequestDto visitorRequestDto) {
         return visitorService.updateVisitor(id, visitorRequestDto);
     }
 

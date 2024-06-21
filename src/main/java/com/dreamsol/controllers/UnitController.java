@@ -1,9 +1,11 @@
 package com.dreamsol.controllers;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.validation.Valid;
 
+import com.dreamsol.dtos.requestDtos.DrivingLicenceReqDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import com.dreamsol.dtos.requestDtos.UnitRequestDto;
 import com.dreamsol.dtos.responseDtos.UnitResponseDto;
 import com.dreamsol.services.UnitService;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/units")
@@ -29,7 +32,7 @@ public class UnitController {
 
     @PutMapping("/update-unit/{id}")
     public ResponseEntity<UnitResponseDto> updateUnit(@PathVariable Long id,
-            @Valid @RequestBody UnitRequestDto unitRequestDto) {
+                                                      @Valid @RequestBody UnitRequestDto unitRequestDto) {
         return unitService.updateUnit(id, unitRequestDto);
 
     }
@@ -69,5 +72,17 @@ public class UnitController {
     @GetMapping("/drop-down")
     public ResponseEntity<?> getUnitsDropDown() {
         return unitService.getDropDown();
+    }
+
+    @PostMapping(value = "/upload-excel-data", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadExcelData(@RequestParam("file") MultipartFile file)
+    {
+        return unitService.uploadExcelFile(file,UnitRequestDto.class);
+    }
+
+    @PostMapping("/save-bulk-data")
+    public ResponseEntity<?> saveBulkData(@RequestBody @Valid List<UnitRequestDto> unitRequestDtoList)
+    {
+        return unitService.saveBulkData(unitRequestDtoList);
     }
 }

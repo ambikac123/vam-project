@@ -26,33 +26,29 @@ import java.util.List;
 @SecurityRequirement(name = "bearerAuth")
 @CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
-public class UserController
-{
-    private final CommonService<UserRequestDto,Long> userService;
+public class UserController {
+    private final CommonService<UserRequestDto, Long> userService;
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateUser(@Valid @RequestBody UserRequestDto userRequestDto, @PathVariable Long id)
-    {
-        return userService.update(userRequestDto,id);
+    public ResponseEntity<?> updateUser(@Valid @RequestBody UserRequestDto userRequestDto, @PathVariable Long id) {
+        return userService.update(userRequestDto, id);
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id)
-    {
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         return userService.delete(id);
     }
 
     @GetMapping("/get/{id}")
-    public ResponseEntity<?> getUser(@PathVariable Long id)
-    {
+    public ResponseEntity<?> getUser(@PathVariable Long id) {
         return userService.get(id);
     }
 
     @GetMapping("/get-dropdown")
-    public ResponseEntity<?> getDropDown()
-    {
+    public ResponseEntity<?> getDropDown() {
         return userService.getDropDown();
     }
+
     @GetMapping("/get-all")
     public ResponseEntity<?> getAllUsers(
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) Integer pageNumber,
@@ -61,10 +57,10 @@ public class UserController
             @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
             @RequestParam(value = "unitId", defaultValue = "1", required = false) Long unitId,
             @RequestParam(value = "status", required = false) Boolean status
-    )
-    {
-        return userService.getAll(pageNumber,pageSize,sortBy,sortDir,unitId,status);
+    ) {
+        return userService.getAll(pageNumber, pageSize, sortBy, sortDir, unitId, status);
     }
+
     @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadExcelData(
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) Integer pageNumber,
@@ -73,23 +69,22 @@ public class UserController
             @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir,
             @RequestParam(value = "unitId", defaultValue = "1", required = false) Long unitId,
             @RequestParam(value = "status", required = false) Boolean status
-    )
-    {
-        return userService.downloadDataAsExcel(pageNumber,pageSize,sortBy,sortDir,unitId,status);
+    ) {
+        return userService.downloadDataAsExcel(pageNumber, pageSize, sortBy, sortDir, unitId, status);
     }
-    @GetMapping(value = "/download-excel-sample",produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<?> downloadExcelSample()
-    {
+
+    @GetMapping(value = "/download-excel-sample", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<?> downloadExcelSample() {
         return userService.downloadExcelSample();
     }
+
     @PostMapping(value = "/upload-excel-data", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadExcelData(@RequestParam("file") MultipartFile file)
-    {
-        return userService.uploadExcelFile(file,UserRequestDto.class);
+    public ResponseEntity<?> uploadExcelData(@RequestParam("file") MultipartFile file) {
+        return userService.uploadExcelFile(file, UserRequestDto.class);
     }
+
     @PostMapping("/save-bulk-data")
-    public ResponseEntity<?> saveBulkData(@RequestBody @Valid List<UserRequestDto> userList)
-    {
+    public ResponseEntity<?> saveBulkData(@RequestBody @Valid List<UserRequestDto> userList) {
         return userService.saveBulkData(userList);
     }
 }
