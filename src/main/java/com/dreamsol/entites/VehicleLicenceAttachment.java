@@ -12,15 +12,15 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Getter
 @Setter
-public class VehicleLicenceAttachment extends CommonAutoIdEntity{
+public class VehicleLicenceAttachment {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Column(nullable = false)
     private String originalFileName;
 
-    @Column(nullable = false)
     private String generatedFileName;
 
-    @Column(nullable = false)
     private String fileType;
 }

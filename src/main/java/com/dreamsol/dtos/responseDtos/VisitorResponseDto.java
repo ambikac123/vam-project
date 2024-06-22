@@ -25,6 +25,5 @@ public class VisitorResponseDto extends CommonAutoIdEntityResponseDto {
     private boolean approvalRequired;
     private LocalDateTime validFrom;
     private LocalDateTime validTill;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Long phoneNumber;
 }

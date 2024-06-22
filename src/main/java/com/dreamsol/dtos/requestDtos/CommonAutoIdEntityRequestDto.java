@@ -12,8 +12,7 @@ import javax.persistence.MappedSuperclass;
 @AllArgsConstructor
 @NoArgsConstructor
 @MappedSuperclass
-public class CommonAutoIdEntityRequestDto
-{
+public class CommonAutoIdEntityRequestDto {
     private Long unitId;
 
     private boolean status=true;

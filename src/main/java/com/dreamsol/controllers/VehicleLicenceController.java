@@ -69,19 +69,12 @@ public class VehicleLicenceController {
         return vehicleLicenceService.getFile(fileName, uploadDir);
     }
 
-//    @GetMapping(value = "/download-excel-data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-//    public ResponseEntity<?> downloadExcelData()
-//    {
-//        return vehicleLicenceService.downloadVehicleDataAsExcel();
-//    }
-
     @GetMapping("/download-vehicle-data")
     public ResponseEntity<?> downloadVehicleDataAsExcel(
             @RequestParam(value = "status", required = false) String status,
             @RequestParam(value = "unitId", required = false) Long unitId) {
         return vehicleLicenceService.downloadVehicleDataAsExcel(status, unitId);
     }
-
 
     @GetMapping(value = "/download-excel-sample",produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadExcelSample() throws IOException {

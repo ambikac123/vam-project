@@ -26,7 +26,7 @@ public class VisitorController {
 
     @PutMapping("/update-visitor/{id}")
     public ResponseEntity<VisitorResponseDto> updateVisitor(@PathVariable Long id,
-            @Valid @RequestBody VisitorRequestDto visitorRequestDto) {
+                                                            @Valid @RequestBody VisitorRequestDto visitorRequestDto) {
         return visitorService.updateVisitor(id, visitorRequestDto);
     }
 
@@ -54,15 +54,15 @@ public class VisitorController {
 
     @GetMapping("/get-all-visitor-count")
     public ResponseEntity<?> getAllVisitorsCount(
-    @RequestParam(required = false) String status,
-    @RequestParam(required = false) Long unitId,
-    @RequestParam(required = false) Long employeeId,
-    @RequestParam(required = false) Long purposeId,
-    @RequestParam(required = false) Long departmentId,
-    @RequestParam(required = false) String fromDate,
-    @RequestParam(required = false) String toDate) {
-    return visitorService.getVisitorsCount(status, unitId, employeeId, purposeId,
-    departmentId, fromDate, toDate);
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long unitId,
+            @RequestParam(required = false) Long employeeId,
+            @RequestParam(required = false) Long purposeId,
+            @RequestParam(required = false) Long departmentId,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate) {
+        return visitorService.getVisitorsCount(status, unitId, employeeId, purposeId,
+                departmentId, fromDate, toDate);
     }
 
     @DeleteMapping("/delete-visitor/{id}")
@@ -81,6 +81,11 @@ public class VisitorController {
             @RequestParam(required = false) String toDate) throws java.io.IOException {
         return visitorService.downloadVisitorDataAsExcel(status, unitId, employeeId, purposeId, departmentId, fromDate,
                 toDate);
+    }
+
+    @PostMapping(value = "/search-by-phone")
+    public ResponseEntity<?> searchByPhoneNumber(Long phoneNumber) {
+        return visitorService.searchVisitor(phoneNumber);
     }
 
 }

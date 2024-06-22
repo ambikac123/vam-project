@@ -25,6 +25,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -63,15 +68,15 @@ public class VehicleEntryService {
             Optional<Purpose> optionalPurpose = purposeRepository.findById(vehicleEntryReqDto.getPurposeId());
             Purpose purpose = optionalPurpose.orElseThrow(() -> new NotFoundException("Purpose not found with this name,Please add the purpose first"));
 
-            VehicleEntry vehicleEntry = dtoUtilities.vehicleEntryDtoToVehicleEntry(vehicleEntryReqDto,drivingLicence,vehicleLicence,plant,purpose);
+            VehicleEntry vehicleEntry = dtoUtilities.vehicleEntryDtoToVehicleEntry(vehicleEntryReqDto, drivingLicence, vehicleLicence, plant, purpose);
 
             vehicleEntry.setCreatedBy(jwtUtil.getCurrentLoginUser());
             vehicleEntry.setUpdatedBy(jwtUtil.getCurrentLoginUser());
             vehicleEntry.setStatus(true);
 
-            VehicleEntry savedVehicleEntry=vehicleEntryRepository.save(vehicleEntry);
+            VehicleEntry savedVehicleEntry = vehicleEntryRepository.save(vehicleEntry);
 
-            VehicleEntryResDto vehicleEntryResDto=dtoUtilities.vehicleEntryToDto(savedVehicleEntry);
+            VehicleEntryResDto vehicleEntryResDto = dtoUtilities.vehicleEntryToDto(savedVehicleEntry);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(vehicleEntryResDto);
         } catch (NotFoundException e) {
@@ -83,10 +88,8 @@ public class VehicleEntryService {
         }
     }
 
-
     public ResponseEntity<?> deleteEntry(Long entryId) {
-        VehicleEntry vehicleEntry = vehicleEntryRepository.findById(entryId)
-                .orElseThrow(() -> new ResourceNotFoundException("Vehicle Entry", "Id", entryId));
+        VehicleEntry vehicleEntry = vehicleEntryRepository.findById(entryId).orElseThrow(() -> new ResourceNotFoundException("Vehicle Entry", "Id", entryId));
 
         if (!vehicleEntry.isStatus()) {
             throw new ResourceNotFoundException("Vehicle Entry", "Id", entryId);
@@ -101,8 +104,7 @@ public class VehicleEntryService {
 
     public ResponseEntity<?> updateEntry(VehicleEntryReqDto vehicleEntryReqDto, Long entryId) {
 
-            VehicleEntry vehicleEntry = vehicleEntryRepository.findById(entryId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Vehicle Entry", "Id", entryId));
+        VehicleEntry vehicleEntry = vehicleEntryRepository.findById(entryId).orElseThrow(() -> new ResourceNotFoundException("Vehicle Entry", "Id", entryId));
         try {
             Optional<DrivingLicence> optionalDrivingLicence = drivingLicenceRepo.findByDriverMobile(vehicleEntryReqDto.getDriverMobile());
             DrivingLicence drivingLicence = optionalDrivingLicence.orElseThrow(() -> new NotFoundException("Driver not found with this Mobile Number"));
@@ -137,111 +139,83 @@ public class VehicleEntryService {
         }
     }
 
-
     public ResponseEntity<?> fetchById(Long entryId) {
-        VehicleEntry vehicleEntry = vehicleEntryRepository.findById(entryId)
-                .orElseThrow(() -> new ResourceNotFoundException("Vehicle Entry", "Id", entryId));
-       return ResponseEntity.ok(dtoUtilities.vehicleEntryToDto(vehicleEntry));
+        VehicleEntry vehicleEntry = vehicleEntryRepository.findById(entryId).orElseThrow(() -> new ResourceNotFoundException("Vehicle Entry", "Id", entryId));
+        return ResponseEntity.ok(dtoUtilities.vehicleEntryToDto(vehicleEntry));
     }
 
-
-    public ResponseEntity<Page<VehicleEntryResDto>> fetchAllEntries(
-            String status,
-            Long unitId,
-            Long plantId,
-            Long purposeId,
-            int page,
-            int size,
-            String sortBy,
-            String sortDirection) {
+    public ResponseEntity<Page<VehicleEntryResDto>> fetchAllEntries(String status, Long unitId, Long plantId, Long purposeId, int page, int size, String sortBy, String sortDirection, String fromDate, String toDate) {
 
         Sort.Direction direction = sortDirection.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         Sort sort = Sort.by(direction, sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Boolean statusBoolean = (status != null) ? Boolean.parseBoolean(status) : null;
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE;
+        LocalDateTime date1 = null;
+        LocalDateTime date2 = null;
 
-        Page<VehicleEntry> vehicleEntries = vehicleEntryRepository.findByParameters(
-                statusBoolean,
-                unitId,
-                plantId,
-                purposeId,
-                pageable);
+        try {
+            date1 = (fromDate != null && !fromDate.isEmpty()) ? LocalDate.parse(fromDate, formatter).atStartOfDay() : null;
+        } catch (DateTimeParseException ignored) {
+        }
+
+        try {
+            date2 = (toDate != null && !toDate.isEmpty()) ? LocalDate.parse(toDate, formatter).atTime(LocalTime.MAX) : null;
+        } catch (DateTimeParseException ignored) {
+        }
+
+        Boolean statusBoolean = (status != null && !status.isEmpty()) ? Boolean.parseBoolean(status) : null;
+
+        Page<VehicleEntry> vehicleEntries = vehicleEntryRepository.findByParameters(statusBoolean, unitId, plantId, purposeId, date1, date2, pageable);
 
         Page<VehicleEntryResDto> vehicleEntryResDtoPage = vehicleEntries.map(dtoUtilities::vehicleEntryToDto);
 
         return ResponseEntity.ok(vehicleEntryResDtoPage);
     }
 
-//    public ResponseEntity<?> downloadEntryDataAsExcel() {
-//        try {
-//            List<VehicleEntry> vehicleEntryList = vehicleEntryRepository.findAll();
-//            if (vehicleEntryList.isEmpty())
-//                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No users available!");
-//            List<VehicleEntryResDto> vehicleEntryResDtoList = vehicleEntryList.stream().map(dtoUtilities::vehicleEntryToDto)
-//                    .collect(Collectors.toList());
-//            String fileName = "entry_excel_data.xlsx";
-//            String sheetName=fileName.substring(0,fileName.indexOf('.'));
-//            Resource resource = excelUtility.downloadDataAsExcel(vehicleEntryResDtoList, sheetName);
-//            return ResponseEntity.ok()
-//                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
-//                    .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
-//                    .body(resource);
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error!" + e);
-//        }
-//    }
-
-
-    public ResponseEntity<?> downloadEntryDataAsExcel(
-            String status,
-            Long unitId,
-            Long plantId,
-            Long purposeId) {
+    public ResponseEntity<?> downloadEntryDataAsExcel(String status, Long unitId, Long plantId, Long purposeId, String fromDate, String toDate) {
         try {
+            DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE;
+            LocalDateTime date1 = null;
+            LocalDateTime date2 = null;
+
+            try {
+                date1 = (fromDate != null && !fromDate.isEmpty()) ? LocalDate.parse(fromDate, formatter).atStartOfDay() : null;
+            } catch (DateTimeParseException ignored) {
+            }
+
+            try {
+                date2 = (toDate != null && !toDate.isEmpty()) ? LocalDate.parse(toDate, formatter).atTime(LocalTime.MAX) : null;
+            } catch (DateTimeParseException ignored) {
+            }
+
             Boolean statusBoolean = (status != null) ? Boolean.parseBoolean(status) : null;
 
-            List<VehicleEntry> vehicleEntryList = vehicleEntryRepository.findByParameters(
-                    statusBoolean,
-                    unitId,
-                    plantId,
-                    purposeId);
+            List<VehicleEntry> vehicleEntryList = vehicleEntryRepository.findByParameters(statusBoolean, unitId, plantId, purposeId, date1, date2);
 
             if (vehicleEntryList.isEmpty())
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No entries available!");
 
-            List<VehicleEntryResDto> vehicleEntryResDtoList = vehicleEntryList.stream()
-                    .map(dtoUtilities::vehicleEntryToDto)
-                    .collect(Collectors.toList());
+            List<VehicleEntryResDto> vehicleEntryResDtoList = vehicleEntryList.stream().map(dtoUtilities::vehicleEntryToDto).collect(Collectors.toList());
 
             String fileName = "entry_excel_data.xlsx";
             String sheetName = fileName.substring(0, fileName.indexOf('.'));
             Resource resource = excelUtility.downloadDataAsExcel(vehicleEntryResDtoList, sheetName);
 
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
-                    .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
-                    .body(resource);
+            return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName).contentType(MediaType.parseMediaType("application/vnd.ms-excel")).body(resource);
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid date format! Please provide dates in yyyy-mm-dd format.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error!" + e);
         }
     }
 
-
     public ResponseEntity<?> downloadExcelSample() throws IOException {
         String fileName = "entry_excel_sample.xlsx";
-        String sheetName=fileName.substring(0,fileName.indexOf('.'));
-        Resource resource = excelUtility.downloadExcelSample(VehicleEntryReqDto.class,sheetName);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment;filename="+fileName)
-                .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
-                .body(resource);
+        String sheetName = fileName.substring(0, fileName.indexOf('.'));
+        Resource resource = excelUtility.downloadExcelSample(VehicleEntryReqDto.class, sheetName);
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName).contentType(MediaType.parseMediaType("application/vnd.ms-excel")).body(resource);
     }
-
-//    public ResponseEntity<List<PurposeCountDto>> fetchPurposeCountsByDateRange(LocalDateTime fromDate, LocalDateTime toDate) {
-//        List<PurposeCountDto> purposeCounts = vehicleEntryRepository.findPurposesWithinDateRange(fromDate, toDate);
-//        return ResponseEntity.ok(purposeCounts);
-//    }
 
     public ResponseEntity<VehicleEntryCountDto> getEntryCounts() {
         Long totalEntries = vehicleEntryRepository.countTotalEntries();
@@ -254,8 +228,7 @@ public class VehicleEntryService {
     }
 
     public ResponseEntity<?> exitEntry(Long entryId) {
-        VehicleEntry vehicleEntry = vehicleEntryRepository.findById(entryId)
-                .orElseThrow(() -> new ResourceNotFoundException("Vehicle Entry", "Id", entryId));
+        VehicleEntry vehicleEntry = vehicleEntryRepository.findById(entryId).orElseThrow(() -> new ResourceNotFoundException("Vehicle Entry", "Id", entryId));
 
         if (vehicleEntry.isStatus()) {
             vehicleEntry.setStatus(false);
@@ -265,5 +238,4 @@ public class VehicleEntryService {
             throw new ResourceNotFoundException("Vehicle Entry", "Id", entryId);
         }
     }
-
 }

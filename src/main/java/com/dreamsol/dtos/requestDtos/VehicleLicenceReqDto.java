@@ -35,20 +35,20 @@ public class VehicleLicenceReqDto extends CommonAutoIdEntityRequestDto {
     @Schema(description = "Type of the vehicle", example = "Sedan")
     private String vehicleType;
 
-    @NotNull(message = "Insurance date is required.")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @Schema(description = "Insurance date of the vehicle", example = "2023-12-31")
-    private LocalDate insuranceDate;
+    @NotNull(message = "Expiry date is required.")
+    @Pattern(regexp = "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", message = "Expiry date must be in the format yyyy-MM-dd.")
+    @Schema(description = "Licence expiry date", example = "2023-12-31")
+    private String insuranceDate;
 
-    @NotNull(message = "PUC date is required.")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @Schema(description = "PUC date of the vehicle", example = "2023-12-31")
-    private LocalDate pucDate;
+    @NotNull(message = "Expiry date is required.")
+    @Pattern(regexp = "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", message = "Expiry date must be in the format yyyy-MM-dd.")
+    @Schema(description = "Licence expiry date", example = "2023-12-31")
+    private String pucDate;
 
-    @NotNull(message = "Registration date is required.")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @Schema(description = "Registration date of the vehicle", example = "2023-12-31")
-    private LocalDate registrationDate;
+    @NotNull(message = "Expiry date is required.")
+    @Pattern(regexp = "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", message = "Expiry date must be in the format yyyy-MM-dd.")
+    @Schema(description = "Licence expiry date", example = "2023-12-31")
+    private String registrationDate;
 
     @NotEmpty(message = "Brief must be provided.")
     @Size(min = 10, max = 200, message = "Brief should be between 10 and 200 characters.")

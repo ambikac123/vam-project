@@ -1,6 +1,5 @@
 package com.dreamsol.dtos.requestDtos;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.validation.constraints.*;
-import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -34,13 +32,21 @@ public class DrivingLicenceReqDto extends CommonAutoIdEntityRequestDto
     private String licence;
 
     @NotNull(message = "Expiry date is required.")
-    //@PastOrPresent(message = "Expiry date cannot be in the future.")
-    @JsonFormat(pattern = "dd-MM-yyyy")
+    @Pattern(regexp = "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", message = "Expiry date must be in the format yyyy-MM-dd.")
     @Schema(description = "Licence expiry date", example = "2023-12-31")
-    private LocalDate expDate;
+    private String expDate;
 
     @NotEmpty(message = "Brief must be provided.")
     @Size(min = 10, max = 200, message = "Brief should be between 10 and 200 characters.")
     @Schema(description = "Brief description about the driver", example = "Experienced driver with a clean record.")
     private String brief;
+
+//    public DrivingLicenceReqDto(Long unitId, String driverName, Long driverMobile, String licence, String expDate, String brief) {
+//        super(unitId);
+//        this.driverName = driverName;
+//        this.driverMobile = driverMobile;
+//        this.licence = licence;
+//        this.expDate = expDate;
+//        this.brief = brief;
+//    }
 }

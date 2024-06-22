@@ -6,9 +6,9 @@ import com.dreamsol.entites.*;
 import com.dreamsol.securities.JwtUtil;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.function.BiFunction;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -17,9 +17,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @Component
 @RequiredArgsConstructor
 public class DtoUtilities {
+
     private final PasswordEncoder passwordEncoder;
 
     private final JwtUtil jwtUtil;
+
     public BiFunction<Long, String, DropDownDto> createDropDown = DropDownDto::new;
 
     public User userRequstDtoToUser(UserRequestDto userRequestDto) {
@@ -71,6 +73,7 @@ public class DtoUtilities {
     public DrivingLicence licenceDtoToLicence(DrivingLicenceReqDto drivingLicenceReqDto) {
         DrivingLicence drivingLicence = new DrivingLicence();
         BeanUtils.copyProperties(drivingLicenceReqDto, drivingLicence);
+        drivingLicence.setExpDate(LocalDate.parse(drivingLicenceReqDto.getExpDate()));
         return drivingLicence;
     }
 
@@ -79,7 +82,7 @@ public class DtoUtilities {
         BeanUtils.copyProperties(drivingLicence, drivingLicenceResDto);
         if (drivingLicence.getFile() != null) {
             String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("/api/licence/download/")
+                    .path("/api/driving-licence/download/")
                     .path(drivingLicence.getFile().getGeneratedFileName())
                     .toUriString();
             drivingLicenceResDto.setFileUrl(fileUrl);
@@ -88,8 +91,11 @@ public class DtoUtilities {
     }
 
     public VehicleLicence vehicleLicenceDtoToVehicleLicence(VehicleLicenceReqDto vehicleLicenceReqDto) {
-        VehicleLicence vehicleLicence = new VehicleLicence();
+        VehicleLicence vehicleLicence=new VehicleLicence();
         BeanUtils.copyProperties(vehicleLicenceReqDto, vehicleLicence);
+        vehicleLicence.setInsuranceDate(LocalDate.parse(vehicleLicenceReqDto.getInsuranceDate()));
+        vehicleLicence.setPucDate(LocalDate.parse(vehicleLicenceReqDto.getPucDate()));
+        vehicleLicence.setRegistrationDate(LocalDate.parse(vehicleLicenceReqDto.getRegistrationDate()));
         return vehicleLicence;
     }
 

@@ -47,5 +47,4 @@ public class VehicleLicence extends CommonAutoIdEntity{
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "registration_attachment_id", referencedColumnName = "id")
     private VehicleLicenceAttachment registrationAttachment;
-
 }
