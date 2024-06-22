@@ -46,6 +46,7 @@ public class VisitorPrerequestService
     private final DtoUtilities dtoUtilities;
     private final ExcelUtility excelUtility;
     private static final Pattern VALID_DATE_PATTERN = Pattern.compile("^(\\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$");
+    private static final Pattern VALID_OTP_PATTERN = Pattern.compile("^\\d{6}$");
     public ResponseEntity<?> create(VisitorPrerequestDto visitorPrerequestDto) {
         try {
             VisitorPrerequest visitorPrerequest = dtoUtilities.visitorPrerequestDtoToVisitorPrerequest(visitorPrerequestDto);
@@ -53,9 +54,8 @@ public class VisitorPrerequestService
             purposeOptional.ifPresent(visitorPrerequest::setMeetingPurpose);
             visitorPrerequest.setOtp(generateOTP());
             try {
-                DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mm:ss");
-                DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
+                DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+                //DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
                 // Parsing Start Hours
                 String startHoursString = visitorPrerequestDto.getStartHours();
                 LocalTime startHours = (startHoursString == null || startHoursString.isEmpty()) ? LocalTime.MIN : LocalTime.parse(startHoursString, timeFormatter);
@@ -72,14 +72,15 @@ public class VisitorPrerequestService
                     assert meetingScheduleString != null;
                     throw new DateTimeParseException("Meeting schedule date is missing", meetingScheduleString, 0);
                 }
-                LocalDate meetingScheduleDate = LocalDate.parse(meetingScheduleString, dateFormatter);
-                visitorPrerequest.setMeetingSchedule(meetingScheduleDate.atTime(startHours));
+                //LocalDate meetingScheduleDate = LocalDate.parse(meetingScheduleString, dateFormatter);
+                visitorPrerequest.setMeetingSchedule(LocalDateTime.parse(meetingScheduleString));
 
             } catch (DateTimeParseException e) {
                 String errorMessage = "Please enter the correct format for schedule date [YYYY-MM-DD] or time [HH:MM:SS]: ";
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
             }
-            visitorPrerequest.setMeetingStatus(visitorPrerequestDto.getMeetingStatus());
+            String meetingStatus = visitorPrerequestDto.getMeetingStatus();
+            visitorPrerequest.setMeetingStatus(meetingStatus==null || meetingStatus.isEmpty()? "pending": meetingStatus);
             visitorRepository.save(visitorPrerequest);
             logger.info("Pre-requested new visitor created successfully!");
             return ResponseEntity.status(HttpStatus.CREATED).body("Pre-requested new visitor created successfully!");
@@ -97,7 +98,7 @@ public class VisitorPrerequestService
             Purpose purpose = purposeRepository.findById(visitorPrerequestDto.getMeetingPurposeId()).orElseThrow(()->new ResourceNotFoundException("purpose","purposeFor",visitorPrerequestDto.getMeetingPurposeId()));
             visitorPrerequest.setMeetingPurpose(purpose);
             try {
-                DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mm:ss"); // Using 24-hour format
+                DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss"); // Using 24-hour format
                 DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd"); // Ensuring the date format
 
                 // Parsing Start Hours
@@ -276,16 +277,7 @@ public class VisitorPrerequestService
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while downloading data as excel file: "+e.getMessage());
         }
     }
-    public ResponseEntity<?> getVisitorByMobile(Long mobile){
-        try{
-            Optional<VisitorPrerequest> visitorPrerequest = visitorRepository.findByMobile(mobile);
-            if(visitorPrerequest.isPresent())
-                return ResponseEntity.status(HttpStatus.OK).body(visitorPrerequest.get());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while fetching visitor details by mobile number");
-        }
-    }
+
     private String generateOTP(){
         Random random = new Random();
         int otp = 100000 + random.nextInt(900000);
@@ -296,5 +288,20 @@ public class VisitorPrerequestService
     }
     private boolean isInvalidDateRange(LocalDateTime fromDate, LocalDateTime toDate){
         return toDate.isBefore(fromDate) || toDate.isAfter(LocalDateTime.now());
+    }
+
+    public ResponseEntity<?> getVisitorByOTP(String otp) {
+        try{
+            if(VALID_OTP_PATTERN.matcher(otp).matches()){
+                VisitorPrerequest visitorPrerequest = visitorRepository.findByOtp(otp).orElseThrow(()->new ResourceNotFoundException("Visitor Prerequest","otp",0L));
+                logger.info("Visitor found with otp "+otp);
+                return ResponseEntity.status(HttpStatus.FOUND).body(visitorPrerequest);
+            }
+            logger.info("Invalid OTP!");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid OTP!");
+        }catch(Exception e){
+            logger.error("Error occurred while fetching visitors by otp",e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error");
+        }
     }
 }

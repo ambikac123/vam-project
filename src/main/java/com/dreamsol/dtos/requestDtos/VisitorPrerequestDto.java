@@ -51,23 +51,20 @@ public class VisitorPrerequestDto extends CommonAutoIdEntityRequestDto
     @Schema(description = "Purpose of the meeting", example = " ")
     private Long meetingPurposeId;
 
-    @NotNull(message = "must schedule the meeting time")
+    @NotNull(message = "must schedule the meeting date")
     @Schema(description = "Scheduled time for the meeting", example = " ")
     private String meetingSchedule;
 
     @Schema(description = "Start hours for the meeting", example = " ")
-    @Pattern(regexp = "^(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$", message = "start hours must be valid in HH:MM:SS format")
     private String startHours;
 
     @Schema(description = "End hours for the meeting", example = " ")
-    @Pattern(regexp = "^(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$", message = "end hours must be valid in HH:MM:SS format")
     private String endHours;
 
     @Size(max = 100, message = "Location must be at most 100 characters long")
     @Schema(description = "Location of the meeting", example = " ")
     private String location;
 
-    @NotNull(message = "Meeting status must be given")
     @Schema(description = "meeting status", example = " ")
     private String meetingStatus;
 

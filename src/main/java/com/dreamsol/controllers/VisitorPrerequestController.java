@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 
 @RestController
 @RequestMapping("/api/visitors-prerequest")
@@ -48,15 +46,12 @@ public class VisitorPrerequestController
     {
         return visitorPrerequestService.get(id);
     }
-    @GetMapping("/get-by-mobile/{mobile}")
-    public ResponseEntity<?> getVisitorPrerequestByMobile(
-            @Valid
-            @Min(value = 6000000000L, message = "mobile no. must start with 6,7,8 or 9")
-            @Max(value = 9999999999L, message = "mobile no. must have 10-digits long")
-            Long mobile
-    ){
-        return visitorPrerequestService.getVisitorByMobile(mobile);
+
+    @GetMapping("/get-by-otp/{otp}")
+    public ResponseEntity<?> getVisitorPrerequestByOTP(@PathVariable String otp){
+        return visitorPrerequestService.getVisitorByOTP(otp);
     }
+
     @GetMapping("/get-status-count")
     public ResponseEntity<?> getStatusCount(
             @RequestParam(value = "meetingStatus", required = false) String meetingStatus,

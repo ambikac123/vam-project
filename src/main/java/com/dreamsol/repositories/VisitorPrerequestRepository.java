@@ -12,8 +12,6 @@ import java.util.Optional;
 
 public interface VisitorPrerequestRepository extends JpaRepository<VisitorPrerequest,Long>
 {
-    Optional<VisitorPrerequest> findByMobile(Long mobile);
-
     Optional<VisitorPrerequest> findByOtp(String otp);
     @Query("SELECT v FROM VisitorPrerequest v WHERE " +
             "(:meetingStatus IS NULL OR v.meetingStatus = :meetingStatus) AND "+
